@@ -11,7 +11,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "typecheck": "tsc -b --pretty false"
+    "typecheck": "tsc -b --pretty false",
+    "validate:data": "node --experimental-strip-types scripts/validate-pvpoke-data.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "5.4.0",
