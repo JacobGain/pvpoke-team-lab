@@ -1,3 +1,5 @@
+import { PvpokeDataStatusCard } from "@/features/meta/PvpokeDataStatusCard";
+
 export function HomePage() {
   return (
     <main className="app-shell">
@@ -10,6 +12,7 @@ export function HomePage() {
         </p>
         <p className="status">Application foundation initialized.</p>
       </section>
+      <PvpokeDataStatusCard />
     </main>
   );
 }

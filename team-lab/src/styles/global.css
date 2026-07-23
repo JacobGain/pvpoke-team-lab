@@ -32,11 +32,14 @@ a {
 .app-shell {
   display: grid;
   min-height: 100vh;
-  place-items: center;
+  align-content: center;
+  justify-items: center;
+  gap: 1.5rem;
   padding: 2rem;
 }
 
-.welcome-card {
+.welcome-card,
+.data-card {
   width: min(100%, 42rem);
   padding: clamp(2rem, 6vw, 4rem);
   border: 1px solid #dce4f1;
@@ -70,4 +73,83 @@ a {
 .status {
   margin-top: 2rem;
   font-size: 0.9rem !important;
+}
+
+.data-card {
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.data-card h2 {
+  margin: 0;
+  font-size: 1.75rem;
+}
+
+.data-card__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.connection-badge {
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  color: #11663b;
+  background: #e5f7ed;
+  font-size: 0.75rem;
+  font-weight: 750;
+}
+
+.data-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 2rem 0 0;
+}
+
+.data-grid div {
+  min-width: 0;
+  padding: 1rem;
+  border-radius: 0.9rem;
+  background: #f4f7fb;
+}
+
+.data-grid dt {
+  margin-bottom: 0.35rem;
+  color: #69758d;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.data-grid dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.data-card--error {
+  border-color: #efc8c8;
+}
+
+.data-card button {
+  padding: 0.7rem 1rem;
+  border: 0;
+  border-radius: 0.75rem;
+  color: #ffffff;
+  background: #3157c8;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+@media (max-width: 520px) {
+  .app-shell {
+    padding: 1rem;
+  }
+
+  .data-grid {
+    grid-template-columns: 1fr;
+  }
 }
