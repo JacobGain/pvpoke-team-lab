@@ -846,7 +846,7 @@ Do not use `speciesId` alone as inventory identity: one player can own many buil
 - Use `GameMaster.loadGroupData()` to define the opponent meta.
 - Use `TeamRanker` to score shortlisted teams against that meta.
 - Use Team Builder threats/counters to explain recommendations.
-- Generate existing Battle/Team Builder URLs so a recommendation can be inspected immediately.
+- Generate existing Battle and Team Builder URLs so a recommendation can be inspected immediately.
 - Use training team-pool presets as optional known-good team archetypes.
 
 ### 16.3 Recommendation strategy
