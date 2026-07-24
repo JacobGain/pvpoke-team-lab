@@ -84,19 +84,31 @@ ecd7b3a92  data connection pt.2: repositories
 
 ### Phase 2 — Inventory domain and persistence
 
-Status: **Not started**
+Status: **In progress — persistence foundation complete**
 
-The next phase should create its overview and focused records before or
-alongside implementation. Expected records include:
+- [Phase overview](phase-02-inventory/README.md)
+- [Inventory domain model](phase-02-inventory/inventory-domain-model.md)
+- [IndexedDB and repositories](phase-02-inventory/indexeddb-and-repositories.md)
+- [Inventory validation](phase-02-inventory/inventory-validation.md)
+- [CRUD verification](phase-02-inventory/crud-verification.md)
 
-```text
-phase-02-inventory/
-├── README.md
-├── inventory-domain-model.md
-├── indexeddb-and-repositories.md
-├── manual-entry-workflow.md
-└── inventory-dashboard.md
-```
+Implemented:
+
+- versioned current/planned inventory schemas
+- explicit user-entered/rank-one IV provenance
+- structural and catalog-aware validation
+- Dexie database and repository contract
+- validated CRUD persistence
+- TanStack Query integration
+- engineering verification route
+- Vitest and fake IndexedDB foundation
+
+Remaining:
+
+- exact CP/level legality
+- full manual-entry and edit workflows
+- inventory dashboard/cards/filters
+- JSON backup and import
 
 ## Updating these records
 
@@ -134,11 +146,15 @@ Cache through TanStack Query
 Normalize into immutable TeamLab catalog records
     ↓
 Search and inspect Open Great League Pokémon
+    ↓
+Create a versioned, catalog-validated inventory record
+    ↓
+Persist and retrieve it through a repository-backed IndexedDB database
 ```
 
 TeamLab cannot yet:
 
-- persist owned Pokémon;
+- provide the finished inventory-entry/dashboard experience;
 - calculate an entered specimen’s exact level or IV rank;
 - create or save teams;
 - run the upstream battle engine;

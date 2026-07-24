@@ -24,6 +24,7 @@ to `.env.local` if either path differs in your environment.
 ## Validation
 
 ```bash
+npm test
 npm run typecheck
 npm run lint
 npm run build

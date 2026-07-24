@@ -336,9 +336,7 @@ The conceptual inventory record is:
 InventoryPokemon
 ├── schemaVersion
 ├── inventoryId
-├── speciesId
-├── formId
-├── shadowState                 # normal | shadow
+├── speciesId                  # exact catalog variant; includes form/Shadow
 ├── buildStatus                # current | planned
 ├── currentBuild
 │   ├── cp
@@ -353,7 +351,6 @@ InventoryPokemon
 │       └── chargedMoveIds
 ├── plannedBuild?              
 │   ├── targetSpeciesId
-│   ├── targetFormId
 │   ├── targetCp?
 │   └── desiredMoveset
 │       ├── fastMoveId
@@ -366,6 +363,13 @@ InventoryPokemon
 ```
 
 Fields will be finalized in the data-model documentation and runtime schema.
+
+Implementation refinement: PvPoke's catalog already assigns a distinct
+`speciesId` to each form and Shadow variant. TeamLab therefore persists that
+exact catalog identity instead of also storing `formId` and `shadowState`.
+Form and Shadow presentation are derived from the current catalog, preventing
+contradictory combinations in persisted data. See
+`implementation/phase-02-inventory/inventory-domain-model.md`.
 
 ### 9.1 Required input
 
@@ -1982,6 +1986,7 @@ Established decisions:
 | Meta source | Current PvPoke rankings/meta |
 | Simulation | Exact builds and TeamRanker; no full 3v3 AI prediction |
 | Persistence | IndexedDB via Dexie |
+| Catalog identity | Persist exact variant `speciesId`; derive form/Shadow metadata |
 | Backup | JSON import/export in MVP |
 | Local backend | None in MVP |
 | Future backend | Firebase Authentication and Firestore |
