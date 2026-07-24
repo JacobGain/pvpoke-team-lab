@@ -12,9 +12,14 @@ export function HomePage() {
           teams around what you own.
         </p>
         <p className="status">Application foundation initialized.</p>
-        <Link className="primary-link" to="/catalog">
-          Explore the Great League catalog
-        </Link>
+        <div className="home-actions">
+          <Link className="primary-link" to="/catalog">
+            Explore the Great League catalog
+          </Link>
+          <Link className="secondary-link" to="/inventory">
+            Verify local inventory
+          </Link>
+        </div>
       </section>
       <PvpokeDataStatusCard />
     </main>
