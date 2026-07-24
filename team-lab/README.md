@@ -32,3 +32,7 @@ npm run validate:data
 
 Product scope and architectural decisions are documented in
 [`docs/PROJECT-PLAN.md`](docs/PROJECT-PLAN.md).
+
+Actual implementation progress, file ownership, decisions, validation, and
+known limitations are tracked in
+[`docs/implementation/README.md`](docs/implementation/README.md).

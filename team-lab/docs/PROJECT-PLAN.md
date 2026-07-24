@@ -27,6 +27,10 @@ When implementation details conflict with this document, either the implementati
 
 The more detailed repository-boundary explanation remains in `Fork-Structure-Breakdown.md`. `FULL-SUMMARY.md` at the repository root documents the inherited PvPoke codebase.
 
+Actual implementation progress is maintained separately in
+`implementation/README.md` and its phase records. This plan defines intended
+scope; implementation records define current reality.
+
 ## 2. Product statement
 
 TeamLab is a Pokémon GO PvP inventory, build-analysis, and team-planning application.
