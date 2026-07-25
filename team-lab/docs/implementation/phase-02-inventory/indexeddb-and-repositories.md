@@ -19,10 +19,10 @@ InventoryRepository
     ↓
 DexieInventoryRepository
     ↓ validate write/read
-TeamLab IndexedDB v1
+TeamLab IndexedDB
 ```
 
-## Database version one
+## Inventory table
 
 Database name: `team-lab`
 
@@ -40,6 +40,9 @@ inventory:
 inventory filters and deterministic recent-update ordering. Compound and
 analysis-specific indexes are intentionally deferred until queries require
 them.
+
+The database is now at version two because Phase 4 adds a `savedTeams` table.
+The inventory table and its indexes are unchanged from version one.
 
 The Dexie database version and each record’s `schemaVersion` solve different
 problems:
@@ -126,7 +129,8 @@ exercise the real Dexie schema and prove:
 
 ## Known limitations
 
-- No version-two migration exists yet.
+- Database version two is additive; no inventory data transformation has been
+  required yet.
 - No cross-tab change notification exists.
 - Import/export is implemented for inventory; teams/settings do not yet exist.
 - There is no retry/recovery UI for browser quota or IndexedDB availability

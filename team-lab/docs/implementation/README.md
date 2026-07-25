@@ -144,6 +144,30 @@ Remaining beyond the initial phase:
 - custom opponent builds
 - charged-move and shield-scenario analysis
 
+### Phase 4 — Saved teams
+
+Status: **In progress — domain and persistence foundation complete**
+
+- [Phase overview](phase-04-saved-teams/README.md)
+- [Saved-team domain and persistence](phase-04-saved-teams/saved-team-domain-and-persistence.md)
+
+Implemented:
+
+- versioned Great League saved-team schema
+- ordered lead, switch, and closer inventory references
+- missing-member and species-clause validation
+- current/planned target-species resolution
+- legal create/update factories
+- repository contract and stable persistence errors
+- additive IndexedDB version-two saved-team table
+- validated Dexie CRUD
+
+Remaining:
+
+- query hooks and saved-team UI
+- reordering, duplication, and deleted-member recovery
+- team backup/restore
+
 ## Updating these records
 
 Documentation is part of the definition of done for an implementation slice.
