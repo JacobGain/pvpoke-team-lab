@@ -2,6 +2,7 @@ import type {
   PvpokeBattle,
   PvpokeBattleRuntime,
   PvpokePokemon,
+  PvpokeTeamRanker,
 } from "@/pvpoke/simulation/runtime";
 
 const ENGINE_SCRIPT_PATHS = [
@@ -14,6 +15,7 @@ const ENGINE_SCRIPT_PATHS = [
   "js/battle/Battle.js",
   "js/GameMaster.js",
   "js/pokemon/Pokemon.js",
+  "js/battle/rankers/TeamRanker.js",
 ] as const;
 
 interface PvpokeGameMaster {
@@ -33,6 +35,10 @@ interface PvpokeGlobals {
     index: number,
     battle: PvpokeBattle,
   ) => PvpokePokemon;
+  RankerMaster?: {
+    getInstance(): PvpokeTeamRanker;
+  };
+  getDefaultMultiBattleSettings?: () => Record<string, unknown>;
   host?: string;
   webRoot?: string;
   siteVersion?: string;
@@ -178,6 +184,18 @@ export class BrowserPvpokeRuntime implements PvpokeBattleRuntime {
     return new PokemonConstructor(speciesId, index, battle);
   }
 
+  getTeamRanker(): PvpokeTeamRanker {
+    const ranker = this.globals().RankerMaster?.getInstance();
+
+    if (!ranker) {
+      throw new PvpokeEngineBootstrapError(
+        "PvPoke TeamRanker is unavailable before engine bootstrap.",
+      );
+    }
+
+    return ranker;
+  }
+
   private globals(): PvpokeGlobals {
     return window as unknown as PvpokeGlobals;
   }
@@ -201,6 +219,17 @@ export class BrowserPvpokeRuntime implements PvpokeBattleRuntime {
       performanceMode: 1,
       theme: "default",
     };
+    globals.getDefaultMultiBattleSettings = () => ({
+      shields: 1,
+      ivs: "original",
+      bait: 1,
+      levelCap: 50,
+      startHp: 1,
+      startEnergy: 0,
+      startCooldown: 0,
+      optimizeMoveTiming: true,
+      startStatBuffs: [0, 0],
+    });
 
     try {
       for (const scriptPath of ENGINE_SCRIPT_PATHS) {
@@ -208,9 +237,9 @@ export class BrowserPvpokeRuntime implements PvpokeBattleRuntime {
       }
       await waitForGameMaster(globals, this.timeoutMs);
 
-      if (!globals.Battle || !globals.Pokemon) {
+      if (!globals.Battle || !globals.Pokemon || !globals.RankerMaster) {
         throw new Error(
-          "PvPoke scripts loaded without exposing Battle and Pokemon constructors.",
+          "PvPoke scripts loaded without exposing Battle, Pokemon, and TeamRanker.",
         );
       }
     } catch (error) {

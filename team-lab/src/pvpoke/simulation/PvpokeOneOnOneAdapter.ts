@@ -12,7 +12,7 @@ import type {
   PvpokePokemon,
 } from "@/pvpoke/simulation/runtime";
 
-function configurePokemon(
+export function configurePvpokePokemon(
   runtime: PvpokeBattleRuntime,
   battle: PvpokeBattle,
   build: ExactSimulationBuild,
@@ -68,14 +68,14 @@ export class PvpokeOneOnOneAdapter implements OneOnOneSimulationAdapter {
     battle.setCP(request.format.cpCap);
     battle.setCup(request.format.cup);
 
-    const first = configurePokemon(
+    const first = configurePvpokePokemon(
       this.runtime,
       battle,
       request.combatants[0].build,
       0,
       request.combatants[0].shields,
     );
-    const second = configurePokemon(
+    const second = configurePvpokePokemon(
       this.runtime,
       battle,
       request.combatants[1].build,

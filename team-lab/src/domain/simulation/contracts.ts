@@ -63,3 +63,42 @@ export interface OneOnOneSimulationAdapter {
     request: OneOnOneSimulationRequest,
   ): Promise<OneOnOneSimulationResult>;
 }
+
+export interface TeamRankerRequest {
+  readonly team: readonly ExactSimulationBuild[];
+  readonly targets: readonly ExactSimulationBuild[];
+  readonly teamShields: ShieldCount;
+  readonly targetShields: ShieldCount;
+  readonly dataVersion: string;
+}
+
+export interface TeamRankerMatchupResult {
+  readonly opponentSpeciesId: string;
+  readonly rating: number;
+  readonly score: number;
+  readonly durationMs: number;
+  readonly fastMoveDamage: number;
+  readonly incomingFastMoveDamage: number;
+  readonly attackDifferential: number;
+}
+
+export interface TeamRankerTargetResult {
+  readonly speciesId: string;
+  readonly speciesName: string;
+  readonly averageRating: number;
+  readonly score: number;
+  readonly matchups: readonly TeamRankerMatchupResult[];
+}
+
+export interface TeamRankerResult {
+  readonly rankings: readonly TeamRankerTargetResult[];
+  readonly teamRatings: readonly (readonly number[])[];
+  readonly battleCount: number;
+  readonly dataVersion: string;
+  readonly engine: "pvpoke-team-ranker";
+  readonly assumptions: readonly string[];
+}
+
+export interface TeamRankerAdapter {
+  rank(request: TeamRankerRequest): Promise<TeamRankerResult>;
+}

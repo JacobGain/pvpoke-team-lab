@@ -9,6 +9,7 @@ import { InventoryPage } from "@/features/inventory/InventoryPage";
 import { PokemonCatalogPage } from "@/features/meta/PokemonCatalogPage";
 import { SavedTeamFormPage } from "@/features/teams/SavedTeamFormPage";
 import { SavedTeamsPage } from "@/features/teams/SavedTeamsPage";
+import { SimulationDiagnosticsPage } from "@/features/simulation/SimulationDiagnosticsPage";
 
 export const router = createBrowserRouter(
   [
@@ -51,6 +52,10 @@ export const router = createBrowserRouter(
     {
       path: "/teams/:teamId",
       element: <SavedTeamFormPage />,
+    },
+    {
+      path: "/diagnostics/simulation",
+      element: <SimulationDiagnosticsPage />,
     },
     {
       path: "*",

@@ -22,6 +22,9 @@ export function HomePage() {
           <Link className="secondary-link" to="/teams">
             Build saved teams
           </Link>
+          <Link className="secondary-link" to="/diagnostics/simulation">
+            Simulation diagnostics
+          </Link>
         </div>
       </section>
       <PvpokeDataStatusCard />
