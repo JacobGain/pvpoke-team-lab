@@ -116,11 +116,12 @@ The phase's MVP exit criteria are complete. Phase 3 progress follows below.
 
 ### Phase 3 — IV and build analysis
 
-Status: **In progress — foundational build profiles complete**
+Status: **Complete for the initial analysis slice**
 
 - [Phase overview](phase-03-build-analysis/README.md)
 - [IV ranking and effective stats](phase-03-build-analysis/iv-ranking-and-effective-stats.md)
 - [Build profile, roles, moves, and UI](phase-03-build-analysis/build-profile-and-ui.md)
+- [Named-opponent CMP, breakpoints, and bulkpoints](phase-03-build-analysis/named-opponent-thresholds.md)
 
 Implemented:
 
@@ -132,12 +133,16 @@ Implemented:
 - recommended-move comparison
 - qualitative build requirements
 - cached per-record analysis route
+- named meta-opponent selection with explicit build assumptions
+- exact CMP comparison
+- fast-move breakpoints and defensive bulkpoints
+- general-IV-space threshold attainability
 
-Remaining:
+Remaining beyond the initial phase:
 
-- opponent-specific CMP evidence
-- initial meta breakpoints and bulkpoints
 - simulated matchup impact
+- custom opponent builds
+- charged-move and shield-scenario analysis
 
 ## Updating these records
 

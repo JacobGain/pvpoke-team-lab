@@ -55,6 +55,10 @@ function createMove(
     name: move.name,
     type: move.type,
     kind,
+    power: move.power,
+    energy: move.energy,
+    energyGain: move.energyGain,
+    turns: move.turns ?? Math.max(move.cooldown / 500, 1),
     isLegacy: pokemon.legacyMoves?.includes(move.moveId) ?? false,
     isElite: pokemon.eliteMoves?.includes(move.moveId) ?? false,
   });

@@ -3,7 +3,7 @@
 > **Phase:** Phase 1 — Upstream Data Boundary  
 > **Status:** Complete for the initial catalog  
 > **Route:** `/catalog`  
-> **Last reviewed:** 2026-07-24
+> **Last reviewed:** 2026-07-25
 
 ## Summary
 
@@ -57,6 +57,7 @@ Each `PokemonCatalogEntry` contains:
 - base stats and upstream level bounds;
 - direct evolution IDs;
 - resolved fast and charged movepools;
+- normalized move power, energy, energy gain, and turn duration;
 - legacy/Elite move flags;
 - default Great League IV spread, where published;
 - overall ranking, score, rating, and recommended move IDs;

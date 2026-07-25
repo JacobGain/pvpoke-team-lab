@@ -27,13 +27,17 @@ stat-product rank as matchup proof.
   move requirements
 - cached ranking tables and TanStack Query analysis results
 - per-record `/inventory/:inventoryId/analysis` route
+- named Open Great League meta-opponent selection
+- explicit opponent default-IV and recommended-fast-move assumptions
+- exact CMP comparison for every inferred level
+- outgoing fast-move breakpoint and incoming fast-move bulkpoint
+- general-IV-space attainability checks
 
 ## Out of scope
 
-- opponent-specific CMP conclusions
-- meta-specific fast-move breakpoints
-- opponent-specific defensive bulkpoints
 - simulated matchup impact
+- charged-move thresholds
+- custom opponent builds
 - exact Stardust, Candy, XL Candy, or TM inventory costs
 - IV acquisition-floor-specific alternate ranks
 - batch analysis fields directly on every dashboard card
@@ -43,6 +47,7 @@ stat-product rank as matchup proof.
 
 - [IV ranking and effective stats](iv-ranking-and-effective-stats.md)
 - [Build profile, roles, moves, and UI](build-profile-and-ui.md)
+- [Named-opponent CMP, breakpoints, and bulkpoints](named-opponent-thresholds.md)
 
 ## Important decisions
 
@@ -59,8 +64,8 @@ stat-product rank as matchup proof.
 - Role ranks are derived from the six score positions already present in the
   validated overall ranking artifact.
 - Analysis is derived and cached, never persisted into inventory.
-- Breakpoint/bulkpoint claims require a named opponent/build and remain
-  deferred until that evidence exists.
+- Breakpoint/bulkpoint claims always name and display the assumed opponent.
+- Threshold evidence remains separate from simulated matchup impact.
 
 ## Validation
 
@@ -82,6 +87,9 @@ Current automated coverage verifies:
 - current/planned separation;
 - recommended-move requirements;
 - upstream overall and role metadata.
+- dual-type effectiveness and immunity-level resistance;
+- named opponent and recommended-fast-move resolution;
+- offensive and defensive fast-move threshold behavior.
 
 ## Known limitations
 
@@ -89,11 +97,12 @@ Current automated coverage verifies:
   equal stat products are not collapsed into competition ranks.
 - The general IV denominator does not produce separate purified, raid, trade,
   mythical, or research-floor ranks.
-- Attack percentile is CMP context only; an opponent's exact Attack is needed
-  for a CMP conclusion.
+- General Attack percentile remains broad context; the named-opponent panel
+  supplies an exact Attack comparison.
 - Role ranks describe PvPoke's published default build, not a resimulation of
   the user's exact moves and IVs.
 - Build costs are qualitative.
+- Fast-move thresholds do not prove a matchup flip.
 
 ## Exit criteria
 
@@ -102,8 +111,8 @@ Current automated coverage verifies:
 - [x] Current and planned profiles are distinguishable.
 - [x] PvPoke overall and role context is visible.
 - [x] Moveset comparison and initial build requirements exist.
-- [ ] Opponent-specific initial breakpoint and CMP insights exist.
-- [ ] The phase's final limitations and handoff are documented.
+- [x] Opponent-specific initial breakpoint and CMP insights exist.
+- [x] The phase's final limitations and handoff are documented.
 
 ## Next phase dependencies
 
