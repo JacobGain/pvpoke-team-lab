@@ -239,9 +239,13 @@ npm run build     passed with the existing >500 kB chunk warning
 - Measurements do not include React DOM layout and painting.
 - The synthetic catalog is representative of work shape, not the current
   competitive meta distribution.
-- Exact browser TeamRanker performance is not measured here.
+- Exact browser TeamRanker performance is not measured by this Node fixture.
+  The subsequent
+  [responsive/browser slice](responsive-and-browser-hardening.md) records the
+  small real-engine diagnostic.
 - Budgets are regression tripwires rather than device support guarantees.
-- Mobile browser performance still requires the responsive/browser audit.
+- Mobile layout behavior is covered by the subsequent responsive/browser
+  audit; populated browser-workflow performance remains separate.
 
 ## Safe extension points
 
@@ -253,8 +257,11 @@ npm run build     passed with the existing >500 kB chunk warning
 
 ## Follow-up work
 
-Complete the cross-feature responsive audit and browser-level critical
-workflow coverage, including real TeamRanker responsiveness.
+The cross-feature responsive audit and small real TeamRanker diagnostic were
+completed in
+[Responsive and Browser Hardening](responsive-and-browser-hardening.md).
+Critical populated browser-workflow coverage and realistic large-scope
+TeamRanker measurement remain.
 
 ## Relevant commits
 

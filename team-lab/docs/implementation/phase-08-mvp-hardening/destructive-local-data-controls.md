@@ -229,7 +229,9 @@ npm run build     passed with the existing >500 kB chunk warning
 ## Follow-up work
 
 Representative-scale characterization is complete. The cross-feature
-responsive and browser-workflow audit follows.
+The responsive audit is recorded in
+[Responsive and Browser Hardening](responsive-and-browser-hardening.md);
+populated browser-workflow automation follows.
 
 ## Relevant commits
 

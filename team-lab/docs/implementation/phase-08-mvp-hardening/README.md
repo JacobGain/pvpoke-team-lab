@@ -46,6 +46,13 @@ extends or verifies those capabilities rather than recreating them.
 - verified 40-partner, 250-team, and finalist work bounds at representative
   scale
 - documented worker and virtualization decision for characterized paths
+- complete routed-feature responsive source audit
+- verified 320 px no-overflow browser matrix across directly reachable routes
+- repaired native backup file-input overflow
+- compact mobile cards, forms, actions, progress, and diagnostics presentation
+- route-level feature code splitting with an accessible loading boundary
+- production entry chunk reduced below Vite's 500 kB warning threshold
+- real-browser TeamRanker diagnostic passed with bounded timing
 
 ## Out of scope
 
@@ -53,7 +60,6 @@ extends or verifies those capabilities rather than recreating them.
 - saved analysis or recommendation-run caches
 - worker execution for synchronous TeamRanker work
 - browser-level workflow tests
-- completed cross-feature responsive audit
 - local user documentation
 
 ## Implementation records
@@ -61,6 +67,7 @@ extends or verifies those capabilities rather than recreating them.
 - [Full-data backup and atomic restore](full-data-backup-and-atomic-restore.md)
 - [Destructive local-data controls](destructive-local-data-controls.md)
 - [Representative-scale characterization](representative-scale-characterization.md)
+- [Responsive and browser hardening](responsive-and-browser-hardening.md)
 
 ## Important decisions
 
@@ -85,8 +92,13 @@ extends or verifies those capabilities rather than recreating them.
   dialog; reset-all additionally requires the exact text `RESET`.
 - Static discovery, persistence, and inventory-view measurements do not justify
   worker or virtualization complexity at the MVP target.
-- Real browser TeamRanker responsiveness must be verified separately; a fake
-  Node adapter would not provide an honest engine measurement.
+- Real browser TeamRanker performance must be measured in the actual upstream
+  runtime; a fake Node adapter would not provide honest engine evidence. The
+  small diagnostic is now measured, while realistic finalist scopes remain.
+- A 320 CSS-pixel viewport is the responsive MVP lower bound.
+- Feature pages load at route boundaries; home and not-found remain eager.
+- The two-battle TeamRanker diagnostic is sufficient to characterize a small
+  engine run, but not to clear large configurable finalist scopes.
 
 ## Validation
 
@@ -105,14 +117,16 @@ rollback, clear-saved-team isolation, guarded inventory clear, atomic
 reset-all, legacy replace semantics, and the complete representative-scale
 workflow.
 
-Observed after the third slice:
+Observed after the fourth slice:
 
 ```text
 npm test          26 files, 76 tests passed
-npm run test:scale passed; representative workflow approximately 307 ms
+npm run test:scale passed
 npm run typecheck passed
 npm run lint      passed
-npm run build     passed with the existing >500 kB chunk warning
+npm run build     passed; largest entry chunk approximately 406 kB
+320 px route audit passed without horizontal document overflow
+TeamRanker        passed; 62 ms engine / 80 ms click-to-render
 ```
 
 ## Known limitations
@@ -127,8 +141,10 @@ npm run build     passed with the existing >500 kB chunk warning
 - No settings table or persisted simulation cache exists to include.
 - Individual inventory-record deletion can still create a saved-team recovery
   state by design; the bulk inventory-clear operation is stricter.
-- Exact browser TeamRanker execution is not represented by the Node scale
-  fixture.
+- The real-browser TeamRanker timing covers two battles, not a large
+  recommendation finalist/meta scope.
+- Populated parameterized routes still need critical browser-workflow
+  automation.
 
 ## Exit criteria
 
@@ -141,17 +157,17 @@ npm run build     passed with the existing >500 kB chunk warning
 - [x] Domain, persistence, backup, inventory-view, and static recommendation
       workflows are characterized with 120 records and 30 saved teams.
 - [ ] Long work remains responsive or is moved to a worker where needed.
-- [ ] The responsive audit is complete.
+- [x] The responsive audit is complete.
 - [ ] Critical browser-level workflow coverage is complete.
 - [ ] Local user documentation is complete.
 - [x] No TeamLab feature requires edits to inherited upstream source.
 
 ## Next phase dependencies
 
-The next Phase 8 slice should complete the cross-feature responsive audit,
-repair any layout or interaction failures at supported widths, and record the
-remaining real-browser TeamRanker responsiveness requirement for browser-level
-coverage.
+The next Phase 8 slice should add durable critical browser workflow coverage,
+including populated parameterized routes and a realistic recommendation
+TeamRanker scope. That evidence should decide whether the remaining long-work
+criterion requires a worker. Local user documentation follows.
 
 ## Relevant commits
 

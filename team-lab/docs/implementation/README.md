@@ -300,6 +300,7 @@ Status: **In progress**
 - [Full-data backup and atomic restore](phase-08-mvp-hardening/full-data-backup-and-atomic-restore.md)
 - [Destructive local-data controls](phase-08-mvp-hardening/destructive-local-data-controls.md)
 - [Representative-scale characterization](phase-08-mvp-hardening/representative-scale-characterization.md)
+- [Responsive and browser hardening](phase-08-mvp-hardening/responsive-and-browser-hardening.md)
 
 Implemented:
 
@@ -319,12 +320,14 @@ Implemented:
 - bounded recommendation-discovery and persistence regression budgets
 - map-backed characterized inventory filtering and sorting
 - measured no-worker/no-virtualization decision for characterized MVP paths
+- complete 320 px responsive route audit and native file-control repair
+- route-level feature code splitting and sub-500 kB production entry chunk
+- bounded real-browser TeamRanker diagnostic timing
 
 Remaining:
 
-- real-browser TeamRanker responsiveness verification
-- complete responsive audit
 - critical browser-level workflow coverage
+- realistic large-scope TeamRanker responsiveness decision
 - local user documentation
 
 ## Updating these records
@@ -393,8 +396,9 @@ Guard or atomically reset persisted local data
 
 TeamLab cannot yet:
 
-- claim the cross-feature responsive audit is complete;
 - claim critical browser-level workflow coverage is complete;
+- claim that realistic large-scope TeamRanker work never blocks the main
+  thread;
 - provide finished local user documentation.
 
 Those capabilities are the remaining Phase 8 hardening scope.
