@@ -1,6 +1,8 @@
 import { inventoryPokemonSchema, type InventoryPokemon } from "@/domain/inventory/schemas";
 import {
   type InventoryRepository,
+  type InventoryRestoreMode,
+  type InventoryRestoreResult,
   InvalidStoredInventoryRecordError,
   InventoryRecordAlreadyExistsError,
   InventoryRecordNotFoundError,
@@ -96,5 +98,56 @@ export class DexieInventoryRepository implements InventoryRepository {
 
   clear(): Promise<void> {
     return this.database.inventory.clear();
+  }
+
+  async restore(
+    records: readonly InventoryPokemon[],
+    mode: InventoryRestoreMode,
+  ): Promise<InventoryRestoreResult> {
+    const validatedRecords = records.map((record) =>
+      inventoryPokemonSchema.parse(record),
+    );
+    const incomingIds = new Set(
+      validatedRecords.map((record) => record.inventoryId),
+    );
+
+    if (incomingIds.size !== validatedRecords.length) {
+      throw new Error("Restore records contain duplicate inventory IDs.");
+    }
+
+    return this.database.transaction(
+      "rw",
+      this.database.inventory,
+      async () => {
+        const existingIds = await this.database.inventory
+          .toCollection()
+          .primaryKeys();
+        const existingIdSet = new Set(existingIds);
+        const updated = validatedRecords.filter((record) =>
+          existingIdSet.has(record.inventoryId),
+        ).length;
+        const inserted = validatedRecords.length - updated;
+        const removed =
+          mode === "replace"
+            ? existingIds.filter((id) => !incomingIds.has(id)).length
+            : 0;
+
+        if (mode === "replace") {
+          await this.database.inventory.clear();
+          await this.database.inventory.bulkAdd(validatedRecords);
+        } else {
+          await this.database.inventory.bulkPut(validatedRecords);
+        }
+
+        return {
+          mode,
+          incoming: validatedRecords.length,
+          inserted,
+          updated,
+          removed,
+          finalCount: await this.database.inventory.count(),
+        };
+      },
+    );
   }
 }

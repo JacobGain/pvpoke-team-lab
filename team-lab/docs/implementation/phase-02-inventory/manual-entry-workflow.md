@@ -3,7 +3,7 @@
 > **Phase:** Phase 2 — Inventory Domain and Persistence  
 > **Status:** Complete for the initial MVP workflow  
 > **Routes:** `/inventory/new`, `/inventory/:inventoryId`  
-> **Last reviewed:** 2026-07-24
+> **Last reviewed:** 2026-07-25
 
 ## Summary
 
@@ -32,6 +32,24 @@ Editing preserves `inventoryId` and `createdAt`, refreshes `updatedAt` and
 `sourceDataVersion`, permits current/planned transitions, and validates the
 complete replacement before the repository update.
 
+## High-volume entry
+
+The same form now supports repetitive inventory entry:
+
+- a species search field narrows the native species/form selector by display
+  name or stable ID;
+- native controls retain keyboard navigation;
+- `Save and add another` saves without returning to the dashboard;
+- the just-saved build seeds the next form as useful defaults;
+- the next save still receives a new `inventoryId` and timestamps;
+- a compact success message reports the current local inventory count;
+- every dashboard card has a Duplicate action that seeds a new record;
+- duplication never reuses persistence identity or creation metadata.
+
+The carried record is loaded through the repository and passed only as initial
+form state. The normal creation factory remains the sole owner of new
+identity.
+
 ## Exact identity and moves
 
 The species selector uses exact form and Shadow catalog variants. The catalog
@@ -56,10 +74,11 @@ must be possible with the specimen’s IVs.
 
 ## Known limitations
 
-- The native species select needs a future searchable combobox.
+- The species filter plus native select is functional; a richer ARIA
+  autocomplete combobox may improve very large-list navigation later.
 - Only direct evolution steps are selectable.
 - IV rank, breakpoints, and costs belong to later analysis.
-- Rapid duplication is not implemented.
+- Batch import from third-party scanners remains future work.
 
 ## Relevant commits
 

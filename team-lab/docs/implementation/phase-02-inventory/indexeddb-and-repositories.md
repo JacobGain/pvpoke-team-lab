@@ -2,7 +2,7 @@
 
 > **Phase:** Phase 2 — Inventory Domain and Persistence  
 > **Status:** Complete for basic CRUD  
-> **Last reviewed:** 2026-07-24
+> **Last reviewed:** 2026-07-25
 
 ## Summary
 
@@ -57,6 +57,7 @@ update(record)
 delete(inventoryId)
 count()
 clear()
+restore(records, mode)
 ```
 
 `create` rejects duplicate identity. `update` and `delete` reject missing
@@ -64,7 +65,12 @@ identity. There is no generic `save`/upsert operation because accidentally
 creating during an edit can hide workflow bugs.
 
 `clear` exists for future backup/reset operations but is not exposed by the
-verification UI.
+inventory repository's ordinary record screens. It is exposed in the
+confirmed backup/reset workflow.
+
+`restore` performs either merge or replace semantics in one Dexie transaction.
+The incoming backup wins matching IDs during merge. Replace removes records
+absent from the backup.
 
 ## Validation and errors
 
@@ -122,7 +128,7 @@ exercise the real Dexie schema and prove:
 
 - No version-two migration exists yet.
 - No cross-tab change notification exists.
-- No import/export transaction exists.
+- Import/export is implemented for inventory; teams/settings do not yet exist.
 - There is no retry/recovery UI for browser quota or IndexedDB availability
   failures.
 

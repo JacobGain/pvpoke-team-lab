@@ -84,7 +84,7 @@ ecd7b3a92  data connection pt.2: repositories
 
 ### Phase 2 — Inventory domain and persistence
 
-Status: **In progress — entry and maintenance workflow complete**
+Status: **Complete for MVP**
 
 - [Phase overview](phase-02-inventory/README.md)
 - [Inventory domain model](phase-02-inventory/inventory-domain-model.md)
@@ -93,6 +93,7 @@ Status: **In progress — entry and maintenance workflow complete**
 - [Combat power and level inference](phase-02-inventory/combat-power-and-level-inference.md)
 - [Manual inventory entry and editing](phase-02-inventory/manual-entry-workflow.md)
 - [Inventory dashboard](phase-02-inventory/inventory-dashboard.md)
+- [Inventory backup and restore](phase-02-inventory/backup-and-restore.md)
 - [Superseded CRUD verification](phase-02-inventory/crud-verification.md)
 
 Implemented:
@@ -106,11 +107,12 @@ Implemented:
 - TanStack Query integration
 - current/planned create and edit workflow
 - searchable inventory dashboard and confirmed deletion
+- high-volume entry conveniences and duplication
+- versioned JSON export and fully validated import
+- atomic merge/replace restore and confirmed local clearing
 - Vitest and fake IndexedDB foundation
 
-Remaining:
-
-- JSON backup and import
+The phase's MVP exit criteria are complete. IV/stat analysis begins in Phase 3.
 
 ## Updating these records
 
@@ -152,12 +154,15 @@ Search and inspect Open Great League Pokémon
 Create a versioned, catalog-validated inventory record
     ↓
 Persist and retrieve it through a repository-backed IndexedDB database
+    ↓
+Maintain current/planned builds with exact level validation
+    ↓
+Export or atomically restore a versioned local backup
 ```
 
 TeamLab cannot yet:
 
-- provide the finished inventory-entry/dashboard experience;
-- calculate an entered specimen’s exact level or IV rank;
+- calculate an entered specimen’s IV rank, stat profile, or breakpoints;
 - create or save teams;
 - run the upstream battle engine;
 - generate team recommendations.

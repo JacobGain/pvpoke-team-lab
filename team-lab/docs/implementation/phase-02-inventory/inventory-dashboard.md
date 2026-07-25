@@ -3,7 +3,7 @@
 > **Phase:** Phase 2 — Inventory Domain and Persistence  
 > **Status:** Complete for the initial MVP list  
 > **Route:** `/inventory`  
-> **Last reviewed:** 2026-07-24
+> **Last reviewed:** 2026-07-25
 
 ## Summary
 
@@ -15,10 +15,14 @@ information needed to maintain current and planned builds.
 - shows local record count;
 - searches species identity, display name, and notes;
 - filters all, current, or planned builds;
+- filters favorites;
+- sorts by recent update, species name, or highest CP;
 - displays favorite/status, CP, IVs, provenance, inferred level, and moves;
 - summarizes desired species, CP, and moves for plans;
 - exposes source-data version and update time;
 - links to full editing;
+- duplicates a record into a new-specimen form;
+- links to backup and restore;
 - confirms before deletion;
 - distinguishes empty inventory from empty filter results.
 
@@ -34,7 +38,6 @@ League inventory. Database indexes remain available for future larger queries.
 
 - Move IDs are displayed instead of polished labels.
 - Sprites and final type presentation are deferred.
-- Sort options and favorite-only filtering are not implemented.
 - Deletion uses the browser confirmation dialog.
 
 ## Relevant commits

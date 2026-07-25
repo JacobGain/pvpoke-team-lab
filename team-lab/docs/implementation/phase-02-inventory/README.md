@@ -1,8 +1,8 @@
 # Phase 2 — Inventory Domain and Persistence
 
-> **Status:** In progress  
+> **Status:** Complete for MVP
 > **Project-plan phase:** Phase 2: inventory domain and persistence  
-> **Last reviewed:** 2026-07-24
+> **Last reviewed:** 2026-07-25
 
 ## Objective
 
@@ -26,6 +26,10 @@ the domain to Dexie, React, or raw PvPoke records.
 - TanStack Query hooks
 - complete manual create and edit routes
 - searchable current/planned inventory dashboard and confirmed deletion
+- favorite filters and useful sort modes
+- species filtering, save-and-add-another, and safe duplication
+- versioned JSON backup export and complete import inspection
+- atomic merge/replace restore and confirmed clear-inventory workflow
 - Vitest and fake IndexedDB test foundation
 
 ## Out of scope
@@ -33,7 +37,6 @@ the domain to Dexie, React, or raw PvPoke records.
 - exact IV rank calculation
 - multi-stage evolution planning
 - acquisition-method legality beyond upstream level floors
-- JSON backup/import
 - database migrations beyond the initial version
 - saved teams, analysis, and recommendations
 
@@ -45,6 +48,7 @@ the domain to Dexie, React, or raw PvPoke records.
 - [Combat power and level inference](combat-power-and-level-inference.md)
 - [Manual inventory entry and editing](manual-entry-workflow.md)
 - [Inventory dashboard](inventory-dashboard.md)
+- [Inventory backup and restore](backup-and-restore.md)
 - [Superseded CRUD verification](crud-verification.md)
 
 ## Important decisions
@@ -60,6 +64,9 @@ the domain to Dexie, React, or raw PvPoke records.
   delete or rewrite unsupported data.
 - The repository exposes explicit `create` and `update`, avoiding ambiguous
   upsert behavior.
+- Backup inspection is all-or-nothing and restore is transactional.
+- Merge preserves unrelated local records and lets the selected backup win
+  matching IDs; replace makes the backup authoritative.
 
 ## Validation
 
@@ -84,6 +91,8 @@ complete repository CRUD path, stable errors, and invalid-data preservation.
 - Catalog drift is detected through stored `sourceDataVersion`, but migration
   and user-facing repair flows are not implemented.
 - Cards still use move IDs and omit sprites/polished type presentation.
+- Backup version one contains inventory only; teams/settings are added when
+  those persisted domains exist.
 
 ## Exit criteria
 
@@ -96,13 +105,14 @@ complete repository CRUD path, stable errors, and invalid-data preservation.
 - [x] Manual-entry workflow supports all required fields.
 - [x] CP/IV/species combinations receive exact level/legal-build validation.
 - [x] Inventory cards, filters, and full edit workflow are implemented.
-- [ ] JSON backup/import is implemented.
+- [x] JSON backup/import is implemented.
 
 ## Next phase dependencies
 
-The remaining Phase 2 UI and the later analysis phase can rely on stable
+Later analysis and team phases can rely on stable
 inventory identity, explicit build intent, IV provenance, source-data
-provenance, and persistence APIs that are not tied to components.
+provenance, exact build legality, atomic persistence, and recoverable local
+data APIs that are not tied to components.
 
 ## Relevant commits
 

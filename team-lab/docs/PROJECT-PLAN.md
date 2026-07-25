@@ -1988,6 +1988,7 @@ Established decisions:
 | Persistence | IndexedDB via Dexie |
 | Catalog identity | Persist exact variant `speciesId`; derive form/Shadow metadata |
 | Backup | JSON import/export in MVP |
+| Inventory restore | Validate completely; atomic merge or replace |
 | Local backend | None in MVP |
 | Future backend | Firebase Authentication and Firestore |
 | Frontend | React, TypeScript, Vite |
