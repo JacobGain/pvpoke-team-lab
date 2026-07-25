@@ -214,6 +214,7 @@ Status: **In progress — coverage and threat evidence complete**
 
 - [Phase overview](phase-06-team-analysis/README.md)
 - [Coverage, threats, and core breakers](phase-06-team-analysis/coverage-threats-and-core-breakers.md)
+- [Bulk, safety, and consistency scorecard](phase-06-team-analysis/bulk-safety-and-consistency.md)
 
 Implemented:
 
@@ -225,10 +226,13 @@ Implemented:
 - core-breaker and full-team-wall classification
 - provisional scope-aware coverage grade
 - scorecard and threat evidence UI
+- exact-stat bulk score
+- simulated-distribution safety score
+- static PvPoke consistency score
+- evidence-source and formula disclosure
 
 Remaining:
 
-- bulk, safety, and consistency scores
 - owned and unowned alternatives
 - upstream deep links
 

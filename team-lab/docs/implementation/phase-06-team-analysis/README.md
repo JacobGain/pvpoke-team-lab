@@ -26,12 +26,14 @@ or partial meta subset as universal truth.
 - scorecard summary on the saved-team simulation route
 - threat and member evidence cards
 - raw matrix retained below derived analysis
+- exact Defense × HP bulk percentile evidence
+- answer-redundancy and safe-switch safety heuristic
+- published PvPoke consistency aggregation
+- complete initial Coverage/Bulk/Safety/Consistency scorecard
+- evidence-source and formula disclosure
 
 ## Deferred scope
 
-- bulk score
-- safety score
-- consistency score
 - upstream weighting of meta targets
 - role evidence in the team scorecard
 - owned alternatives
@@ -43,23 +45,23 @@ or partial meta subset as universal truth.
 ## Implementation records
 
 - [Coverage, threats, and core breakers](coverage-threats-and-core-breakers.md)
+- [Bulk, safety, and consistency scorecard](bulk-safety-and-consistency.md)
 
 ## Exit criteria
 
 - [x] Exact saved team is evaluated against current selected meta scope.
 - [x] Coverage evidence is displayed.
 - [x] Major threats and core breakers are displayed.
-- [ ] Bulk, safety, and consistency are displayed.
+- [x] Bulk, safety, and consistency are displayed.
 - [ ] Owned and unowned alternatives are displayed.
 - [ ] Upstream deep links are available.
 - [ ] Full MVP scorecard and threat view is complete.
 
 ## Next slice
 
-Add bulk, safety, and consistency evidence using clearly documented inputs:
-effective-stat bulk from exact team builds, matchup-distribution safety, and
-the existing PvPoke role/consistency metadata. These must remain distinguishable
-from freshly simulated matchup coverage.
+Add owned and unowned alternatives for the highest-priority threats. Candidate
+evidence must distinguish exact owned inventory builds from theoretical
+catalog defaults and continue to enforce species clause.
 
 ## Relevant commits
 
