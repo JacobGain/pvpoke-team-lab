@@ -235,13 +235,12 @@ TeamRanker        passed; 62 ms engine / 80 ms click-to-render
 
 ## Follow-up work
 
-The next Phase 8 slice should add durable critical browser workflow coverage.
-It should seed representative persisted data, exercise parameterized routes
-and destructive confirmations, and measure a realistic recommendation
-TeamRanker scope. That evidence should decide whether the remaining long-work
-criterion can close without a worker.
+The subsequent
+[Critical Browser Workflow Coverage](critical-browser-workflow-coverage.md)
+slice seeded persisted data, exercised parameterized and recovery routes, and
+closed the no-worker decision with realistic TeamRanker measurements.
 
-Local user documentation follows the browser-coverage slice.
+Local user documentation is the remaining Phase 8 slice.
 
 ## Relevant commits
 

@@ -245,7 +245,8 @@ npm run build     passed with the existing >500 kB chunk warning
   small real-engine diagnostic.
 - Budgets are regression tripwires rather than device support guarantees.
 - Mobile layout behavior is covered by the subsequent responsive/browser
-  audit; populated browser-workflow performance remains separate.
+  audit; populated workflow performance is covered by
+  [Critical Browser Workflow Coverage](critical-browser-workflow-coverage.md).
 
 ## Safe extension points
 
@@ -261,7 +262,8 @@ The cross-feature responsive audit and small real TeamRanker diagnostic were
 completed in
 [Responsive and Browser Hardening](responsive-and-browser-hardening.md).
 Critical populated browser-workflow coverage and realistic large-scope
-TeamRanker measurement remain.
+TeamRanker measurements were completed in
+[Critical Browser Workflow Coverage](critical-browser-workflow-coverage.md).
 
 ## Relevant commits
 

@@ -301,6 +301,7 @@ Status: **In progress**
 - [Destructive local-data controls](phase-08-mvp-hardening/destructive-local-data-controls.md)
 - [Representative-scale characterization](phase-08-mvp-hardening/representative-scale-characterization.md)
 - [Responsive and browser hardening](phase-08-mvp-hardening/responsive-and-browser-hardening.md)
+- [Critical browser workflow coverage](phase-08-mvp-hardening/critical-browser-workflow-coverage.md)
 
 Implemented:
 
@@ -323,11 +324,14 @@ Implemented:
 - complete 320 px responsive route audit and native file-control repair
 - route-level feature code splitting and sub-500 kB production entry chunk
 - bounded real-browser TeamRanker diagnostic timing
+- self-contained real-Chrome critical workflow suite
+- populated inventory, analysis, team, simulation, and recommendation coverage
+- Top-20 matrix and Top-48 cancellation responsiveness measurements
+- browser-level full-data download, reset, inspection, and restore
+- measured no-worker decision for current MVP browser scopes
 
 Remaining:
 
-- critical browser-level workflow coverage
-- realistic large-scope TeamRanker responsiveness decision
 - local user documentation
 
 ## Updating these records
@@ -396,9 +400,6 @@ Guard or atomically reset persisted local data
 
 TeamLab cannot yet:
 
-- claim critical browser-level workflow coverage is complete;
-- claim that realistic large-scope TeamRanker work never blocks the main
-  thread;
 - provide finished local user documentation.
 
-Those capabilities are the remaining Phase 8 hardening scope.
+That documentation is the remaining Phase 8 hardening scope.

@@ -53,13 +53,23 @@ extends or verifies those capabilities rather than recreating them.
 - route-level feature code splitting with an accessible loading boundary
 - production entry chunk reduced below Vite's 500 kB warning threshold
 - real-browser TeamRanker diagnostic passed with bounded timing
+- self-contained `npm run test:browser` Chrome workflow suite
+- isolated local servers, temporary browser profile, bounded commands, and
+  guaranteed process cleanup
+- real-UI creation of 12 catalog-backed inventory records
+- populated inventory analysis/edit and saved-team create/edit coverage
+- Top-20 saved-team TeamRanker measurement
+- Top-48 recommendation cancellation coverage
+- default nine-finalist recommendation measurement and selected-team save
+- downloaded backup, typed reset, native file inspection, and complete restore
+- populated 320 px analysis, simulation, recommendation, and reset checks
+- asynchronous saved-team member-default hydration repair
+- measured no-worker decision for current MVP browser workflows
 
 ## Out of scope
 
 - settings backup until a persisted settings domain exists
 - saved analysis or recommendation-run caches
-- worker execution for synchronous TeamRanker work
-- browser-level workflow tests
 - local user documentation
 
 ## Implementation records
@@ -68,6 +78,7 @@ extends or verifies those capabilities rather than recreating them.
 - [Destructive local-data controls](destructive-local-data-controls.md)
 - [Representative-scale characterization](representative-scale-characterization.md)
 - [Responsive and browser hardening](responsive-and-browser-hardening.md)
+- [Critical browser workflow coverage](critical-browser-workflow-coverage.md)
 
 ## Important decisions
 
@@ -92,19 +103,20 @@ extends or verifies those capabilities rather than recreating them.
   dialog; reset-all additionally requires the exact text `RESET`.
 - Static discovery, persistence, and inventory-view measurements do not justify
   worker or virtualization complexity at the MVP target.
-- Real browser TeamRanker performance must be measured in the actual upstream
-  runtime; a fake Node adapter would not provide honest engine evidence. The
-  small diagnostic is now measured, while realistic finalist scopes remain.
+- Real browser TeamRanker performance is measured in the actual upstream
+  runtime; a fake Node adapter would not provide honest engine evidence.
 - A 320 CSS-pixel viewport is the responsive MVP lower bound.
 - Feature pages load at route boundaries; home and not-found remain eager.
-- The two-battle TeamRanker diagnostic is sufficient to characterize a small
-  engine run, but not to clear large configurable finalist scopes.
+- Current Top-20 saved-team, Top-48 cancellation, and default finalist
+  measurements do not justify a worker boundary. A future event-loop-gap
+  regression must reopen that decision.
 
 ## Validation
 
 ```bash
 npm test
 npm run test:scale
+npm run test:browser
 npm run typecheck
 npm run lint
 npm run build
@@ -117,16 +129,18 @@ rollback, clear-saved-team isolation, guarded inventory clear, atomic
 reset-all, legacy replace semantics, and the complete representative-scale
 workflow.
 
-Observed after the fourth slice:
+Observed after the fifth slice:
 
 ```text
 npm test          26 files, 76 tests passed
 npm run test:scale passed
+npm run test:browser passed; complete isolated UI recovery workflow
 npm run typecheck passed
 npm run lint      passed
 npm run build     passed; largest entry chunk approximately 406 kB
-320 px route audit passed without horizontal document overflow
-TeamRanker        passed; 62 ms engine / 80 ms click-to-render
+Top-20 TeamRanker 123 ms end-to-end / 29 ms maximum pulse gap
+Top-48 cancel     151 ms end-to-end / 38 ms maximum pulse gap
+default recommend 70 ms end-to-end / 21 ms maximum pulse gap
 ```
 
 ## Known limitations
@@ -141,10 +155,9 @@ TeamRanker        passed; 62 ms engine / 80 ms click-to-render
 - No settings table or persisted simulation cache exists to include.
 - Individual inventory-record deletion can still create a saved-team recovery
   state by design; the bulk inventory-clear operation is stricter.
-- The real-browser TeamRanker timing covers two battles, not a large
-  recommendation finalist/meta scope.
-- Populated parameterized routes still need critical browser-workflow
-  automation.
+- Browser automation currently targets Chrome rather than a multi-browser
+  compatibility matrix.
+- The 12-record browser fixture complements the 120-record Node scale fixture.
 
 ## Exit criteria
 
@@ -156,18 +169,17 @@ TeamRanker        passed; 62 ms engine / 80 ms click-to-render
       data.
 - [x] Domain, persistence, backup, inventory-view, and static recommendation
       workflows are characterized with 120 records and 30 saved teams.
-- [ ] Long work remains responsive or is moved to a worker where needed.
+- [x] Long work remains responsive or is moved to a worker where needed.
 - [x] The responsive audit is complete.
-- [ ] Critical browser-level workflow coverage is complete.
+- [x] Critical browser-level workflow coverage is complete.
 - [ ] Local user documentation is complete.
 - [x] No TeamLab feature requires edits to inherited upstream source.
 
 ## Next phase dependencies
 
-The next Phase 8 slice should add durable critical browser workflow coverage,
-including populated parameterized routes and a realistic recommendation
-TeamRanker scope. That evidence should decide whether the remaining long-work
-criterion requires a worker. Local user documentation follows.
+The final Phase 8 slice should write local user documentation covering the
+complete Great League workflow, local-data model, backup/recovery,
+destructive controls, performance warnings, and current MVP limitations.
 
 ## Relevant commits
 
