@@ -292,6 +292,33 @@ Deferred enhancements:
 - worker or chunked finalist execution
 - expanded individual exclusion diagnostics
 
+### Phase 8 — Backup and MVP hardening
+
+Status: **In progress**
+
+- [Phase overview](phase-08-mvp-hardening/README.md)
+- [Full-data backup and atomic restore](phase-08-mvp-hardening/full-data-backup-and-atomic-restore.md)
+
+Implemented:
+
+- version-two full-data JSON backup
+- inventory and saved teams in one portable artifact
+- legacy version-one inventory backup import
+- complete inventory, catalog, team-reference, and species-clause inspection
+- cross-collection merge and replace semantics
+- final merged-state validation
+- atomic two-table Dexie restore and rollback
+- application-wide backup UI counts, diagnostics, and query invalidation
+
+Remaining:
+
+- complete destructive reset controls
+- representative 100-record characterization
+- worker decision for remaining synchronous long work
+- complete responsive audit
+- critical browser-level workflow coverage
+- local user documentation
+
 ## Updating these records
 
 Documentation is part of the definition of done for an implementation slice.

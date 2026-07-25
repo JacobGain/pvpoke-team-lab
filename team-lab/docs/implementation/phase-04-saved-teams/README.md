@@ -44,11 +44,14 @@ simulation.
 - visible missing-member recovery states
 - responsive saved-team list and editor
 
+## Later-phase completion
+
+- application-wide team backup and restore was completed in Phase 8
+- scorecards and simulation results were completed in Phases 5 and 6
+
 ## Deferred scope
 
-- team backup and restore
 - inventory “teams using this Pokémon” visibility
-- scorecards and simulation results
 
 ## Implementation records
 

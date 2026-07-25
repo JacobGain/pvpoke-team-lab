@@ -1,7 +1,7 @@
 # Inventory Backup and Restore
 
 > **Phase:** Phase 2 — Inventory Domain and Persistence  
-> **Status:** Complete for the inventory MVP  
+> **Status:** Superseded by the Phase 8 full-data workflow
 > **Route:** `/inventory/backup`  
 > **Last reviewed:** 2026-07-25
 
@@ -10,6 +10,11 @@
 TeamLab can export its local inventory as a portable, human-readable JSON
 backup and restore a validated backup using an atomic merge or replace
 transaction. Invalid input never partially changes IndexedDB.
+
+These version-one inventory-only contracts remain supported and characterized.
+The user-facing route now creates version-two backups containing inventory and
+saved teams through
+[Phase 8 full-data backup and atomic restore](../phase-08-mvp-hardening/full-data-backup-and-atomic-restore.md).
 
 ## Backup envelope
 
@@ -130,8 +135,8 @@ unchanged storage after invalid restore input.
 
 ## Known limitations
 
-- Version one contains inventory only because saved teams and persisted
-  settings do not exist yet.
+- Version one contains inventory only. Phase 8 version two adds saved teams,
+  while settings remain absent because no persisted settings domain exists.
 - Only backup schema version one is supported; no export migration is needed
   yet.
 - Catalog-invalid historical records block restore rather than entering a
