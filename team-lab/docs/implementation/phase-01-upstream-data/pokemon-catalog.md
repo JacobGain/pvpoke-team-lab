@@ -61,6 +61,7 @@ Each `PokemonCatalogEntry` contains:
 - legacy/Elite move flags;
 - default Great League IV spread, where published;
 - overall ranking, score, rating, and recommended move IDs;
+- normalized published matchup and counter species/rating evidence;
 - six PvPoke role scores from the overall ranking artifact;
 - current Great League meta membership.
 
@@ -169,6 +170,12 @@ Phase 2 extended the non-visual catalog contract with base stats, level
 bounds, and direct evolution edges for exact inventory validation. It also
 adds Return to Shadow-eligible normal variants and Frustration to Shadow
 variants, matching the relevant upstream `Pokemon` movepool behavior.
+
+Phase 6 extended the ranking read model with immutable `matchups` and
+`counters` arrays. Each entry contains only the stable opponent species ID and
+published rating needed by downstream analysis. The catalog does not interpret
+the rating direction or recommend a team change; those responsibilities remain
+in the Team Analysis domain.
 
 ## Why exact eligibility is deferred
 

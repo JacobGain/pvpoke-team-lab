@@ -210,11 +210,12 @@ Deferred enhancements:
 
 ### Phase 6 — Team analysis
 
-Status: **In progress — coverage and threat evidence complete**
+Status: **In progress — scorecard and threat alternatives complete**
 
 - [Phase overview](phase-06-team-analysis/README.md)
 - [Coverage, threats, and core breakers](phase-06-team-analysis/coverage-threats-and-core-breakers.md)
 - [Bulk, safety, and consistency scorecard](phase-06-team-analysis/bulk-safety-and-consistency.md)
+- [Owned and unowned threat alternatives](phase-06-team-analysis/owned-and-unowned-alternatives.md)
 
 Implemented:
 
@@ -230,11 +231,15 @@ Implemented:
 - simulated-distribution safety score
 - static PvPoke consistency score
 - evidence-source and formula disclosure
+- normalized PvPoke matchup and counter evidence
+- owned exact-record counter candidates
+- unowned PvPoke-default counter candidates
+- species-clause filtering and source disclosure
 
 Remaining:
 
-- owned and unowned alternatives
 - upstream deep links
+- exact substitution simulations and scorecard deltas
 
 ## Updating these records
 

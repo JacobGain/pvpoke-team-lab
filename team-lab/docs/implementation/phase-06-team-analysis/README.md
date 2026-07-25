@@ -1,6 +1,6 @@
 # Phase 6 — Team Analysis
 
-> **Status:** In progress — coverage and threat evidence complete
+> **Status:** In progress — scorecard and threat alternatives complete
 > **Project-plan phase:** Phase 6: team analysis
 > **Last reviewed:** 2026-07-25
 
@@ -31,14 +31,18 @@ or partial meta subset as universal truth.
 - published PvPoke consistency aggregation
 - complete initial Coverage/Bulk/Safety/Consistency scorecard
 - evidence-source and formula disclosure
+- normalized PvPoke matchup and counter evidence
+- threat-grouped owned exact-record alternatives
+- separately labeled unowned PvPoke default alternatives
+- species-clause filtering by Pokédex number
+- counter evidence, rating perspective, and non-simulation disclosure
 
 ## Deferred scope
 
 - upstream weighting of meta targets
 - role evidence in the team scorecard
-- owned alternatives
-- unowned alternatives
 - upstream battle/team-builder deep links
+- exact substitution simulations and scorecard deltas
 - persisted or version-keyed analysis cache
 - final full scorecard visual design
 
@@ -46,6 +50,7 @@ or partial meta subset as universal truth.
 
 - [Coverage, threats, and core breakers](coverage-threats-and-core-breakers.md)
 - [Bulk, safety, and consistency scorecard](bulk-safety-and-consistency.md)
+- [Owned and unowned threat alternatives](owned-and-unowned-alternatives.md)
 
 ## Exit criteria
 
@@ -53,15 +58,15 @@ or partial meta subset as universal truth.
 - [x] Coverage evidence is displayed.
 - [x] Major threats and core breakers are displayed.
 - [x] Bulk, safety, and consistency are displayed.
-- [ ] Owned and unowned alternatives are displayed.
+- [x] Owned and unowned alternatives are displayed.
 - [ ] Upstream deep links are available.
 - [ ] Full MVP scorecard and threat view is complete.
 
 ## Next slice
 
-Add owned and unowned alternatives for the highest-priority threats. Candidate
-evidence must distinguish exact owned inventory builds from theoretical
-catalog defaults and continue to enforce species clause.
+Add explicit upstream battle and team-builder deep links with documented URL
+serialization. Preserve TeamLab’s exact-build and default-build distinction
+when deciding which assumptions can safely be sent upstream.
 
 ## Relevant commits
 
