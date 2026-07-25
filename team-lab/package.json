@@ -12,6 +12,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
+    "test:browser": "node --experimental-strip-types scripts/browser-workflows.ts",
     "test:scale": "vitest run src/performance/mvpScale.characterization.test.ts --reporter=verbose",
     "test:watch": "vitest",
     "typecheck": "tsc -b --pretty false",

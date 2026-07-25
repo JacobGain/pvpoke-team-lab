@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   Link,
   useNavigate,
@@ -41,6 +41,10 @@ function SavedTeamForm({
   const inventory = inventoryResult.data ?? [];
   const catalog = catalogResult.data;
   const defaultIds = inventory.slice(0, 3).map((record) => record.inventoryId);
+  const defaultLeadInventoryId = defaultIds[0];
+  const defaultSwitchInventoryId = defaultIds[1];
+  const defaultCloserInventoryId = defaultIds[2];
+  const defaultsInitialized = useRef(sourceTeam !== undefined);
   const [name, setName] = useState(
     duplicateTeam ? `${duplicateTeam.name} copy` : (existingTeam?.name ?? ""),
   );
@@ -55,6 +59,26 @@ function SavedTeamForm({
   );
   const [notes, setNotes] = useState(sourceTeam?.notes ?? "");
   const [formError, setFormError] = useState<unknown>();
+
+  useEffect(() => {
+    if (
+      defaultsInitialized.current ||
+      !defaultLeadInventoryId ||
+      !defaultSwitchInventoryId ||
+      !defaultCloserInventoryId
+    ) {
+      return;
+    }
+
+    setLeadInventoryId(defaultLeadInventoryId);
+    setSwitchInventoryId(defaultSwitchInventoryId);
+    setCloserInventoryId(defaultCloserInventoryId);
+    defaultsInitialized.current = true;
+  }, [
+    defaultCloserInventoryId,
+    defaultLeadInventoryId,
+    defaultSwitchInventoryId,
+  ]);
 
   if (inventoryResult.isPending || catalogResult.isLoading) {
     return <main className="teams-page">Loading team editor…</main>;
