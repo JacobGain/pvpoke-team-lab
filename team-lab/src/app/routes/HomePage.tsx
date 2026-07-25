@@ -19,6 +19,9 @@ export function HomePage() {
           <Link className="secondary-link" to="/inventory">
             Open your inventory
           </Link>
+          <Link className="secondary-link" to="/teams">
+            Build saved teams
+          </Link>
         </div>
       </section>
       <PvpokeDataStatusCard />

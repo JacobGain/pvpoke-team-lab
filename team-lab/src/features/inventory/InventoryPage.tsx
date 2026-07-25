@@ -108,6 +108,9 @@ export function InventoryPage() {
             <Link className="secondary-link" to="/inventory/backup">
               Backup and restore
             </Link>
+            <Link className="secondary-link" to="/teams">
+              Saved teams
+            </Link>
           </div>
         </div>
         <div className="catalog-summary">

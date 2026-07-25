@@ -7,6 +7,8 @@ import { InventoryFormPage } from "@/features/inventory/InventoryFormPage";
 import { InventoryBackupPage } from "@/features/inventory/InventoryBackupPage";
 import { InventoryPage } from "@/features/inventory/InventoryPage";
 import { PokemonCatalogPage } from "@/features/meta/PokemonCatalogPage";
+import { SavedTeamFormPage } from "@/features/teams/SavedTeamFormPage";
+import { SavedTeamsPage } from "@/features/teams/SavedTeamsPage";
 
 export const router = createBrowserRouter(
   [
@@ -37,6 +39,18 @@ export const router = createBrowserRouter(
     {
       path: "/inventory/:inventoryId",
       element: <InventoryFormPage />,
+    },
+    {
+      path: "/teams",
+      element: <SavedTeamsPage />,
+    },
+    {
+      path: "/teams/new",
+      element: <SavedTeamFormPage />,
+    },
+    {
+      path: "/teams/:teamId",
+      element: <SavedTeamFormPage />,
     },
     {
       path: "*",

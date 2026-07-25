@@ -1067,6 +1067,118 @@ a {
   line-height: 1.55;
 }
 
+.teams-page {
+  width: min(100% - 2rem, 90rem);
+  margin: 0 auto;
+  padding: 2rem 0 5rem;
+}
+
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 25rem), 1fr));
+  gap: 1rem;
+}
+
+.team-card {
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid #dce4f1;
+  border-radius: 1rem;
+  background: #ffffff;
+}
+
+.team-card__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.team-card h2 {
+  margin: 0;
+}
+
+.team-card small {
+  color: #69758d;
+}
+
+.team-members {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.team-members li {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.75rem;
+  border-radius: 0.7rem;
+  background: #f4f7fb;
+}
+
+.team-members span {
+  color: #69758d;
+  font-size: 0.7rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.team-order {
+  display: grid;
+  gap: 1rem;
+}
+
+.team-position {
+  display: grid;
+  grid-template-columns: auto minmax(10rem, 0.6fr) minmax(18rem, 1.4fr);
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid #dce4f1;
+  border-radius: 1rem;
+  background: #ffffff;
+}
+
+.team-position p {
+  margin: 0;
+  color: #69758d;
+  line-height: 1.45;
+}
+
+.team-position__number {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  border-radius: 50%;
+  color: #ffffff;
+  background: #3157c8;
+  font-weight: 800;
+}
+
+.team-position__actions {
+  display: flex;
+  grid-column: 3;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.team-position__actions button {
+  padding: 0.45rem 0.65rem;
+  border: 1px solid #cbd5e5;
+  border-radius: 0.55rem;
+  color: #3157c8;
+  background: #ffffff;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
 @media (max-width: 760px) {
   .inventory-header,
   .inventory-card {
@@ -1108,5 +1220,15 @@ a {
 
   .inventory-card__actions {
     flex-wrap: wrap;
+  }
+
+  .team-position {
+    grid-template-columns: auto 1fr;
+    align-items: start;
+  }
+
+  .team-position .form-field,
+  .team-position__actions {
+    grid-column: 1 / -1;
   }
 }
