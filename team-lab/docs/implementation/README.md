@@ -246,6 +246,34 @@ Deferred enhancements:
 - upstream meta weighting and role evidence
 - persisted analysis cache
 
+### Phase 7 — Anchor recommendations
+
+Status: **In progress**
+
+- [Phase overview](phase-07-anchor-recommendations/README.md)
+- [Anchor request and owned candidate pool](phase-07-anchor-recommendations/anchor-request-and-candidate-pool.md)
+
+Implemented:
+
+- runtime-validated one-or-two-anchor request
+- fixed or flexible anchor positions
+- configurable one-to-five result count
+- ready-now-only, planned-only, and combined scopes
+- exact current/planned owned-build preparation
+- current-catalog and anchor legality validation
+- anchor-safe partner candidate pool
+- deterministic ready-now-first discovery ordering
+- static rank, role, matchup, and counter evidence boundary
+- explicit exclusion diagnostics
+
+Remaining:
+
+- role/complementarity policy and static pre-score
+- ordered candidate-team generation
+- finalist simulation and scorecard comparison
+- diversity and explanation policy
+- recommendation UI
+
 ## Updating these records
 
 Documentation is part of the definition of done for an implementation slice.
@@ -292,13 +320,21 @@ Maintain current/planned builds with exact level validation
 Export or atomically restore a versioned local backup
     ↓
 Derive exact stats, IV rank, roles, moves, and build requirements
+    ↓
+Create, order, and reopen exact inventory-backed saved teams
+    ↓
+Prepare and run exact saved-team TeamRanker matrices
+    ↓
+Derive scorecards, threats, alternatives, and upstream links
+    ↓
+Resolve anchors into an exact, ready-now-prioritized candidate pool
 ```
 
 TeamLab cannot yet:
 
-- calculate opponent-specific breakpoints or matchup impact;
-- create or save teams;
-- run the upstream battle engine;
-- generate team recommendations.
+- pre-score or generate ordered recommendation candidates;
+- simulate recommendation finalists;
+- enforce recommendation diversity;
+- present complete recommendation results in the UI.
 
 Those capabilities belong to later phases in `PROJECT-PLAN.md`.
