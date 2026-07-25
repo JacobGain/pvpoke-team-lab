@@ -129,7 +129,8 @@ if reached directly.
 
 | File | Responsibility |
 | --- | --- |
-| `src/domain/simulation/savedTeamRanking.ts` | Preparation, meta targets, scope, measurement |
+| `src/domain/simulation/teamRanker.ts` | Generic ordered exact-team preparation, meta targets, scope, evidence, and measurement |
+| `src/domain/simulation/savedTeamRanking.ts` | Saved-team resolution and delegation to the generic boundary |
 | `src/domain/simulation/savedTeamRanking.test.ts` | Exact ordering, targets, and performance labels |
 | `src/features/simulation/SavedTeamSimulationPage.tsx` | Matrix controls and raw results |
 | `src/features/teams/SavedTeamsPage.tsx` | Complete-team simulation entry point |

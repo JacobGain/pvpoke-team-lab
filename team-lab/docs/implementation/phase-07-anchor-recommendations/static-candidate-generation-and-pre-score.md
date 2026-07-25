@@ -321,15 +321,14 @@ npm run build     passed with the existing >500 kB chunk warning
 
 ## Follow-up work
 
-The next slice should:
+The immediate follow-up was completed in
+[Exact finalist simulation and selection](exact-finalist-simulation-and-selection.md).
+Static finalists now feed the shared exact TeamRanker boundary, Phase 6
+scorecards, alternatives, final selection score, and requested-result
+diversity.
 
-1. prepare exact TeamRanker requests directly from static finalists;
-2. simulate finalists against one explicit meta/shield scope;
-3. derive the existing Phase 6 scorecard for every finalist;
-4. compare exact results without discarding static provenance;
-5. select the requested one-to-five final recommendations.
+The remaining consumer is the recommendation UI and explanation workflow.
 
 ## Relevant commits
 
 Not yet committed.
-

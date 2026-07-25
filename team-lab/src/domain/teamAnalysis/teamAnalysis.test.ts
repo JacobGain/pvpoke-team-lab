@@ -30,8 +30,11 @@ function run(): SavedTeamRankerRun {
 
   return {
     scope: {
-      teamId: "team",
-      teamName: "Test team",
+      context: {
+        kind: "saved-team",
+        id: "team",
+        name: "Test team",
+      },
       targetLimit: 5,
       selectedTargetCount: 3,
       availableTargetCount: 3,

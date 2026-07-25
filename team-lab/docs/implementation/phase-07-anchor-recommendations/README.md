@@ -37,20 +37,27 @@ The phase must preserve the distinction between:
 - versioned static complementarity, role, strength, and readiness pre-score
 - species-trio deduplication
 - bounded optional-core-diverse finalist selection
+- reusable saved-team/recommendation TeamRanker preparation boundary
+- static/catalog data-version gate
+- sequential exact finalist TeamRanker orchestration
+- generic Phase 6 scorecard analysis
+- threat-grouped owned and unowned alternatives per finalist
+- versioned exact/static final selection score
+- isolated finalist failure reporting
+- requested-result selection, diversity relaxation, and shortfall reporting
 
 ## Out of scope
 
-- finalist simulation
-- exact scorecard comparison
-- final-result diversity
 - explanations and result presentation
 - recommendation persistence or caching
 - `/recommend` UI
+- progress and cancellation
 
 ## Implementation records
 
 - [Anchor request and owned candidate pool](anchor-request-and-candidate-pool.md)
 - [Static candidate generation and pre-score](static-candidate-generation-and-pre-score.md)
+- [Exact finalist simulation and selection](exact-finalist-simulation-and-selection.md)
 
 ## Important decisions
 
@@ -70,6 +77,12 @@ The phase must preserve the distinction between:
 - Static policy and score formulas have independent version identifiers.
 - Static pre-scores select exact-simulation finalists and are not final
   recommendation scorecards.
+- Saved teams and recommendations share one generic ordered-build TeamRanker
+  preparation boundary.
+- Final selection combines the complete Phase 6 scorecard with static
+  provenance under a separate versioned formula.
+- Exact result diversity is strict first and relaxes optional-core repetition
+  only when necessary to fill the requested count.
 
 ## Validation
 
@@ -83,12 +96,14 @@ npm run build
 Focused characterization verifies request bounds, duplicate anchor and
 position rejection, exact build/evidence preparation, ready-now ordering,
 build-status filtering, missing-anchor rejection, species clause, eligibility,
-ordering, pre-score formulas, deduplication, and finalist diversity.
+ordering, pre-score formulas, deduplication, finalist diversity, exact
+TeamRanker preparation, Phase 6 reuse, failure isolation, final scoring, and
+result selection.
 
-Observed after the second slice:
+Observed after the third slice:
 
 ```text
-npm test          21 files, 58 tests passed
+npm test          22 files, 62 tests passed
 npm run typecheck passed
 npm run lint      passed
 npm run build     passed with the existing >500 kB chunk warning
@@ -108,7 +123,10 @@ npm run build     passed with the existing >500 kB chunk warning
 - Static thresholds and score weights are initial TeamLab heuristics.
 - Published matchup evidence represents default builds and selected key
   matchups rather than exact complete matrices.
-- Exact finalist simulation has not run.
+- Exact finalist work is sequential and has no progress or cancellation.
+- Large finalist/meta scopes can block the browser runtime.
+- Final selection weights are initial TeamLab heuristics.
+- Results remain in memory and have no UI.
 
 ## Exit criteria
 
@@ -120,18 +138,19 @@ npm run build     passed with the existing >500 kB chunk warning
 - [x] Exact, anchor-safe owned candidates can feed static pre-scoring.
 - [x] Ranking, role, and complementarity policies produce plausible teams.
 - [x] Candidate teams receive static pre-scores.
-- [ ] Finalists are evaluated through exact TeamRanker simulations.
-- [ ] One-to-five ordered, materially distinct results are returned.
+- [x] Finalists are evaluated through exact TeamRanker simulations.
+- [x] One-to-five ordered, materially distinct domain results are returned
+      when enough finalists succeed.
 - [ ] Recommendations include explanations, scorecards, threats, alternatives,
       and build requirements.
 - [ ] The anchor recommendation workflow is available in the UI.
 
 ## Next phase dependencies
 
-The next Phase 7 slice can consume the bounded
-`StaticRecommendationGeneration.finalists`, prepare exact TeamRanker requests,
-derive Phase 6 scorecards, and select the requested one-to-five results without
-discarding static-score or policy provenance.
+The next Phase 7 slice can build the `/recommend` workflow around the complete
+domain pipeline. It must add progress/cancellation, present static versus exact
+evidence clearly, generate user-facing explanations, and allow explicit
+conversion of a selected result into a saved team.
 
 ## Relevant commits
 

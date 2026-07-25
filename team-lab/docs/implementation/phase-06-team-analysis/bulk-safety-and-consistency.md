@@ -206,7 +206,7 @@ inspection.
 
 | File | Responsibility |
 | --- | --- |
-| `src/domain/simulation/savedTeamRanking.ts` | Captures exact member/target score evidence |
+| `src/domain/simulation/teamRanker.ts` | Captures exact member/target score evidence for saved teams and recommendations |
 | `src/domain/teamAnalysis/teamAnalysis.ts` | Score contracts, formulas, grades |
 | `src/domain/teamAnalysis/teamAnalysis.test.ts` | Formula characterization |
 | `src/features/simulation/SavedTeamSimulationPage.tsx` | Scorecard and method display |
