@@ -1,17 +1,20 @@
 import { createBrowserRouter } from "react-router-dom";
 
+import {
+  InventoryAnalysisPage,
+  InventoryBackupPage,
+  InventoryFormPage,
+  InventoryPage,
+  LazyRoute,
+  PokemonCatalogPage,
+  RecommendationPage,
+  SavedTeamFormPage,
+  SavedTeamSimulationPage,
+  SavedTeamsPage,
+  SimulationDiagnosticsPage,
+} from "@/app/LazyRoutePages";
 import { HomePage } from "@/app/routes/HomePage";
 import { NotFoundPage } from "@/app/routes/NotFoundPage";
-import { InventoryAnalysisPage } from "@/features/analysis/InventoryAnalysisPage";
-import { InventoryFormPage } from "@/features/inventory/InventoryFormPage";
-import { InventoryBackupPage } from "@/features/inventory/InventoryBackupPage";
-import { InventoryPage } from "@/features/inventory/InventoryPage";
-import { PokemonCatalogPage } from "@/features/meta/PokemonCatalogPage";
-import { RecommendationPage } from "@/features/recommendations/RecommendationPage";
-import { SavedTeamSimulationPage } from "@/features/simulation/SavedTeamSimulationPage";
-import { SavedTeamFormPage } from "@/features/teams/SavedTeamFormPage";
-import { SavedTeamsPage } from "@/features/teams/SavedTeamsPage";
-import { SimulationDiagnosticsPage } from "@/features/simulation/SimulationDiagnosticsPage";
 
 export const router = createBrowserRouter(
   [
@@ -21,51 +24,99 @@ export const router = createBrowserRouter(
     },
     {
       path: "/catalog",
-      element: <PokemonCatalogPage />,
+      element: (
+        <LazyRoute>
+          <PokemonCatalogPage />
+        </LazyRoute>
+      ),
     },
     {
       path: "/inventory",
-      element: <InventoryPage />,
+      element: (
+        <LazyRoute>
+          <InventoryPage />
+        </LazyRoute>
+      ),
     },
     {
       path: "/inventory/new",
-      element: <InventoryFormPage />,
+      element: (
+        <LazyRoute>
+          <InventoryFormPage />
+        </LazyRoute>
+      ),
     },
     {
       path: "/inventory/backup",
-      element: <InventoryBackupPage />,
+      element: (
+        <LazyRoute>
+          <InventoryBackupPage />
+        </LazyRoute>
+      ),
     },
     {
       path: "/inventory/:inventoryId/analysis",
-      element: <InventoryAnalysisPage />,
+      element: (
+        <LazyRoute>
+          <InventoryAnalysisPage />
+        </LazyRoute>
+      ),
     },
     {
       path: "/inventory/:inventoryId",
-      element: <InventoryFormPage />,
+      element: (
+        <LazyRoute>
+          <InventoryFormPage />
+        </LazyRoute>
+      ),
     },
     {
       path: "/teams",
-      element: <SavedTeamsPage />,
+      element: (
+        <LazyRoute>
+          <SavedTeamsPage />
+        </LazyRoute>
+      ),
     },
     {
       path: "/teams/new",
-      element: <SavedTeamFormPage />,
+      element: (
+        <LazyRoute>
+          <SavedTeamFormPage />
+        </LazyRoute>
+      ),
     },
     {
       path: "/teams/:teamId",
-      element: <SavedTeamFormPage />,
+      element: (
+        <LazyRoute>
+          <SavedTeamFormPage />
+        </LazyRoute>
+      ),
     },
     {
       path: "/diagnostics/simulation",
-      element: <SimulationDiagnosticsPage />,
+      element: (
+        <LazyRoute>
+          <SimulationDiagnosticsPage />
+        </LazyRoute>
+      ),
     },
     {
       path: "/teams/:teamId/simulation",
-      element: <SavedTeamSimulationPage />,
+      element: (
+        <LazyRoute>
+          <SavedTeamSimulationPage />
+        </LazyRoute>
+      ),
     },
     {
       path: "/recommend",
-      element: <RecommendationPage />,
+      element: (
+        <LazyRoute>
+          <RecommendationPage />
+        </LazyRoute>
+      ),
     },
     {
       path: "*",
