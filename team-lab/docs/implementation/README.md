@@ -208,6 +208,30 @@ Deferred enhancements:
 - verified real-browser golden output fixtures
 - worker/chunking, cancellation, and progress reporting
 
+### Phase 6 — Team analysis
+
+Status: **In progress — coverage and threat evidence complete**
+
+- [Phase overview](phase-06-team-analysis/README.md)
+- [Coverage, threats, and core breakers](phase-06-team-analysis/coverage-threats-and-core-breakers.md)
+
+Implemented:
+
+- explicit TeamRanker rating-direction thresholds
+- selected-scope target coverage
+- individual positive matchup percentage
+- per-member win/loss/tie evidence
+- major-threat ordering
+- core-breaker and full-team-wall classification
+- provisional scope-aware coverage grade
+- scorecard and threat evidence UI
+
+Remaining:
+
+- bulk, safety, and consistency scores
+- owned and unowned alternatives
+- upstream deep links
+
 ## Updating these records
 
 Documentation is part of the definition of done for an implementation slice.
