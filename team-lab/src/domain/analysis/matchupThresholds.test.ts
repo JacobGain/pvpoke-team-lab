@@ -44,8 +44,12 @@ describe("named-opponent thresholds", () => {
 
   it("compares an exact build with the named default meta build", () => {
     const analysis = createAnalysis();
-    const azumarill = inventoryTestCatalog.entries[0]!;
-    const altaria = inventoryTestCatalog.entries[1]!;
+    const azumarill = inventoryTestCatalog.entries.find(
+      (entry) => entry.speciesId === "azumarill",
+    )!;
+    const altaria = inventoryTestCatalog.entries.find(
+      (entry) => entry.speciesId === "altaria",
+    )!;
     const matchup = analyzeNamedOpponent(
       analysis.current,
       azumarill,
