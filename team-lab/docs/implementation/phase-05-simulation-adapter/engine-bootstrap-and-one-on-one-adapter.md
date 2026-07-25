@@ -24,6 +24,7 @@ DecisionOption
 Battle
 GameMaster
 Pokemon
+TeamRanker
 ```
 
 `GameMaster.js` immediately performs a jQuery AJAX request using global

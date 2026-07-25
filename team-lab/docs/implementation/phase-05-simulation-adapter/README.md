@@ -31,6 +31,11 @@ upstream global constructors and mutable battle objects.
 - translated-result invariant validation
 - `/diagnostics/simulation` real-browser runner
 - downloadable versioned characterization report
+- TeamRanker request and translated result contracts
+- exact explicit-target matrix adapter
+- serialized access to the global RankerMaster singleton
+- guaranteed target cleanup
+- real-browser TeamRanker repeat diagnostic
 
 ## Deferred scope
 
@@ -39,7 +44,6 @@ upstream global constructors and mutable battle objects.
 - selectable opponent builds
 - shield-scenario matrices
 - timeline translation
-- TeamRanker adapter
 - team-versus-meta orchestration
 - cancellation and progress reporting
 
@@ -47,6 +51,7 @@ upstream global constructors and mutable battle objects.
 
 - [Engine bootstrap and exact one-on-one adapter](engine-bootstrap-and-one-on-one-adapter.md)
 - [Real-engine browser characterization](real-engine-characterization.md)
+- [TeamRanker adapter](team-ranker-adapter.md)
 
 ## Exit criteria
 
@@ -54,16 +59,16 @@ upstream global constructors and mutable battle objects.
 - [x] Exact inventory analysis can become an engine-independent build request.
 - [x] Exact one-on-one requests are wrapped by an adapter.
 - [x] Mutable upstream results are translated into TeamLab-owned results.
-- [ ] Known simulations are characterized against the real upstream engine in
+- [x] Known simulations are characterized against the real upstream engine in
   a browser runtime.
-- [ ] TeamRanker is wrapped.
+- [x] TeamRanker is wrapped.
 - [ ] Exact owned builds can be invoked through an application-facing workflow.
 
 ## Next slice
 
-Run the new browser harness with the local upstream container, independently
-verify and normalize its exported report into golden fixtures, then add
-TeamRanker behind the same runtime boundary.
+Run the new TeamRanker browser diagnostic, then connect exact saved teams and
+catalog-derived meta targets through an application service. Large target sets
+must be measured before Phase 6 UI relies on synchronous browser ranking.
 
 ## Relevant commits
 

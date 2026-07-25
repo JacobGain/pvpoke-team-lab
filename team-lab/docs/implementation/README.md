@@ -179,6 +179,7 @@ Status: **In progress — engine boundary and one-on-one adapter complete**
 - [Phase overview](phase-05-simulation-adapter/README.md)
 - [Engine bootstrap and exact one-on-one adapter](phase-05-simulation-adapter/engine-bootstrap-and-one-on-one-adapter.md)
 - [Real-engine browser characterization](phase-05-simulation-adapter/real-engine-characterization.md)
+- [TeamRanker adapter](phase-05-simulation-adapter/team-ranker-adapter.md)
 
 Implemented:
 
@@ -193,12 +194,16 @@ Implemented:
 - real-browser diagnostics route
 - known exact matchup cases and repeat-run determinism checks
 - result invariant validation and downloadable fixture report
+- exact explicit-target TeamRanker matrix adapter
+- singleton-safe serialized ranking and target cleanup
+- translated target/matchup results
+- real-browser TeamRanker diagnostic
 
 Remaining:
 
 - verified real-browser golden output fixtures
 - diagnostics and application-facing invocation
-- TeamRanker adapter
+- saved-team/meta orchestration and performance measurement
 
 ## Updating these records
 

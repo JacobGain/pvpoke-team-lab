@@ -1,6 +1,6 @@
 # Real-Engine Browser Characterization
 
-> **Status:** Harness implemented; observed upstream fixture capture pending
+> **Status:** Browser characterization reported successful; fixture capture pending
 > **Route:** `/diagnostics/simulation`
 > **Last reviewed:** 2026-07-25
 
@@ -20,7 +20,11 @@ The harness:
   invariants;
 - presents pass/fail details;
 - exports a versioned JSON report suitable for committing as a future observed
-  fixture.
+fixture.
+
+The user reported a successful real-browser characterization run on
+2026-07-25. Exact numeric output was not supplied or committed, so the
+downloaded golden-fixture step remains pending.
 
 ## Why this is a diagnostics route
 

@@ -53,13 +53,15 @@ function validateRequest(request: TeamRankerRequest): void {
 }
 
 export class PvpokeTeamRankerAdapter implements TeamRankerAdapter {
-  private queue: Promise<void> = Promise.resolve();
+  private static queue: Promise<void> = Promise.resolve();
 
   constructor(private readonly runtime: PvpokeBattleRuntime) {}
 
   rank(request: TeamRankerRequest): Promise<TeamRankerResult> {
-    const result = this.queue.then(() => this.rankNow(request));
-    this.queue = result.then(
+    const result = PvpokeTeamRankerAdapter.queue.then(() =>
+      this.rankNow(request),
+    );
+    PvpokeTeamRankerAdapter.queue = result.then(
       () => undefined,
       () => undefined,
     );
