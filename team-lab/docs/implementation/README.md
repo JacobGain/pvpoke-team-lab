@@ -299,6 +299,7 @@ Status: **In progress**
 - [Phase overview](phase-08-mvp-hardening/README.md)
 - [Full-data backup and atomic restore](phase-08-mvp-hardening/full-data-backup-and-atomic-restore.md)
 - [Destructive local-data controls](phase-08-mvp-hardening/destructive-local-data-controls.md)
+- [Representative-scale characterization](phase-08-mvp-hardening/representative-scale-characterization.md)
 
 Implemented:
 
@@ -314,11 +315,14 @@ Implemented:
 - reference-guarded bulk inventory clearing
 - atomic reset-all across persisted MVP tables
 - explicit inline confirmations and typed reset intent
+- deterministic 120-inventory/30-team scale fixture
+- bounded recommendation-discovery and persistence regression budgets
+- map-backed characterized inventory filtering and sorting
+- measured no-worker/no-virtualization decision for characterized MVP paths
 
 Remaining:
 
-- representative 100-record characterization
-- worker decision for remaining synchronous long work
+- real-browser TeamRanker responsiveness verification
 - complete responsive audit
 - critical browser-level workflow coverage
 - local user documentation
@@ -366,7 +370,7 @@ Persist and retrieve it through a repository-backed IndexedDB database
     ↓
 Maintain current/planned builds with exact level validation
     ↓
-Export or atomically restore a versioned local backup
+Export or atomically restore inventory and saved teams in one versioned backup
     ↓
 Derive exact stats, IV rank, roles, moves, and build requirements
     ↓
@@ -381,10 +385,16 @@ Resolve anchors into an exact, ready-now-prioritized candidate pool
 Generate, pre-score, deduplicate, and shortlist ordered candidate teams
     ↓
 Simulate finalists, derive scorecards, and select diverse exact results
+    ↓
+Present recommendation evidence and explicitly save selected teams
+    ↓
+Guard or atomically reset persisted local data
 ```
 
 TeamLab cannot yet:
 
-- present complete recommendation results in the UI.
+- claim the cross-feature responsive audit is complete;
+- claim critical browser-level workflow coverage is complete;
+- provide finished local user documentation.
 
-Those capabilities belong to later phases in `PROJECT-PLAN.md`.
+Those capabilities are the remaining Phase 8 hardening scope.

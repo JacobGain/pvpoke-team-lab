@@ -190,9 +190,11 @@ Inspection and final-state validation are linear in inventory records plus
 saved-team members, aside from small per-record catalog validations. Restore
 uses bulk IndexedDB operations inside one transaction.
 
-The Phase 8 representative-size slice should characterize a 100+ record and
-realistic saved-team backup. No worker is expected to be necessary for these
-small JSON/domain operations, but measurements should decide.
+The completed
+[representative-scale characterization](representative-scale-characterization.md)
+measures a 120-record, 30-team backup round trip at approximately 4.6 ms and
+atomic restore at approximately 11.3 ms in the recorded environment. These
+paths do not require a worker.
 
 ## Validation
 
@@ -236,8 +238,8 @@ The eight focused tests cover:
 
 ## Follow-up work
 
-Add application-wide destructive controls, then characterize full workflows
-with representative inventory sizes.
+Application-wide destructive controls and representative-scale
+characterization are complete. Browser-responsive hardening follows.
 
 ## Relevant commits
 

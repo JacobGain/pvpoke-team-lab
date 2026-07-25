@@ -31,8 +31,14 @@ write those derived values into IndexedDB.
 
 ## Performance
 
-In-memory search and joins are appropriate for the expected 100-record Great
-League inventory. Database indexes remain available for future larger queries.
+`filterAndSortInventory` builds one catalog identity map per memoized
+transformation instead of repeatedly scanning the catalog during filtering and
+sort comparisons.
+
+Phase 8 characterization measures a favorite-only species search and sort
+over 120 records at approximately 4.3 ms in the recorded Node environment.
+Virtualization is not required for the MVP target. Browser rendering remains
+part of the responsive audit.
 
 ## Known limitations
 

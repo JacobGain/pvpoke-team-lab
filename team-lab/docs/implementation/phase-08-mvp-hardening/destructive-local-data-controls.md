@@ -179,8 +179,10 @@ The operations use table counts and bulk clear operations rather than deleting
 records individually. Reset-all touches both small MVP tables in one
 transaction.
 
-These actions do not require a worker. Representative-size characterization
-will measure them alongside backup/restore in the next slice.
+These actions do not require a worker. The completed
+[representative-scale characterization](representative-scale-characterization.md)
+measures the adjacent backup and persistence paths with 120 inventory records
+and 30 teams.
 
 ## Validation
 
@@ -226,9 +228,8 @@ npm run build     passed with the existing >500 kB chunk warning
 
 ## Follow-up work
 
-Characterize backup, restore, inventory, team, and recommendation discovery
-with a representative 100+ record dataset before deciding on more workers or
-virtualization.
+Representative-scale characterization is complete. The cross-feature
+responsive and browser-workflow audit follows.
 
 ## Relevant commits
 

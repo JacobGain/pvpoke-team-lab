@@ -38,12 +38,19 @@ extends or verifies those capabilities rather than recreating them.
 - explicit inline confirmation for destructive replace and clear operations
 - typed `RESET` confirmation for complete application reset
 - inventory and saved-team query invalidation after every maintenance action
+- deterministic 120-record and 30-team representative fixture
+- reproducible `npm run test:scale` characterization command
+- explicit backup, restore, repository, inventory-view, and recommendation
+  discovery regression budgets
+- map-backed inventory filtering and sorting
+- verified 40-partner, 250-team, and finalist work bounds at representative
+  scale
+- documented worker and virtualization decision for characterized paths
 
 ## Out of scope
 
 - settings backup until a persisted settings domain exists
 - saved analysis or recommendation-run caches
-- representative 100-record profiling
 - worker execution for synchronous TeamRanker work
 - browser-level workflow tests
 - completed cross-feature responsive audit
@@ -53,6 +60,7 @@ extends or verifies those capabilities rather than recreating them.
 
 - [Full-data backup and atomic restore](full-data-backup-and-atomic-restore.md)
 - [Destructive local-data controls](destructive-local-data-controls.md)
+- [Representative-scale characterization](representative-scale-characterization.md)
 
 ## Important decisions
 
@@ -75,11 +83,16 @@ extends or verifies those capabilities rather than recreating them.
   without preserving references.
 - Destructive confirmation is visible application state rather than a browser
   dialog; reset-all additionally requires the exact text `RESET`.
+- Static discovery, persistence, and inventory-view measurements do not justify
+  worker or virtualization complexity at the MVP target.
+- Real browser TeamRanker responsiveness must be verified separately; a fake
+  Node adapter would not provide an honest engine measurement.
 
 ## Validation
 
 ```bash
 npm test
+npm run test:scale
 npm run typecheck
 npm run lint
 npm run build
@@ -89,12 +102,14 @@ Focused characterization verifies version-two round trips, legacy inspection,
 complete saved-team issue reporting, refusal to export unrestorable state,
 cross-table merge and replace counts, final-state validation, restore
 rollback, clear-saved-team isolation, guarded inventory clear, atomic
-reset-all, and legacy replace semantics.
+reset-all, legacy replace semantics, and the complete representative-scale
+workflow.
 
-Observed after the second slice:
+Observed after the third slice:
 
 ```text
-npm test          25 files, 75 tests passed
+npm test          26 files, 76 tests passed
+npm run test:scale passed; representative workflow approximately 307 ms
 npm run typecheck passed
 npm run lint      passed
 npm run build     passed with the existing >500 kB chunk warning
@@ -112,6 +127,8 @@ npm run build     passed with the existing >500 kB chunk warning
 - No settings table or persisted simulation cache exists to include.
 - Individual inventory-record deletion can still create a saved-team recovery
   state by design; the bulk inventory-clear operation is stricter.
+- Exact browser TeamRanker execution is not represented by the Node scale
+  fixture.
 
 ## Exit criteria
 
@@ -121,7 +138,8 @@ npm run build     passed with the existing >500 kB chunk warning
 - [x] Legacy inventory-only backups remain recoverable.
 - [x] All planned destructive reset controls are available for persisted MVP
       data.
-- [ ] Core workflows are characterized with 100+ records.
+- [x] Domain, persistence, backup, inventory-view, and static recommendation
+      workflows are characterized with 120 records and 30 saved teams.
 - [ ] Long work remains responsive or is moved to a worker where needed.
 - [ ] The responsive audit is complete.
 - [ ] Critical browser-level workflow coverage is complete.
@@ -130,10 +148,10 @@ npm run build     passed with the existing >500 kB chunk warning
 
 ## Next phase dependencies
 
-The next Phase 8 slice should characterize core domain, persistence, and
-candidate-generation workflows with a representative inventory of more than
-100 records, record timings, and use measurements to decide whether additional
-worker boundaries are necessary.
+The next Phase 8 slice should complete the cross-feature responsive audit,
+repair any layout or interaction failures at supported widths, and record the
+remaining real-browser TeamRanker responsiveness requirement for browser-level
+coverage.
 
 ## Relevant commits
 
