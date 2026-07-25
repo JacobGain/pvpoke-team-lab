@@ -126,6 +126,14 @@ export function SavedTeamsPage() {
               <Link className="primary-link" to={`/teams/${team.teamId}`}>
                 {isComplete ? "Edit team" : "Repair team"}
               </Link>
+              {isComplete ? (
+                <Link
+                  className="secondary-link"
+                  to={`/teams/${team.teamId}/simulation`}
+                >
+                  Simulate
+                </Link>
+              ) : null}
               <Link
                 className="secondary-link"
                 to={`/teams/new?duplicate=${team.teamId}`}

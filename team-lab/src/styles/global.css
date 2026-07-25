@@ -1246,6 +1246,29 @@ a {
   margin-bottom: 1.25rem;
 }
 
+.simulation-controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(10rem, 1fr)) auto;
+  align-items: end;
+  gap: 1rem;
+}
+
+.simulation-controls button {
+  min-height: 2.85rem;
+  padding: 0.75rem 1rem;
+  border: 0;
+  border-radius: 0.75rem;
+  color: #ffffff;
+  background: #3157c8;
+  cursor: pointer;
+  font-weight: 750;
+}
+
+.simulation-controls button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
 @media (max-width: 760px) {
   .inventory-header,
   .inventory-card {
@@ -1303,5 +1326,9 @@ a {
   .diagnostics-banner {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .simulation-controls {
+    grid-template-columns: 1fr;
   }
 }
