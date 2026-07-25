@@ -172,6 +172,30 @@ Deferred enhancements:
 - team backup/restore
 - inventory usage counts
 
+### Phase 5 — PvPoke simulation adapter
+
+Status: **In progress — engine boundary and one-on-one adapter complete**
+
+- [Phase overview](phase-05-simulation-adapter/README.md)
+- [Engine bootstrap and exact one-on-one adapter](phase-05-simulation-adapter/engine-bootstrap-and-one-on-one-adapter.md)
+
+Implemented:
+
+- engine-independent exact-build request/result contracts
+- exact Phase 3 build serialization
+- explicit ambiguous-level handling
+- isolated upstream classic-script and Game Master bootstrap
+- injectable PvPoke runtime facade
+- exact one-on-one configuration and invocation
+- immutable result translation
+- adapter call-order and translation characterization tests
+
+Remaining:
+
+- real-browser upstream output fixtures
+- diagnostics and application-facing invocation
+- TeamRanker adapter
+
 ## Updating these records
 
 Documentation is part of the definition of done for an implementation slice.
