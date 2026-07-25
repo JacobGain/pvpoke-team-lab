@@ -17,21 +17,22 @@ the domain to Dexie, React, or raw PvPoke records.
 - explicit user-entered and assumed-rank-one IV profiles
 - structural moveset, CP, IV, timestamp, and metadata validation
 - catalog-aware species and movepool validation
+- PvPoke-compatible CP calculation and level inference through level 51
+- exact CP/IV/species legal-build and direct-evolution validation
 - record factory with injectable ID and clock dependencies
 - repository contract and stable persistence errors
 - Dexie database version one and inventory table
 - validated create, read, update, delete, list, count, and clear operations
 - TanStack Query hooks
-- `/inventory` CRUD verification route
+- complete manual create and edit routes
+- searchable current/planned inventory dashboard and confirmed deletion
 - Vitest and fake IndexedDB test foundation
 
 ## Out of scope
 
-- polished manual-entry form and dashboard
-- CP-to-level inference and legal-build validation
 - exact IV rank calculation
-- evolution-family validation
-- editing every record field in the verification UI
+- multi-stage evolution planning
+- acquisition-method legality beyond upstream level floors
 - JSON backup/import
 - database migrations beyond the initial version
 - saved teams, analysis, and recommendations
@@ -41,7 +42,10 @@ the domain to Dexie, React, or raw PvPoke records.
 - [Inventory domain model](inventory-domain-model.md)
 - [IndexedDB and repositories](indexeddb-and-repositories.md)
 - [Inventory validation](inventory-validation.md)
-- [CRUD verification](crud-verification.md)
+- [Combat power and level inference](combat-power-and-level-inference.md)
+- [Manual inventory entry and editing](manual-entry-workflow.md)
+- [Inventory dashboard](inventory-dashboard.md)
+- [Superseded CRUD verification](crud-verification.md)
 
 ## Important decisions
 
@@ -67,21 +71,19 @@ npm run build
 npm run validate:data
 ```
 
-Automated coverage currently verifies record creation, rank-one assumption
-materialization, invalid-move rejection, the complete repository CRUD path,
-duplicate/missing-record errors, and preservation of invalid stored data.
+Automated coverage verifies record creation/update, rank-one materialization,
+invalid move and impossible CP rejection, CP/level characterization, the
+complete repository CRUD path, stable errors, and invalid-data preservation.
 
 ## Known limitations
 
-- CP is constrained to the MVP Great League range but is not yet proven legal
-  for the entered species and IVs.
-- Planned target species existence and desired moves are validated, but the
-  current catalog does not expose enough family data to prove an evolution
-  relationship.
+- Planned evolution follows one direct upstream edge; multi-stage skipping is
+  not supported.
+- Ambiguous low-CP matches expose every possible level rather than inventing
+  one.
 - Catalog drift is detected through stored `sourceDataVersion`, but migration
   and user-facing repair flows are not implemented.
-- The `/inventory` screen is an engineering verification surface, not the
-  final product workflow.
+- Cards still use move IDs and omit sprites/polished type presentation.
 
 ## Exit criteria
 
@@ -91,9 +93,9 @@ duplicate/missing-record errors, and preservation of invalid stored data.
 - [x] Dexie CRUD persists across reloads.
 - [x] Persistence is behind a domain repository contract.
 - [x] Foundational persistence tests run without a browser.
-- [ ] Manual-entry workflow supports all required fields.
-- [ ] CP/IV/species combinations receive exact level/legal-build validation.
-- [ ] Inventory cards, filters, and full edit workflow are implemented.
+- [x] Manual-entry workflow supports all required fields.
+- [x] CP/IV/species combinations receive exact level/legal-build validation.
+- [x] Inventory cards, filters, and full edit workflow are implemented.
 - [ ] JSON backup/import is implemented.
 
 ## Next phase dependencies

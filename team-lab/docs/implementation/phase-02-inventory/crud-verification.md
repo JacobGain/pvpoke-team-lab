@@ -1,17 +1,18 @@
 # Inventory CRUD Verification
 
 > **Phase:** Phase 2 — Inventory Domain and Persistence  
-> **Status:** Complete as an engineering verification surface  
+> **Status:** Superseded
 > **Route:** `/inventory`  
 > **Last reviewed:** 2026-07-24
 
 ## Summary
 
-The temporary inventory route proves that the browser application can create,
-read, update, and delete validated records through the complete production
-stack.
+The temporary route proved browser CRUD through the production stack. It has
+been replaced by [manual entry](manual-entry-workflow.md) and the
+[inventory dashboard](inventory-dashboard.md). Repository tests retain the
+original persistence verification without keeping a second UI.
 
-## Implemented behavior
+## Historical behavior
 
 - loads the current catalog and IndexedDB inventory;
 - offers released catalog entries with a default IV spread and usable moves;

@@ -35,7 +35,10 @@ Semantic validation checks:
 - current fast and charged moves belong to that exact catalog entry;
 - assumed rank-one records have a published default Great League spread;
 - planned target species exists;
-- desired moves belong to the planned target.
+- desired moves belong to the planned target;
+- current CP is possible at an upstream-supported half-level;
+- planned target is the same species or a direct evolution;
+- optional target CP is possible with the specimen's IVs.
 
 Issues contain a stable code, field path, and readable message.
 `InventoryCatalogValidationError` preserves the full issue list.
@@ -53,20 +56,14 @@ separately allows TeamLab to:
 
 Creation currently requires both layers to pass.
 
-## Intentionally deferred validation
+## Derived exact-build validation
 
-### Exact CP and level
+Exact inference is documented in
+[Combat power and level inference](combat-power-and-level-inference.md).
+Inferred level is recalculated and not stored.
 
-The 1500 cap is necessary but insufficient to prove a legal build. Exact
-validation requires species base stats, CP multipliers, rounding behavior,
-level caps, and special floors. It will be implemented with the
-upstream-compatible engine/CP adapter. No inferred level is stored yet.
-
-### Evolution relationship
-
-The normalized catalog currently lacks family/evolution edges. A planned
-target is proven to exist and its desired moves are validated, but TeamLab
-does not yet claim it is a legal evolution of the current species.
+Evolution currently supports a same-species moveset plan or one direct
+upstream evolution edge. Multi-stage evolution planning is deferred.
 
 ### Great League eligibility
 
@@ -81,9 +78,9 @@ untouched for later recovery.
 
 ## Safe extension points
 
-- Add exact-build validation as another domain service that returns typed
-  issues.
-- Add evolution validation when the catalog exposes family edges.
+- Add acquisition-source-specific warnings if authoritative data supports
+  them.
+- Add multi-stage evolution traversal if the workflow needs it.
 - Add warnings separately from blocking issues.
 - Keep user-facing form mapping outside the core validators.
 

@@ -54,6 +54,8 @@ Each `PokemonCatalogEntry` contains:
 - released status;
 - normal/Shadow indicators;
 - Shadow eligibility;
+- base stats and upstream level bounds;
+- direct evolution IDs;
 - resolved fast and charged movepools;
 - legacy/Elite move flags;
 - default Great League IV spread, where published;
@@ -160,6 +162,11 @@ Cards currently display:
 - recommended move IDs;
 - movepool counts;
 - published default Great League IV spread.
+
+Phase 2 extended the non-visual catalog contract with base stats, level
+bounds, and direct evolution edges for exact inventory validation. It also
+adds Return to Shadow-eligible normal variants and Frustration to Shadow
+variants, matching the relevant upstream `Pokemon` movepool behavior.
 
 ## Why exact eligibility is deferred
 

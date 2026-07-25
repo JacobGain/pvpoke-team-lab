@@ -111,8 +111,8 @@ Version one does not persist:
 - display names or images.
 
 These values depend on current logic/data and should be recalculated. Exact
-level becomes part of the model only after upstream-compatible CP logic can
-prove it reliably.
+level is now derived through the characterized CP service but intentionally
+remains outside the persisted record.
 
 ## Safe extension points
 

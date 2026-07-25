@@ -84,30 +84,32 @@ ecd7b3a92  data connection pt.2: repositories
 
 ### Phase 2 — Inventory domain and persistence
 
-Status: **In progress — persistence foundation complete**
+Status: **In progress — entry and maintenance workflow complete**
 
 - [Phase overview](phase-02-inventory/README.md)
 - [Inventory domain model](phase-02-inventory/inventory-domain-model.md)
 - [IndexedDB and repositories](phase-02-inventory/indexeddb-and-repositories.md)
 - [Inventory validation](phase-02-inventory/inventory-validation.md)
-- [CRUD verification](phase-02-inventory/crud-verification.md)
+- [Combat power and level inference](phase-02-inventory/combat-power-and-level-inference.md)
+- [Manual inventory entry and editing](phase-02-inventory/manual-entry-workflow.md)
+- [Inventory dashboard](phase-02-inventory/inventory-dashboard.md)
+- [Superseded CRUD verification](phase-02-inventory/crud-verification.md)
 
 Implemented:
 
 - versioned current/planned inventory schemas
 - explicit user-entered/rank-one IV provenance
 - structural and catalog-aware validation
+- exact CP calculation, level inference, and direct evolution validation
 - Dexie database and repository contract
 - validated CRUD persistence
 - TanStack Query integration
-- engineering verification route
+- current/planned create and edit workflow
+- searchable inventory dashboard and confirmed deletion
 - Vitest and fake IndexedDB foundation
 
 Remaining:
 
-- exact CP/level legality
-- full manual-entry and edit workflows
-- inventory dashboard/cards/filters
 - JSON backup and import
 
 ## Updating these records
