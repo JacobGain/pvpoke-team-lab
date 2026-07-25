@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { Save } from "lucide-react";
 import {
   Link,
   useNavigate,
@@ -6,6 +7,8 @@ import {
   useSearchParams,
 } from "react-router-dom";
 
+import { PageHeader } from "@/components/PageHeader";
+import { PokemonSprite } from "@/components/PokemonSprite";
 import {
   createSavedTeam,
   updateSavedTeam,
@@ -224,21 +227,23 @@ function SavedTeamForm({
 
   return (
     <main className="teams-page">
-      <header className="form-page-header">
-        <Link to="/teams">← Saved teams</Link>
-        <p className="eyebrow">Open Great League team</p>
-        <h1>
-          {existingTeam
+      <PageHeader
+        back={{ to: "/teams", label: "Saved teams" }}
+        description={
+          <p>
+            Order matters. Every member references a live inventory record and
+            must satisfy species clause.
+          </p>
+        }
+        eyebrow="Open Great League team"
+        title={
+          existingTeam
             ? "Edit saved team"
             : duplicateTeam
               ? "Duplicate saved team"
-              : "Create saved team"}
-        </h1>
-        <p>
-          Order matters. Every member references a live inventory record and
-          must satisfy species clause.
-        </p>
-      </header>
+              : "Create saved team"
+        }
+      />
 
       {inventory.length < 3 ? (
         <section className="form-section">
@@ -276,10 +281,28 @@ function SavedTeamForm({
                 !inventory.some(
                   (record) => record.inventoryId === position.value,
                 );
+              const selectedRecord = inventory.find(
+                (record) => record.inventoryId === position.value,
+              );
+              const selectedSpeciesId = selectedRecord
+                ? selectedRecord.buildStatus === "planned"
+                  ? selectedRecord.plannedBuild.targetSpeciesId
+                  : selectedRecord.speciesId
+                : undefined;
+              const selectedPokemon = selectedSpeciesId
+                ? pokemonById.get(selectedSpeciesId)
+                : undefined;
 
               return (
                 <article className="team-position" key={position.id}>
                   <div className="team-position__number">{index + 1}</div>
+                  {selectedPokemon ? (
+                    <PokemonSprite
+                      size="medium"
+                      speciesId={selectedPokemon.speciesId}
+                      speciesName={selectedPokemon.speciesName}
+                    />
+                  ) : null}
                   <div>
                     <p className="eyebrow">{position.title}</p>
                     <p>{position.description}</p>
@@ -377,6 +400,7 @@ function SavedTeamForm({
               type="submit"
               disabled={pending}
             >
+              <Save size={18} />
               {pending ? "Saving…" : existingTeam ? "Save changes" : "Save team"}
             </button>
           </div>

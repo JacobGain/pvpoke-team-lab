@@ -1,6 +1,16 @@
 import { useMemo, useState } from "react";
+import {
+  Archive,
+  Boxes,
+  Plus,
+  SearchX,
+  Users,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 
+import { EmptyState } from "@/components/EmptyState";
+import { PageHeader } from "@/components/PageHeader";
+import { PokemonSprite } from "@/components/PokemonSprite";
 import { inferCombatPowerLevel } from "@/domain/pokemon/combatPower";
 import {
   useDeleteInventoryPokemon,
@@ -63,33 +73,39 @@ export function InventoryPage() {
 
   return (
     <main className="inventory-page">
-      <header className="inventory-header">
-        <div>
-          <Link to="/">← Home</Link>
-          <p className="eyebrow">Open Great League</p>
-          <h1>Your inventory</h1>
+      <PageHeader
+        actions={
+          <>
+            <Link className="primary-link" to="/inventory/new">
+              <Plus size={18} />
+              Add Pokémon
+            </Link>
+            <Link className="secondary-link" to="/teams">
+              <Users size={18} />
+              Saved teams
+            </Link>
+            <Link className="secondary-link" to="/inventory/backup">
+              <Archive size={18} />
+              Local data
+            </Link>
+          </>
+        }
+        aside={
+          <div className="catalog-summary">
+            <strong>{inventoryResult.data?.length ?? 0}</strong>
+            <span>Pokémon saved locally</span>
+            <small>Private to this browser</small>
+          </div>
+        }
+        description={
           <p>
             Maintain exact current builds and future plans using the latest
             validated PvPoke catalog.
           </p>
-          <div className="home-actions">
-            <Link className="primary-link" to="/inventory/new">
-              Add Pokémon
-            </Link>
-            <Link className="secondary-link" to="/inventory/backup">
-              Backup and restore
-            </Link>
-            <Link className="secondary-link" to="/teams">
-              Saved teams
-            </Link>
-          </div>
-        </div>
-        <div className="catalog-summary">
-          <strong>{inventoryResult.data?.length ?? 0}</strong>
-          <span>saved locally</span>
-          <small>IndexedDB · this browser</small>
-        </div>
-      </header>
+        }
+        eyebrow="Open Great League roster"
+        title="Your inventory"
+      />
 
       <section className="inventory-controls" aria-label="Inventory filters">
         <label>
@@ -173,6 +189,11 @@ export function InventoryPage() {
 
           return (
             <article className="inventory-card" key={record.inventoryId}>
+              <PokemonSprite
+                size="large"
+                speciesId={record.speciesId}
+                speciesName={pokemon?.speciesName ?? record.speciesId}
+              />
               <div className="inventory-card__content">
                 <div className="inventory-card__heading">
                   <div>
@@ -261,11 +282,40 @@ export function InventoryPage() {
       </section>
 
       {filteredRecords.length === 0 ? (
-        <p className="catalog-empty">
-          {inventoryResult.data?.length === 0
-            ? "Your inventory is empty. Add your first Great League Pokémon."
-            : "No inventory records match these filters."}
-        </p>
+        <EmptyState
+          actions={
+            inventoryResult.data?.length === 0 ? (
+              <Link className="primary-link" to="/inventory/new">
+                <Plus size={18} />
+                Add your first Pokémon
+              </Link>
+            ) : undefined
+          }
+          description={
+            <p>
+              {inventoryResult.data?.length === 0
+                ? "Record an exact build to unlock analysis, teams, and personalized recommendations."
+                : "Try changing your search, build status, or favorites filter."}
+            </p>
+          }
+          eyebrow={
+            inventoryResult.data?.length === 0
+              ? "Start your roster"
+              : "No matches"
+          }
+          icon={
+            inventoryResult.data?.length === 0 ? (
+              <Boxes size={26} />
+            ) : (
+              <SearchX size={26} />
+            )
+          }
+          title={
+            inventoryResult.data?.length === 0
+              ? "Your inventory is empty"
+              : "No Pokémon match these filters"
+          }
+        />
       ) : null}
     </main>
   );

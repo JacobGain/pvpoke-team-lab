@@ -1,6 +1,10 @@
 import { useMemo, useState } from "react";
+import { SearchX } from "lucide-react";
 import { Link } from "react-router-dom";
 
+import { EmptyState } from "@/components/EmptyState";
+import { PageHeader } from "@/components/PageHeader";
+import { PokemonSprite } from "@/components/PokemonSprite";
 import {
   countCatalogDiagnostics,
   type PokemonCatalogEntry,
@@ -82,22 +86,23 @@ export function PokemonCatalogPage() {
 
   return (
     <main className="catalog-page">
-      <header className="catalog-header">
-        <div>
-          <Link to="/">← Home</Link>
-          <p className="eyebrow">Open Great League</p>
-          <h1>Pokémon catalog</h1>
+      <PageHeader
+        aside={
+          <div className="catalog-summary">
+            <strong>{filteredPokemon.length.toLocaleString()}</strong>
+            <span>matching records</span>
+            <small>Data: {catalog.dataVersion}</small>
+          </div>
+        }
+        description={
           <p>
             Validated Pokémon, movepools, rankings, and current meta
             membership from PvPoke.
           </p>
-        </div>
-        <div className="catalog-summary">
-          <strong>{filteredPokemon.length.toLocaleString()}</strong>
-          <span>matching records</span>
-          <small>Data: {catalog.dataVersion}</small>
-        </div>
-      </header>
+        }
+        eyebrow="Explore the meta"
+        title="Pokémon catalog"
+      />
 
       <section className="catalog-controls" aria-label="Catalog filters">
         <label>
@@ -134,6 +139,11 @@ export function PokemonCatalogPage() {
       <section className="catalog-grid" aria-label="Pokémon catalog results">
         {displayedPokemon.map((pokemon) => (
           <article className="pokemon-card" key={pokemon.speciesId}>
+            <PokemonSprite
+              size="large"
+              speciesId={pokemon.speciesId}
+              speciesName={pokemon.speciesName}
+            />
             <div className="pokemon-card__heading">
               <div>
                 <span className="pokemon-card__dex">
@@ -193,7 +203,14 @@ export function PokemonCatalogPage() {
       </section>
 
       {displayedPokemon.length === 0 ? (
-        <p className="catalog-empty">No Pokémon match these filters.</p>
+        <EmptyState
+          description={
+            <p>Try a species name, type, move, or include unranked Pokémon.</p>
+          }
+          eyebrow="No matches"
+          icon={<SearchX size={26} />}
+          title="No Pokémon match these filters"
+        />
       ) : null}
 
       {filteredPokemon.length > DISPLAY_LIMIT ? (

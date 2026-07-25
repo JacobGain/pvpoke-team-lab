@@ -1,5 +1,11 @@
 import { useMemo, useState, type FormEvent } from "react";
 import {
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Save,
+} from "lucide-react";
+import {
   Link,
   useLocation,
   useNavigate,
@@ -7,6 +13,8 @@ import {
   useSearchParams,
 } from "react-router-dom";
 
+import { PageHeader } from "@/components/PageHeader";
+import { PokemonSprite } from "@/components/PokemonSprite";
 import {
   createInventoryPokemon,
   updateInventoryPokemon as buildUpdatedInventoryPokemon,
@@ -73,8 +81,7 @@ function InventoryFormFields({
   const initialBuild = sourceRecord?.currentBuild;
   const initialDefaultIvs = initialPokemon.defaultGreatLeagueIvs;
   const initialIvSource =
-    initialBuild?.ivProfile.source ??
-    (initialDefaultIvs ? "assumed-rank-1" : "user-entered");
+    initialBuild?.ivProfile.source ?? "user-entered";
   const initialIvs = initialBuild?.ivProfile.ivs ??
     initialDefaultIvs ?? { attack: 0, defense: 15, hp: 15 };
   const initialCp =
@@ -146,6 +153,7 @@ function InventoryFormFields({
   const [notes, setNotes] = useState(sourceRecord?.notes ?? "");
   const [speciesSearch, setSpeciesSearch] = useState("");
   const [formError, setFormError] = useState<unknown>();
+  const [step, setStep] = useState(0);
 
   const selectedPokemon =
     catalog.entries.find((pokemon) => pokemon.speciesId === speciesId) ??
@@ -276,14 +284,51 @@ function InventoryFormFields({
 
   const mutationPending =
     createMutation.isPending || updateMutation.isPending;
+  const exactBuildComplete =
+    cpInference !== undefined && cpInference.status !== "no-match";
+  const steps = [
+    { label: "Exact build", hint: "Required" },
+    { label: "Build intent", hint: "Required" },
+    { label: "Review", hint: "Optional details" },
+  ] as const;
 
   return (
     <form className="inventory-form" onSubmit={handleSubmit}>
-      <section className="form-section">
+      <nav className="form-stepper" aria-label="Inventory form progress">
+        {steps.map((item, index) => (
+          <button
+            aria-current={step === index ? "step" : undefined}
+            className={
+              step === index
+                ? "form-step form-step--active"
+                : index < step
+                  ? "form-step form-step--complete"
+                  : "form-step"
+            }
+            disabled={index > step}
+            key={item.label}
+            onClick={() => {
+              if (index <= step) setStep(index);
+            }}
+            type="button"
+          >
+            <span>{index < step ? <Check size={16} /> : index + 1}</span>
+            <strong>{item.label}</strong>
+            <small>{item.hint}</small>
+          </button>
+        ))}
+      </nav>
+
+      {step === 0 ? (
+      <section className="form-section guided-form-panel">
         <div className="form-section__heading">
           <div>
-            <p className="eyebrow">Owned specimen</p>
-            <h2>Current Pokémon</h2>
+            <p className="eyebrow">Step 1 · Required</p>
+            <h2>Record the exact Pokémon</h2>
+            <p>
+              CP and IVs let TeamLab infer the legal level and calculate the
+              build you actually own.
+            </p>
           </div>
           <label className="inline-check">
             <input
@@ -295,6 +340,20 @@ function InventoryFormFields({
             />
             Favorite
           </label>
+        </div>
+
+        <div className="selected-pokemon-preview">
+          <PokemonSprite
+            eager
+            size="large"
+            speciesId={selectedPokemon.speciesId}
+            speciesName={selectedPokemon.speciesName}
+          />
+          <div>
+            <small>Selected specimen</small>
+            <strong>{selectedPokemon.speciesName}</strong>
+            <span>#{String(selectedPokemon.dex).padStart(4, "0")}</span>
+          </div>
         </div>
 
         <div className="form-grid">
@@ -322,8 +381,11 @@ function InventoryFormFields({
                   resetTarget(pokemon);
                   if (!pokemon.defaultGreatLeagueIvs) {
                     setIvSource("user-entered");
-                  } else if (ivSource === "assumed-rank-1") {
+                  } else {
                     const defaultIvs = pokemon.defaultGreatLeagueIvs;
+                    setAttackIv(String(defaultIvs.attack));
+                    setDefenseIv(String(defaultIvs.defense));
+                    setHpIv(String(defaultIvs.hp));
                     setCp(
                       String(
                         calculateCombatPower(
@@ -402,27 +464,33 @@ function InventoryFormFields({
           </fieldset>
 
           {ivSource === "user-entered" ? (
-            <div className="iv-grid form-field--wide">
-              {[
-                ["Attack", attackIv, setAttackIv],
-                ["Defense", defenseIv, setDefenseIv],
-                ["HP", hpIv, setHpIv],
-              ].map(([label, value, setter]) => (
-                <label className="form-field" key={String(label)}>
-                  <span>{String(label)} IV</span>
-                  <input
-                    required
-                    type="number"
-                    min="0"
-                    max="15"
-                    value={String(value)}
-                    onChange={(event) => {
-                      (setter as (value: string) => void)(event.target.value);
-                    }}
-                  />
-                </label>
-              ))}
-            </div>
+            <>
+              <div className="iv-grid form-field--wide">
+                {[
+                  ["Attack", attackIv, setAttackIv],
+                  ["Defense", defenseIv, setDefenseIv],
+                  ["HP", hpIv, setHpIv],
+                ].map(([label, value, setter]) => (
+                  <label className="form-field" key={String(label)}>
+                    <span>{String(label)} IV</span>
+                    <input
+                      required
+                      type="number"
+                      min="0"
+                      max="15"
+                      value={String(value)}
+                      onChange={(event) => {
+                        (setter as (value: string) => void)(event.target.value);
+                      }}
+                    />
+                  </label>
+                ))}
+              </div>
+              <p className="form-helper form-field--wide">
+                Required for an exact build. Replace the suggested starting
+                values with the IVs shown in Pokémon appraisal.
+              </p>
+            </>
           ) : (
             <p className="assumption-notice form-field--wide">
               Assumed IVs: {effectiveIvs?.attack}/{effectiveIvs?.defense}/
@@ -499,10 +567,16 @@ function InventoryFormFields({
           </label>
         </div>
       </section>
+      ) : null}
 
-      <section className="form-section">
-        <p className="eyebrow">Build intent</p>
+      {step === 1 ? (
+      <section className="form-section guided-form-panel">
+        <p className="eyebrow">Step 2 · Required</p>
         <h2>Current or planned</h2>
+        <p className="form-section__intro">
+          Analyze the build as it is today, or keep the owned specimen while
+          planning an evolution, target CP, or moveset.
+        </p>
         <div className="status-selector">
           <label>
             <input
@@ -615,10 +689,57 @@ function InventoryFormFields({
           </div>
         ) : null}
       </section>
+      ) : null}
 
+      {step === 2 ? (
+      <>
+      <section className="form-section guided-form-panel review-panel">
+        <p className="eyebrow">Step 3 · Review</p>
+        <h2>Confirm the build</h2>
+        <div className="build-review">
+          <PokemonSprite
+            size="large"
+            speciesId={selectedPokemon.speciesId}
+            speciesName={selectedPokemon.speciesName}
+          />
+          <dl>
+            <div>
+              <dt>Pokémon</dt>
+              <dd>{selectedPokemon.speciesName}</dd>
+            </div>
+            <div>
+              <dt>Exact build</dt>
+              <dd>
+                CP {cp} · {effectiveIvs?.attack}/{effectiveIvs?.defense}/
+                {effectiveIvs?.hp} IVs
+              </dd>
+            </div>
+            <div>
+              <dt>Inferred level</dt>
+              <dd>
+                {cpInference && cpInference.status !== "no-match"
+                  ? cpInference.matches.map((match) => match.level).join(" or ")
+                  : "Unresolved"}
+              </dd>
+            </div>
+            <div>
+              <dt>Moves</dt>
+              <dd>
+                {fastMoveId} · {[chargedMoveOne, chargedMoveTwo]
+                  .filter(Boolean)
+                  .join(" / ")}
+              </dd>
+            </div>
+            <div>
+              <dt>Intent</dt>
+              <dd>{buildStatus === "current" ? "Ready now" : "Planned build"}</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
       <section className="form-section">
         <label className="form-field">
-          <span>Notes</span>
+          <span>Notes <small>Optional</small></span>
           <textarea
             maxLength={2000}
             rows={4}
@@ -630,6 +751,8 @@ function InventoryFormFields({
           />
         </label>
       </section>
+      </>
+      ) : null}
 
       {formError ? (
         <p className="inventory-error" role="alert">
@@ -638,10 +761,37 @@ function InventoryFormFields({
       ) : null}
 
       <div className="form-actions">
-        <Link className="secondary-link" to="/inventory">
-          Cancel
-        </Link>
-        {!existingRecord ? (
+        {step === 0 ? (
+          <Link className="secondary-link" to="/inventory">
+            Cancel
+          </Link>
+        ) : (
+          <button
+            className="secondary-button"
+            onClick={() => {
+              setStep((current) => Math.max(0, current - 1));
+            }}
+            type="button"
+          >
+            <ChevronLeft size={18} />
+            Back
+          </button>
+        )}
+        {step < 2 ? (
+          <button
+            className="primary-button"
+            disabled={step === 0 && !exactBuildComplete}
+            onClick={() => {
+              setStep((current) => Math.min(2, current + 1));
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            type="button"
+          >
+            Continue
+            <ChevronRight size={18} />
+          </button>
+        ) : null}
+        {step === 2 && !existingRecord ? (
           <button
             type="submit"
             name="save-intent"
@@ -651,18 +801,22 @@ function InventoryFormFields({
             {mutationPending ? "Saving…" : "Save and add another"}
           </button>
         ) : null}
+        {step === 2 ? (
         <button
+          className="primary-button"
           type="submit"
           name="save-intent"
           value="finish"
           disabled={mutationPending}
         >
+          <Save size={18} />
           {mutationPending
             ? "Saving…"
             : existingRecord
               ? "Save changes"
               : "Add to inventory"}
         </button>
+        ) : null}
       </div>
     </form>
   );
@@ -745,29 +899,31 @@ export function InventoryFormPage() {
 
   return (
     <main className="inventory-page inventory-form-page">
-      <header className="form-page-header">
-        <Link to="/inventory">← Inventory</Link>
-        <p className="eyebrow">Open Great League</p>
-        <h1>
-          {isEditing
+      <PageHeader
+        back={{ to: "/inventory", label: "Inventory" }}
+        description={
+          <p>
+            Record the specimen you own, its exact current build, and an
+            optional future plan.
+          </p>
+        }
+        eyebrow="Open Great League inventory"
+        title={
+          isEditing
             ? "Edit Pokémon"
             : isDuplicating
               ? "Duplicate Pokémon"
-              : "Add Pokémon"}
-        </h1>
-        <p>
-          Record the specimen you own, its exact current build, and an optional
-          future plan.
+              : "Add Pokémon"
+        }
+      />
+      {continued ? (
+        <p className="backup-success" role="status">
+          Previous Pokémon saved. Your inventory now contains{" "}
+          {inventoryListResult.data?.length ?? "the saved"}{" "}
+          {inventoryListResult.data?.length === 1 ? "record" : "records"};
+          adjust the carried-forward fields for the next specimen.
         </p>
-        {continued ? (
-          <p className="backup-success" role="status">
-            Previous Pokémon saved. Your inventory now contains{" "}
-            {inventoryListResult.data?.length ?? "the saved"}{" "}
-            {inventoryListResult.data?.length === 1 ? "record" : "records"};
-            adjust the carried-forward fields for the next specimen.
-          </p>
-        ) : null}
-      </header>
+      ) : null}
       <InventoryForm
         key={location.key}
         catalog={catalogResult.data}

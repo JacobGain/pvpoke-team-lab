@@ -1,6 +1,7 @@
 import { useState, type ChangeEvent } from "react";
 import { Link } from "react-router-dom";
 
+import { PageHeader } from "@/components/PageHeader";
 import {
   createTeamLabBackup,
   inspectTeamLabBackup,
@@ -216,15 +217,18 @@ export function InventoryBackupPage() {
 
   return (
     <main className="inventory-page backup-page">
-      <header className="form-page-header">
-        <Link to="/inventory">← Inventory</Link>
-        <p className="eyebrow">Local data safety</p>
-        <h1>Backup and restore</h1>
-        <p>
-          Export inventory and saved teams in one portable TeamLab JSON backup,
-          or validate every record and reference before changing IndexedDB.
-        </p>
-      </header>
+      <PageHeader
+        back={{ to: "/inventory", label: "Inventory" }}
+        description={
+          <p>
+            Export inventory and saved teams in one portable TeamLab JSON
+            backup, or validate every record and reference before changing
+            IndexedDB.
+          </p>
+        }
+        eyebrow="Local data safety"
+        title="Backup and restore"
+      />
 
       <section className="form-section backup-section">
         <div>

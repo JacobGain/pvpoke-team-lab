@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
+import { PageHeader } from "@/components/PageHeader";
 import {
   runSimulationCharacterizationSuite,
   runTeamRankerCharacterization,
@@ -92,15 +93,16 @@ export function SimulationDiagnosticsPage() {
 
   return (
     <main className="diagnostics-page">
-      <header className="form-page-header">
-        <Link to="/">← Home</Link>
-        <p className="eyebrow">Phase 5 diagnostics</p>
-        <h1>PvPoke engine characterization</h1>
-        <p>
-          Load the real upstream classic scripts, run known exact Great League
-          battles twice, and verify deterministic translated results.
-        </p>
-      </header>
+      <PageHeader
+        description={
+          <p>
+            Load the real upstream classic scripts, run known exact Great
+            League battles twice, and verify deterministic translated results.
+          </p>
+        }
+        eyebrow="System health"
+        title="PvPoke engine diagnostics"
+      />
 
       <section className="form-section diagnostics-summary">
         <div>

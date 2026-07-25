@@ -660,14 +660,24 @@ async function createInventory(
       `document.querySelector('label select')?.value === ${JSON.stringify(speciesId)} && document.querySelector(".level-result")?.textContent?.includes("Level") && !document.querySelector(".level-result .invalid-value")`,
       `${speciesId} to resolve to a legal build`,
     );
-    await browser.setLabeledControl(
-      "Notes",
-      `Browser fixture ${index + 1}: ${speciesId}`,
-      "textarea",
-    );
     if (index === 0) {
       await browser.setLabeledCheckbox("Favorite", true);
     }
+    await browser.clickButton("Continue");
+    await browser.waitFor(
+      `document.querySelector(".guided-form-panel h2")?.textContent?.trim() === "Current or planned"`,
+      "inventory build-intent step",
+    );
+    await browser.clickButton("Continue");
+    await browser.waitFor(
+      `Boolean(document.querySelector('textarea[placeholder="Optional build context"]'))`,
+      "inventory review step",
+    );
+    await browser.setLabeledControl(
+      "Notes Optional",
+      `Browser fixture ${index + 1}: ${speciesId}`,
+      "textarea",
+    );
     await browser.clickButton("Add to inventory");
     await browser.waitFor(
       `location.pathname === "/inventory" && document.querySelectorAll(".inventory-card").length === ${index + 1}`,
@@ -684,7 +694,7 @@ async function runCriticalWorkflows(
   const responsiveStates: string[] = [];
 
   await browser.setViewport(1440, 1_000);
-  await browser.navigate("/", "TeamLab");
+  await browser.navigate("/", "Build with what you actually own.");
   await browser.waitFor(
     `document.querySelector("#pvpoke-data-title")?.textContent?.trim() === "Connected"`,
     "real PvPoke data connection",
@@ -749,8 +759,18 @@ async function runCriticalWorkflows(
   await browser.setViewport(1440, 1_000);
 
   await browser.navigate(firstRecord.editHref, "Edit Pokémon");
+  await browser.clickButton("Continue");
+  await browser.waitFor(
+    `document.querySelector(".guided-form-panel h2")?.textContent?.trim() === "Current or planned"`,
+    "inventory edit build-intent step",
+  );
+  await browser.clickButton("Continue");
+  await browser.waitFor(
+    `Boolean(document.querySelector('textarea[placeholder="Optional build context"]'))`,
+    "inventory edit review step",
+  );
   await browser.setLabeledControl(
-    "Notes",
+    "Notes Optional",
     "Edited by durable browser coverage",
     "textarea",
   );
@@ -836,6 +856,7 @@ async function runCriticalWorkflows(
   await browser.setViewport(1440, 1_000);
 
   await browser.navigate("/recommend", "Build around your anchors");
+  await browser.clickButton("Continue to experiment");
   await browser.setLabeledControl("Results", "5", "select");
   await browser.setLabeledControl("Meta targets", "48", "select");
   await browser.startPulseAndClick("Generate recommendations");

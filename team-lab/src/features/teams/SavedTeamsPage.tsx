@@ -1,5 +1,9 @@
+import { Plus, Sparkles, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 
+import { EmptyState } from "@/components/EmptyState";
+import { PageHeader } from "@/components/PageHeader";
+import { PokemonSprite } from "@/components/PokemonSprite";
 import { resolveSavedTeam } from "@/domain/teams/resolution";
 import { useInventoryList } from "@/features/inventory/inventoryQueries";
 import { usePokemonCatalog } from "@/features/meta/usePokemonCatalog";
@@ -56,25 +60,35 @@ export function SavedTeamsPage() {
 
   return (
     <main className="teams-page">
-      <header className="inventory-header">
-        <div>
-          <Link to="/">← Home</Link>
-          <p className="eyebrow">Open Great League</p>
-          <h1>Saved teams</h1>
+      <PageHeader
+        actions={
+          <>
+            <Link className="primary-link" to="/teams/new">
+              <Plus size={18} />
+              Create team
+            </Link>
+            <Link className="secondary-link" to="/recommend">
+              <Sparkles size={18} />
+              Find a team
+            </Link>
+          </>
+        }
+        aside={
+          <div className="catalog-summary">
+            <strong>{resolvedTeams.length}</strong>
+            <span>teams saved locally</span>
+            <small>References live inventory builds</small>
+          </div>
+        }
+        description={
           <p>
             Build ordered teams from your exact inventory. Lead, safe switch,
             and closer positions remain explicit.
           </p>
-          <Link className="primary-link" to="/teams/new">
-            Create team
-          </Link>
-        </div>
-        <div className="catalog-summary">
-          <strong>{resolvedTeams.length}</strong>
-          <span>teams saved locally</span>
-          <small>References live inventory builds</small>
-        </div>
-      </header>
+        }
+        eyebrow="Open Great League lineups"
+        title="Saved teams"
+      />
 
       {error ? (
         <p className="inventory-error" role="alert">
@@ -97,14 +111,23 @@ export function SavedTeamsPage() {
             <ol className="team-members">
               {members.map((member) => (
                 <li key={member.position}>
-                  <span>{member.position.replace("-", " ")}</span>
                   {member.status === "resolved" ? (
-                    <strong>
-                      {member.pokemon.speciesName}
-                      {member.inventory.buildStatus === "planned"
-                        ? " · planned"
-                        : ""}
-                    </strong>
+                    <>
+                      <PokemonSprite
+                        size="small"
+                        speciesId={member.pokemon.speciesId}
+                        speciesName={member.pokemon.speciesName}
+                      />
+                      <span>
+                        {member.position.replace("-", " ")}
+                        <strong>
+                          {member.pokemon.speciesName}
+                          {member.inventory.buildStatus === "planned"
+                            ? " · planned"
+                            : ""}
+                        </strong>
+                      </span>
+                    </>
                   ) : (
                     <strong className="invalid-value">
                       {member.status === "missing-inventory"
@@ -157,9 +180,29 @@ export function SavedTeamsPage() {
       </section>
 
       {resolvedTeams.length === 0 ? (
-        <p className="catalog-empty">
-          No saved teams yet. Create one from three inventory Pokémon.
-        </p>
+        <EmptyState
+          actions={
+            <>
+              <Link className="primary-link" to="/teams/new">
+                <Plus size={18} />
+                Create a team
+              </Link>
+              <Link className="secondary-link" to="/recommend">
+                <Sparkles size={18} />
+                Generate recommendations
+              </Link>
+            </>
+          }
+          description={
+            <p>
+              Create a lineup from three inventory Pokémon or start with an
+              anchor and let TeamLab find complementary builds.
+            </p>
+          }
+          eyebrow="Your team library"
+          icon={<Users size={26} />}
+          title="No saved teams yet"
+        />
       ) : null}
     </main>
   );

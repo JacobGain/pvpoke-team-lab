@@ -341,6 +341,27 @@ Post-MVP:
 - hosted deployment documentation when a supported target exists
 - user-guide updates alongside future leagues, imports, and persistence changes
 
+### Phase 9 — Modern battle lab UI and UX
+
+Status: **Complete for the current MVP**
+
+- [Phase overview](phase-09-ui-ux-overhaul/README.md)
+- [Local Pokémon sprite pipeline](phase-09-ui-ux-overhaul/sprite-pipeline.md)
+
+Implemented:
+
+- shared desktop and mobile application shell
+- persistent primary navigation and grouped utility destinations
+- state-aware dashboard and deterministic next-best-action guidance
+- modern battle-lab design tokens, surfaces, hierarchy, and icon system
+- reusable page-header and actionable empty-state patterns
+- responsive local Pokémon artwork throughout all primary workflows
+- revision-pinned PokeAPI sync, WebP optimization, manifest, and attribution
+- three-step exact inventory workflow with actual IV entry as the default
+- staged anchor recommendation request and result flow
+- keyboard, focus, reduced-motion, and 320 px responsive hardening
+- updated full-browser coverage for progressive step transitions
+
 ## Updating these records
 
 Documentation is part of the definition of done for an implementation slice.
@@ -405,6 +426,6 @@ Present recommendation evidence and explicitly save selected teams
 Guard or atomically reset persisted local data
 ```
 
-The local MVP implementation and its Phase 8 hardening criteria are complete.
-Post-MVP capabilities remain intentionally outside this implementation
-boundary.
+The local MVP implementation, Phase 8 hardening, and Phase 9 experience
+overhaul are complete. Post-MVP capabilities remain intentionally outside this
+implementation boundary.

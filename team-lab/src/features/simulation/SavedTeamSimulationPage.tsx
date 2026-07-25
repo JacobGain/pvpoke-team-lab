@@ -1,6 +1,9 @@
 import { useMemo, useState } from "react";
+import { Pencil, Play } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 
+import { PageHeader } from "@/components/PageHeader";
+import { PokemonSprite } from "@/components/PokemonSprite";
 import {
   META_TARGET_LIMITS,
   prepareSavedTeamRankerRequest,
@@ -96,6 +99,27 @@ export function SavedTeamSimulationPage() {
   const inventory = inventoryResult.data;
   const catalog = catalogResult.data;
   const rankingService = service;
+  const previewMembers = [
+    ["Lead", team.members.leadInventoryId],
+    ["Safe switch", team.members.switchInventoryId],
+    ["Closer", team.members.closerInventoryId],
+  ].map(([position, inventoryId]) => {
+    const record = inventory.find(
+      (candidate) => candidate.inventoryId === inventoryId,
+    );
+    const speciesId = record
+      ? record.buildStatus === "planned"
+        ? record.plannedBuild.targetSpeciesId
+        : record.speciesId
+      : "";
+    return {
+      position,
+      record,
+      pokemon: catalog.entries.find(
+        (candidate) => candidate.speciesId === speciesId,
+      ),
+    };
+  });
 
   async function runRanking() {
     setRunning(true);
@@ -119,16 +143,46 @@ export function SavedTeamSimulationPage() {
 
   return (
     <main className="diagnostics-page">
-      <header className="form-page-header">
-        <Link to="/teams">← Saved teams</Link>
-        <p className="eyebrow">Phase 5 engine evidence</p>
-        <h1>{team.name}</h1>
-        <p>
-          Rank this exact ordered team against explicit PvPoke Open Great
-          League meta targets. This is a raw matrix view, not the Phase 6
-          scorecard.
-        </p>
-      </header>
+      <PageHeader
+        actions={
+          <Link className="secondary-link" to={`/teams/${team.teamId}`}>
+            <Pencil size={18} />
+            Edit team
+          </Link>
+        }
+        back={{ to: "/teams", label: "Saved teams" }}
+        description={
+          <p>
+            Evaluate this exact ordered team against a selected slice of the
+            current PvPoke Open Great League meta.
+          </p>
+        }
+        eyebrow="Team experiment"
+        title={team.name}
+      />
+
+      <section className="simulation-team-lineup" aria-label="Team lineup">
+        {previewMembers.map(({ position, record, pokemon }) => (
+          <article key={position}>
+            {pokemon ? (
+              <PokemonSprite
+                size="large"
+                speciesId={pokemon.speciesId}
+                speciesName={pokemon.speciesName}
+              />
+            ) : null}
+            <span>
+              <small>{position}</small>
+              <strong>{pokemon?.speciesName ?? "Missing Pokémon"}</strong>
+              <span>
+                {record
+                  ? `CP ${record.currentBuild.cp} · ${record.buildStatus}`
+                  : "Repair this team"}
+              </span>
+            </span>
+          </article>
+        ))}
+      </section>
 
       <section className="form-section simulation-controls">
         <label className="form-field">
@@ -178,6 +232,7 @@ export function SavedTeamSimulationPage() {
           disabled={running}
           onClick={() => void runRanking()}
         >
+          <Play size={18} />
           {running
             ? `Simulating ${targetLimit * 3} battles…`
             : "Run exact team matrix"}

@@ -3,8 +3,17 @@ import {
   useState,
   type FormEvent,
 } from "react";
+import {
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Save,
+  Sparkles,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 
+import { PageHeader } from "@/components/PageHeader";
+import { PokemonSprite } from "@/components/PokemonSprite";
 import type { InventoryPokemon } from "@/domain/inventory/schemas";
 import type { PokemonCatalog } from "@/domain/pokemon/catalog";
 import { buildRecommendationCandidatePool } from "@/domain/recommendations/candidatePool";
@@ -120,6 +129,11 @@ function RecommendationResultCard({
       <div className="recommendation-members">
         {members.map(({ position, candidate }) => (
           <section key={position}>
+            <PokemonSprite
+              size="large"
+              speciesId={candidate.exactBuild.speciesId}
+              speciesName={candidate.speciesName}
+            />
             <p className="eyebrow">{position}</p>
             <h3>{candidate.speciesName}</h3>
             <p>
@@ -251,6 +265,7 @@ function RecommendationResultCard({
           disabled={saving || saved}
           onClick={onSave}
         >
+          <Save size={18} />
           {saved ? "Saved to teams" : saving ? "Saving…" : "Save this team"}
         </button>
       </footer>
@@ -290,6 +305,7 @@ export function RecommendationPage() {
   const [savedTeamKeys, setSavedTeamKeys] = useState<ReadonlySet<string>>(
     new Set(),
   );
+  const [requestStep, setRequestStep] = useState(0);
   const inventory = inventoryResult.data ?? [];
 
   if (inventoryResult.isPending || catalogResult.isLoading) {
@@ -385,6 +401,7 @@ export function RecommendationPage() {
         },
       );
       setSimulation(nextSimulation);
+      setRequestStep(nextSimulation.cancelled ? 1 : 2);
     } catch (error) {
       setWorkflowError(error);
     } finally {
@@ -436,15 +453,16 @@ export function RecommendationPage() {
 
   return (
     <main className="recommendation-page">
-      <header className="form-page-header">
-        <Link to="/">← Home</Link>
-        <p className="eyebrow">Phase 7 · Open Great League</p>
-        <h1>Build around your anchors</h1>
-        <p>
-          Shortlist owned builds with published PvPoke evidence, then simulate
-          exact finalists against one explicit meta and shield scope.
-        </p>
-      </header>
+      <PageHeader
+        description={
+          <p>
+            Choose one or two exact owned builds, set the experiment scope, and
+            compare simulated lineups built around them.
+          </p>
+        }
+        eyebrow="Guided team discovery"
+        title="Build around your anchors"
+      />
 
       {inventory.length < 3 ? (
         <section className="form-section">
@@ -458,10 +476,43 @@ export function RecommendationPage() {
           </Link>
         </section>
       ) : (
+        <>
+        <nav
+          className="form-stepper recommendation-stepper"
+          aria-label="Recommendation progress"
+        >
+          {[
+            ["Anchors", "Choose your core"],
+            ["Experiment", "Set the scope"],
+            ["Results", "Compare teams"],
+          ].map(([label, hint], index) => (
+            <button
+              aria-current={requestStep === index ? "step" : undefined}
+              className={
+                requestStep === index
+                  ? "form-step form-step--active"
+                  : index < requestStep
+                    ? "form-step form-step--complete"
+                    : "form-step"
+              }
+              disabled={index > requestStep || running}
+              key={label}
+              onClick={() => {
+                if (index <= requestStep) setRequestStep(index);
+              }}
+              type="button"
+            >
+              <span>{index < requestStep ? <Check size={16} /> : index + 1}</span>
+              <strong>{label}</strong>
+              <small>{hint}</small>
+            </button>
+          ))}
+        </nav>
         <form
           className="recommendation-form"
           onSubmit={(event) => void runRecommendations(event)}
         >
+          {requestStep === 0 ? (
           <section className="form-section">
             <div className="form-section__heading">
               <div>
@@ -558,8 +609,23 @@ export function RecommendationPage() {
                 </>
               ) : null}
             </div>
+            <div className="recommendation-run-actions">
+              <button
+                className="primary-button"
+                onClick={() => {
+                  setRequestStep(1);
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                type="button"
+              >
+                Continue to experiment
+                <ChevronRight size={18} />
+              </button>
+            </div>
           </section>
+          ) : null}
 
+          {requestStep === 1 ? (
           <section className="form-section">
             <p className="eyebrow">Discovery and exact scope</p>
             <h2>Recommendation settings</h2>
@@ -659,10 +725,20 @@ export function RecommendationPage() {
             ) : null}
             <div className="recommendation-run-actions">
               <button
+                className="secondary-button"
+                disabled={running}
+                onClick={() => setRequestStep(0)}
+                type="button"
+              >
+                <ChevronLeft size={18} />
+                Back
+              </button>
+              <button
                 className="primary-button"
                 type="submit"
                 disabled={running}
               >
+                <Sparkles size={18} />
                 {running ? "Simulating finalists…" : "Generate recommendations"}
               </button>
               {running ? (
@@ -676,7 +752,9 @@ export function RecommendationPage() {
               ) : null}
             </div>
           </section>
+          ) : null}
         </form>
+        </>
       )}
 
       {progress ? (
@@ -729,6 +807,19 @@ export function RecommendationPage() {
 
       {simulation ? (
         <>
+          <div className="results-toolbar">
+            <div>
+              <p className="eyebrow">Experiment complete</p>
+              <h2>Recommended teams</h2>
+            </div>
+            <button
+              className="secondary-button"
+              onClick={() => setRequestStep(0)}
+              type="button"
+            >
+              Adjust inputs
+            </button>
+          </div>
           <section
             className={`diagnostics-banner ${
               simulation.selected.length > 0

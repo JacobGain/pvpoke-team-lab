@@ -1,5 +1,8 @@
+import { Pencil, Users } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 
+import { PageHeader } from "@/components/PageHeader";
+import { PokemonSprite } from "@/components/PokemonSprite";
 import type {
   AnalyzedPokemonBuild,
   InventoryBuildAnalysis,
@@ -31,20 +34,27 @@ function BuildPanel({ build }: { readonly build: AnalyzedPokemonBuild }) {
   return (
     <section className="analysis-panel">
       <div className="analysis-panel__heading">
-        <div>
-          <p className="eyebrow">{build.context} build</p>
-          <h2>{build.speciesName}</h2>
-          <p>
-            CP {build.cp}
-            {build.cpSource === "derived-maximum"
-              ? " · highest legal CP inferred"
-              : ""}
-            {" · "}
-            Level {build.levels.map((level) => level.level).join(" or ")}
-            {build.levels.some((level) => level.isBestBuddy)
-              ? " · Best Buddy"
-              : ""}
-          </p>
+        <div className="analysis-panel__identity">
+          <PokemonSprite
+            size="large"
+            speciesId={build.speciesId}
+            speciesName={build.speciesName}
+          />
+          <div>
+            <p className="eyebrow">{build.context} build</p>
+            <h2>{build.speciesName}</h2>
+            <p>
+              CP {build.cp}
+              {build.cpSource === "derived-maximum"
+                ? " · highest legal CP inferred"
+                : ""}
+              {" · "}
+              Level {build.levels.map((level) => level.level).join(" or ")}
+              {build.levels.some((level) => level.isBestBuddy)
+                ? " · Best Buddy"
+                : ""}
+            </p>
+          </div>
         </div>
         <span className="analysis-rank">Rank {rank.rank}</span>
       </div>
@@ -276,15 +286,40 @@ export function InventoryAnalysisPage() {
 
   return (
     <main className="analysis-page">
-      <header className="analysis-header">
-        <Link to="/inventory">← Inventory</Link>
-        <p className="eyebrow">Open Great League analysis</p>
-        <h1>{analysis.current.speciesName}</h1>
-        <p>
-          Exact build stats and general stat-product ranking against PvPoke
-          data {analysis.current.dataVersion}.
-        </p>
-      </header>
+      <PageHeader
+        actions={
+          <>
+            <Link
+              className="primary-link"
+              to={`/inventory/${analysis.inventoryId}`}
+            >
+              <Pencil size={18} />
+              Edit build
+            </Link>
+            <Link className="secondary-link" to="/teams/new">
+              <Users size={18} />
+              Use in a team
+            </Link>
+          </>
+        }
+        aside={
+          <PokemonSprite
+            eager
+            size="hero"
+            speciesId={analysis.current.speciesId}
+            speciesName={analysis.current.speciesName}
+          />
+        }
+        back={{ to: "/inventory", label: "Inventory" }}
+        description={
+          <p>
+            Exact build stats and general stat-product ranking against PvPoke
+            data {analysis.current.dataVersion}.
+          </p>
+        }
+        eyebrow="Open Great League analysis"
+        title={analysis.current.speciesName}
+      />
 
       <BuildPanel build={analysis.current} />
       {analysis.planned ? <BuildPanel build={analysis.planned} /> : null}

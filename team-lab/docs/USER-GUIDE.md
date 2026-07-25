@@ -27,7 +27,7 @@ The local application requires:
 - Docker with Docker Compose for the inherited PvPoke server;
 - Node.js 22.12 or newer;
 - npm 11 or newer;
-- a current desktop browser.
+- a current desktop or mobile browser.
 
 Docker serves the inherited PvPoke data and classic simulation scripts.
 Vite serves the TeamLab React application and proxies PvPoke requests to
@@ -115,6 +115,20 @@ generate recommendations around an anchor
 download a JSON backup
 ```
 
+## Navigate TeamLab
+
+On desktop, the top navigation keeps **Dashboard**, **Inventory**, **Teams**,
+and **Recommend** available throughout the application. The data indicator
+opens engine diagnostics. Catalog and local backup/reset tools are in the
+utility menu.
+
+On a phone, the same four primary destinations remain in the bottom navigation.
+Choose **More** for the catalog, local data, and diagnostics.
+
+The Dashboard suggests one next action from your current local data. It does
+not lock the rest of the application; use global navigation whenever you want
+to move to a different workflow.
+
 ## Explore the catalog
 
 Open **Explore the Great League catalog** from the home page.
@@ -151,9 +165,17 @@ Select the exact species, form, and Shadow state you own. Record:
 TeamLab infers level from species, CP, and IVs. A CP/IV combination must map to
 a legal supported level before the record can be saved.
 
-Use **Enter actual IVs** when you know them. Use **PvPoke’s default rank-one
-spread** only when you intentionally want an assumption. Assumed IVs remain
-marked as assumptions throughout TeamLab.
+New records default to **Enter actual IVs**. The form begins with legal
+suggested values; replace them with the Attack, Defense, and HP values shown by
+Pokémon appraisal. Use **PvPoke’s default rank-one spread** only when you
+intentionally want an assumption. Assumed IVs remain marked as assumptions
+throughout TeamLab.
+
+The entry flow has three short steps:
+
+1. required exact specimen details, CP, IVs, and moves;
+2. required current-versus-planned intent; and
+3. a review with optional notes.
 
 ### Current versus planned
 

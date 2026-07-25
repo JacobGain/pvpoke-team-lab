@@ -45,6 +45,23 @@ Read the complete [local user guide](docs/USER-GUIDE.md) for alternate ports,
 inventory and analysis workflows, teams, recommendations, backup/recovery,
 troubleshooting, and MVP limitations.
 
+## Pokémon artwork
+
+Optimized local Pokémon artwork is checked into
+`public/assets/pokemon/`, so normal development and builds do not download
+anything from PokeAPI.
+
+When the inherited Game Master gains species/forms or the pinned artwork
+revision is intentionally changed, refresh the assets with:
+
+```bash
+npm run sync:sprites
+```
+
+The script generates the typed manifest and attribution/fallback report. See
+the [sprite pipeline record](docs/implementation/phase-09-ui-ux-overhaul/sprite-pipeline.md)
+for its mapping and review contract.
+
 ## Validation
 
 ```bash
@@ -65,3 +82,4 @@ development and validation commands run from `team-lab/`.
 - [Local user guide](docs/USER-GUIDE.md)
 - [Product scope and project plan](docs/PROJECT-PLAN.md)
 - [Implementation records](docs/implementation/README.md)
+- [Modern battle lab UI/UX](docs/implementation/phase-09-ui-ux-overhaul/README.md)
