@@ -26,11 +26,15 @@ upstream global constructors and mutable battle objects.
 - upstream one-on-one simulation invocation
 - immutable TeamLab result translation
 - explicit engine and scenario assumptions
+- two known exact Great League characterization cases
+- repeat-run determinism comparison
+- translated-result invariant validation
+- `/diagnostics/simulation` real-browser runner
+- downloadable versioned characterization report
 
 ## Deferred scope
 
 - real-browser output fixture capture
-- a simulation diagnostics/status screen
 - inventory or saved-team simulation UI
 - selectable opponent builds
 - shield-scenario matrices
@@ -42,6 +46,7 @@ upstream global constructors and mutable battle objects.
 ## Implementation records
 
 - [Engine bootstrap and exact one-on-one adapter](engine-bootstrap-and-one-on-one-adapter.md)
+- [Real-engine browser characterization](real-engine-characterization.md)
 
 ## Exit criteria
 
@@ -56,10 +61,9 @@ upstream global constructors and mutable battle objects.
 
 ## Next slice
 
-Add a browser characterization harness that runs known exact build pairs
-through the real bootstrapped engine, records stable summary fixtures, and
-surfaces bootstrap/data-version diagnostics. This should precede end-user
-simulation UI and TeamRanker integration.
+Run the new browser harness with the local upstream container, independently
+verify and normalize its exported report into golden fixtures, then add
+TeamRanker behind the same runtime boundary.
 
 ## Relevant commits
 
