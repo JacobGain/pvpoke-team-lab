@@ -6,6 +6,11 @@ import {
   useDeleteInventoryPokemon,
   useInventoryList,
 } from "@/features/inventory/inventoryQueries";
+import {
+  filterAndSortInventory,
+  type InventoryViewSort,
+  type InventoryViewStatus,
+} from "@/features/inventory/inventoryView";
 import { usePokemonCatalog } from "@/features/meta/usePokemonCatalog";
 
 function formatError(error: unknown): string {
@@ -17,50 +22,16 @@ export function InventoryPage() {
   const inventoryResult = useInventoryList();
   const deleteMutation = useDeleteInventoryPokemon();
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState<"all" | "current" | "planned">("all");
+  const [status, setStatus] = useState<InventoryViewStatus>("all");
   const [favoriteOnly, setFavoriteOnly] = useState(false);
-  const [sort, setSort] = useState<"updated" | "species" | "cp">("updated");
+  const [sort, setSort] = useState<InventoryViewSort>("updated");
 
   const filteredRecords = useMemo(() => {
-    const normalizedSearch = search.trim().toLocaleLowerCase();
-    const catalog = catalogResult.data;
-
-    return [...(inventoryResult.data ?? [])]
-      .filter((record) => {
-        const pokemon = catalog?.entries.find(
-          (entry) => entry.speciesId === record.speciesId,
-        );
-
-        return (
-          (status === "all" || record.buildStatus === status) &&
-          (!favoriteOnly || record.favorite) &&
-          (!normalizedSearch ||
-            record.speciesId.toLocaleLowerCase().includes(normalizedSearch) ||
-            pokemon?.speciesName
-              .toLocaleLowerCase()
-              .includes(normalizedSearch) ||
-            record.notes.toLocaleLowerCase().includes(normalizedSearch))
-        );
-      })
-      .sort((left, right) => {
-        if (sort === "cp") {
-          return right.currentBuild.cp - left.currentBuild.cp;
-        }
-
-        if (sort === "species") {
-          const leftName =
-            catalog?.entries.find(
-              (entry) => entry.speciesId === left.speciesId,
-            )?.speciesName ?? left.speciesId;
-          const rightName =
-            catalog?.entries.find(
-              (entry) => entry.speciesId === right.speciesId,
-            )?.speciesName ?? right.speciesId;
-          return leftName.localeCompare(rightName);
-        }
-
-        return right.updatedAt.localeCompare(left.updatedAt);
-      });
+    return filterAndSortInventory(
+      inventoryResult.data ?? [],
+      catalogResult.data,
+      { search, status, favoriteOnly, sort },
+    );
   }, [
     catalogResult.data,
     favoriteOnly,
@@ -138,7 +109,7 @@ export function InventoryPage() {
             value={status}
             onChange={(event) => {
               setStatus(
-                event.target.value as "all" | "current" | "planned",
+                event.target.value as InventoryViewStatus,
               );
             }}
           >
@@ -152,7 +123,7 @@ export function InventoryPage() {
           <select
             value={sort}
             onChange={(event) => {
-              setSort(event.target.value as "updated" | "species" | "cp");
+              setSort(event.target.value as InventoryViewSort);
             }}
           >
             <option value="updated">Recently updated</option>
