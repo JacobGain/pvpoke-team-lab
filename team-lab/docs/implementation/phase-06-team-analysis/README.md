@@ -1,6 +1,6 @@
 # Phase 6 — Team Analysis
 
-> **Status:** In progress — scorecard and threat alternatives complete
+> **Status:** Complete for MVP
 > **Project-plan phase:** Phase 6: team analysis
 > **Last reviewed:** 2026-07-25
 
@@ -36,12 +36,15 @@ or partial meta subset as universal truth.
 - separately labeled unowned PvPoke default alternatives
 - species-clause filtering by Pokédex number
 - counter evidence, rating perspective, and non-simulation disclosure
+- exact-build PvPoke Team Builder links
+- exact team-member versus default-target PvPoke battle links
+- completed-run request provenance
+- shared upstream base URL for data and UI links
 
-## Deferred scope
+## Deferred enhancements
 
 - upstream weighting of meta targets
 - role evidence in the team scorecard
-- upstream battle/team-builder deep links
 - exact substitution simulations and scorecard deltas
 - persisted or version-keyed analysis cache
 - final full scorecard visual design
@@ -51,6 +54,7 @@ or partial meta subset as universal truth.
 - [Coverage, threats, and core breakers](coverage-threats-and-core-breakers.md)
 - [Bulk, safety, and consistency scorecard](bulk-safety-and-consistency.md)
 - [Owned and unowned threat alternatives](owned-and-unowned-alternatives.md)
+- [PvPoke Battle and Team Builder deep links](upstream-deep-links.md)
 
 ## Exit criteria
 
@@ -59,14 +63,14 @@ or partial meta subset as universal truth.
 - [x] Major threats and core breakers are displayed.
 - [x] Bulk, safety, and consistency are displayed.
 - [x] Owned and unowned alternatives are displayed.
-- [ ] Upstream deep links are available.
-- [ ] Full MVP scorecard and threat view is complete.
+- [x] Upstream deep links are available.
+- [x] Full MVP scorecard and threat view is complete.
 
-## Next slice
+## Next phase
 
-Add explicit upstream battle and team-builder deep links with documented URL
-serialization. Preserve TeamLab’s exact-build and default-build distinction
-when deciding which assumptions can safely be sent upstream.
+Begin Phase 7 anchor recommendations: accept one or two owned anchors, build a
+species-clause-safe candidate shortlist, prioritize ready-now records, and
+define the pre-score boundary before simulating finalists.
 
 ## Relevant commits
 

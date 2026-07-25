@@ -19,7 +19,8 @@ Run commands from the `team-lab/` directory.
 
 TeamLab reads the existing PvPoke data through `/pvpoke/src` by default. During
 development, Vite proxies that path to `http://localhost`. Copy `.env.example`
-to `.env.local` if either path differs in your environment.
+to `.env.local` if either path differs in your environment. Upstream UI links
+use this same base path.
 
 ## Validation
 

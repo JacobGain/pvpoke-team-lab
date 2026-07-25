@@ -210,12 +210,13 @@ Deferred enhancements:
 
 ### Phase 6 — Team analysis
 
-Status: **In progress — scorecard and threat alternatives complete**
+Status: **Complete for MVP**
 
 - [Phase overview](phase-06-team-analysis/README.md)
 - [Coverage, threats, and core breakers](phase-06-team-analysis/coverage-threats-and-core-breakers.md)
 - [Bulk, safety, and consistency scorecard](phase-06-team-analysis/bulk-safety-and-consistency.md)
 - [Owned and unowned threat alternatives](phase-06-team-analysis/owned-and-unowned-alternatives.md)
+- [PvPoke Battle and Team Builder deep links](phase-06-team-analysis/upstream-deep-links.md)
 
 Implemented:
 
@@ -235,11 +236,15 @@ Implemented:
 - owned exact-record counter candidates
 - unowned PvPoke-default counter candidates
 - species-clause filtering and source disclosure
+- exact completed-team PvPoke Team Builder links
+- exact matrix-matchup PvPoke battle links
+- shared upstream data/link base URL and completed-run provenance
 
-Remaining:
+Deferred enhancements:
 
-- upstream deep links
 - exact substitution simulations and scorecard deltas
+- upstream meta weighting and role evidence
+- persisted analysis cache
 
 ## Updating these records
 

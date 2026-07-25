@@ -67,6 +67,9 @@ The browser requests the same `/pvpoke/src/...` path used by the upstream
 application. During Vite development, `/pvpoke` is proxied to Apache. In a
 future same-origin deployment, the browser can request the path directly.
 
+Phase 6 also uses `VITE_PVPOKE_BASE_URL` for links into the interactive PvPoke
+UI, keeping the data and page configuration on the same upstream base.
+
 ## Loaded resources
 
 ### Game Master
