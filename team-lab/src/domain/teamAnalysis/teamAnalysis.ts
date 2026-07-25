@@ -1,7 +1,7 @@
 import type {
-  SavedTeamRankerRun,
-  SavedTeamRankerScope,
-} from "@/domain/simulation/savedTeamRanking";
+  TeamRankerRun,
+  TeamRankerScope,
+} from "@/domain/simulation/teamRanker";
 
 export const TARGET_FAVORED_RATING = 501;
 export const TEAM_MEMBER_FAVORED_RATING = 499;
@@ -58,7 +58,7 @@ export interface TeamScoreDimension {
   readonly evidenceTotal: number;
 }
 
-export interface SavedTeamAnalysis {
+export interface TeamRankerAnalysis {
   readonly coverage: TeamCoverageScore;
   readonly bulk: TeamScoreDimension;
   readonly safety: TeamScoreDimension;
@@ -68,12 +68,14 @@ export interface SavedTeamAnalysis {
   readonly majorThreats: readonly TeamThreatEvidence[];
   readonly coreBreakers: readonly TeamThreatEvidence[];
   readonly teamWalls: readonly TeamThreatEvidence[];
-  readonly scope: SavedTeamRankerScope;
+  readonly scope: TeamRankerScope;
   readonly dataVersion: string;
   readonly shieldScenario: string;
   readonly assumptions: readonly string[];
   readonly generatedAt: string;
 }
+
+export type SavedTeamAnalysis = TeamRankerAnalysis;
 
 function percentage(value: number, total: number): number {
   return total === 0 ? 0 : (value / total) * 100;
@@ -97,10 +99,10 @@ function classifyThreat(
   return "covered";
 }
 
-export function analyzeSavedTeamMatrix(
-  run: SavedTeamRankerRun,
+export function analyzeTeamRankerMatrix(
+  run: TeamRankerRun,
   now: () => Date = () => new Date(),
-): SavedTeamAnalysis {
+): TeamRankerAnalysis {
   const positions = ["lead", "switch", "closer"] as const;
   const firstMatchups = run.result.rankings[0]?.matchups ?? [];
   const members = firstMatchups.map((matchup, index): TeamMemberCoverage => {
@@ -276,3 +278,5 @@ export function analyzeSavedTeamMatrix(
     generatedAt: now().toISOString(),
   };
 }
+
+export const analyzeSavedTeamMatrix = analyzeTeamRankerMatrix;

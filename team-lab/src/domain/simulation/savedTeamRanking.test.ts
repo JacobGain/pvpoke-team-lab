@@ -134,6 +134,11 @@ describe("saved-team ranking preparation", () => {
       fastMoveId: "BUBBLE",
     });
     expect(prepared.scope).toMatchObject({
+      context: {
+        kind: "saved-team",
+        id: team.teamId,
+        name: team.name,
+      },
       selectedTargetCount: 2,
       availableTargetCount: 2,
       teamShields: 1,

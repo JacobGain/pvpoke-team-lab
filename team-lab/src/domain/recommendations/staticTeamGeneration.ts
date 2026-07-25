@@ -105,6 +105,7 @@ export interface StaticRecommendationTeam {
 export interface StaticRecommendationGeneration {
   readonly policy: RecommendationStaticPolicy;
   readonly dataVersion: string;
+  readonly requestedResultCount: number;
   readonly eligiblePartnerCount: number;
   readonly consideredPartnerCount: number;
   readonly omittedEligiblePartnerCount: number;
@@ -591,6 +592,7 @@ export function generateStaticRecommendationTeams(
   return {
     policy,
     dataVersion: pool.dataVersion,
+    requestedResultCount: pool.request.resultCount,
     eligiblePartnerCount: eligiblePartners.length,
     consideredPartnerCount: consideredPartners.length,
     omittedEligiblePartnerCount:
