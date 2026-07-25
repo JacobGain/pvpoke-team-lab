@@ -1,5 +1,16 @@
 import type { InventoryPokemon } from "@/domain/inventory/schemas";
 
+export type InventoryRestoreMode = "merge" | "replace";
+
+export interface InventoryRestoreResult {
+  readonly mode: InventoryRestoreMode;
+  readonly incoming: number;
+  readonly inserted: number;
+  readonly updated: number;
+  readonly removed: number;
+  readonly finalCount: number;
+}
+
 export interface InventoryRepository {
   list(): Promise<readonly InventoryPokemon[]>;
   get(inventoryId: string): Promise<InventoryPokemon | undefined>;
@@ -8,6 +19,10 @@ export interface InventoryRepository {
   delete(inventoryId: string): Promise<void>;
   count(): Promise<number>;
   clear(): Promise<void>;
+  restore(
+    records: readonly InventoryPokemon[],
+    mode: InventoryRestoreMode,
+  ): Promise<InventoryRestoreResult>;
 }
 
 export class InventoryRecordAlreadyExistsError extends Error {

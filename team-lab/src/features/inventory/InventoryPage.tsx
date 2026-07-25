@@ -18,27 +18,57 @@ export function InventoryPage() {
   const deleteMutation = useDeleteInventoryPokemon();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<"all" | "current" | "planned">("all");
+  const [favoriteOnly, setFavoriteOnly] = useState(false);
+  const [sort, setSort] = useState<"updated" | "species" | "cp">("updated");
 
   const filteredRecords = useMemo(() => {
     const normalizedSearch = search.trim().toLocaleLowerCase();
     const catalog = catalogResult.data;
 
-    return (inventoryResult.data ?? []).filter((record) => {
-      const pokemon = catalog?.entries.find(
-        (entry) => entry.speciesId === record.speciesId,
-      );
+    return [...(inventoryResult.data ?? [])]
+      .filter((record) => {
+        const pokemon = catalog?.entries.find(
+          (entry) => entry.speciesId === record.speciesId,
+        );
 
-      return (
-        (status === "all" || record.buildStatus === status) &&
-        (!normalizedSearch ||
-          record.speciesId.toLocaleLowerCase().includes(normalizedSearch) ||
-          pokemon?.speciesName
-            .toLocaleLowerCase()
-            .includes(normalizedSearch) ||
-          record.notes.toLocaleLowerCase().includes(normalizedSearch))
-      );
-    });
-  }, [catalogResult.data, inventoryResult.data, search, status]);
+        return (
+          (status === "all" || record.buildStatus === status) &&
+          (!favoriteOnly || record.favorite) &&
+          (!normalizedSearch ||
+            record.speciesId.toLocaleLowerCase().includes(normalizedSearch) ||
+            pokemon?.speciesName
+              .toLocaleLowerCase()
+              .includes(normalizedSearch) ||
+            record.notes.toLocaleLowerCase().includes(normalizedSearch))
+        );
+      })
+      .sort((left, right) => {
+        if (sort === "cp") {
+          return right.currentBuild.cp - left.currentBuild.cp;
+        }
+
+        if (sort === "species") {
+          const leftName =
+            catalog?.entries.find(
+              (entry) => entry.speciesId === left.speciesId,
+            )?.speciesName ?? left.speciesId;
+          const rightName =
+            catalog?.entries.find(
+              (entry) => entry.speciesId === right.speciesId,
+            )?.speciesName ?? right.speciesId;
+          return leftName.localeCompare(rightName);
+        }
+
+        return right.updatedAt.localeCompare(left.updatedAt);
+      });
+  }, [
+    catalogResult.data,
+    favoriteOnly,
+    inventoryResult.data,
+    search,
+    sort,
+    status,
+  ]);
 
   if (catalogResult.isLoading || inventoryResult.isPending) {
     return <main className="inventory-page">Loading local inventory…</main>;
@@ -71,9 +101,14 @@ export function InventoryPage() {
             Maintain exact current builds and future plans using the latest
             validated PvPoke catalog.
           </p>
-          <Link className="primary-link" to="/inventory/new">
-            Add Pokémon
-          </Link>
+          <div className="home-actions">
+            <Link className="primary-link" to="/inventory/new">
+              Add Pokémon
+            </Link>
+            <Link className="secondary-link" to="/inventory/backup">
+              Backup and restore
+            </Link>
+          </div>
         </div>
         <div className="catalog-summary">
           <strong>{inventoryResult.data?.length ?? 0}</strong>
@@ -108,6 +143,29 @@ export function InventoryPage() {
             <option value="current">Current</option>
             <option value="planned">Planned</option>
           </select>
+        </label>
+        <label>
+          <span>Sort</span>
+          <select
+            value={sort}
+            onChange={(event) => {
+              setSort(event.target.value as "updated" | "species" | "cp");
+            }}
+          >
+            <option value="updated">Recently updated</option>
+            <option value="species">Species name</option>
+            <option value="cp">Highest CP</option>
+          </select>
+        </label>
+        <label className="check-control">
+          <input
+            type="checkbox"
+            checked={favoriteOnly}
+            onChange={(event) => {
+              setFavoriteOnly(event.target.checked);
+            }}
+          />
+          Favorites only
         </label>
       </section>
 
@@ -194,6 +252,12 @@ export function InventoryPage() {
                   to={`/inventory/${record.inventoryId}`}
                 >
                   Edit
+                </Link>
+                <Link
+                  className="secondary-link"
+                  to={`/inventory/new?duplicate=${record.inventoryId}`}
+                >
+                  Duplicate
                 </Link>
                 <button
                   className="danger-button"

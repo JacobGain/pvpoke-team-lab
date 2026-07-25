@@ -98,4 +98,64 @@ describe("DexieInventoryRepository", () => {
     );
     expect(await database.inventory.count()).toBe(1);
   });
+
+  it("atomically merges incoming records with backup IDs winning", async () => {
+    const original = createRecord();
+    await repository.create(original);
+    const incomingUpdate = touchInventoryPokemon(
+      { ...original, favorite: true },
+      () => new Date("2026-07-25T13:00:00.000Z"),
+    );
+    const incomingNew = {
+      ...original,
+      inventoryId: "fd17fe2f-1d87-4879-8850-d95476cd9070",
+    };
+
+    await expect(
+      repository.restore([incomingUpdate, incomingNew], "merge"),
+    ).resolves.toEqual({
+      mode: "merge",
+      incoming: 2,
+      inserted: 1,
+      updated: 1,
+      removed: 0,
+      finalCount: 2,
+    });
+    expect(await repository.get(original.inventoryId)).toEqual(incomingUpdate);
+  });
+
+  it("atomically replaces local inventory and reports removed records", async () => {
+    const original = createRecord();
+    await repository.create(original);
+    const replacement = {
+      ...original,
+      inventoryId: "fd17fe2f-1d87-4879-8850-d95476cd9070",
+    };
+
+    await expect(repository.restore([replacement], "replace")).resolves.toEqual(
+      {
+        mode: "replace",
+        incoming: 1,
+        inserted: 1,
+        updated: 0,
+        removed: 1,
+        finalCount: 1,
+      },
+    );
+    expect(await repository.get(original.inventoryId)).toBeUndefined();
+    expect(await repository.get(replacement.inventoryId)).toEqual(replacement);
+  });
+
+  it("rejects an invalid restore before changing existing inventory", async () => {
+    const original = createRecord();
+    await repository.create(original);
+
+    await expect(
+      repository.restore(
+        [{ ...original, schemaVersion: 999 } as never],
+        "replace",
+      ),
+    ).rejects.toBeDefined();
+    expect(await repository.list()).toEqual([original]);
+  });
 });

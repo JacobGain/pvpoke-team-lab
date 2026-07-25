@@ -6,6 +6,10 @@ import {
 } from "@tanstack/react-query";
 
 import type { InventoryPokemon } from "@/domain/inventory/schemas";
+import type {
+  InventoryRestoreMode,
+  InventoryRestoreResult,
+} from "@/domain/inventory/repository";
 import { inventoryRepository } from "@/infrastructure/inventory";
 
 export const inventoryQueryKeys = {
@@ -74,6 +78,40 @@ export function useDeleteInventoryPokemon() {
       queryClient.removeQueries({
         queryKey: inventoryQueryKeys.detail(inventoryId),
       });
+      await queryClient.invalidateQueries({
+        queryKey: inventoryQueryKeys.all,
+      });
+    },
+  });
+}
+
+export function useRestoreInventory() {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    InventoryRestoreResult,
+    Error,
+    {
+      readonly records: readonly InventoryPokemon[];
+      readonly mode: InventoryRestoreMode;
+    }
+  >({
+    mutationFn: ({ records, mode }) =>
+      inventoryRepository.restore(records, mode),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: inventoryQueryKeys.all,
+      });
+    },
+  });
+}
+
+export function useClearInventory() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => inventoryRepository.clear(),
+    onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: inventoryQueryKeys.all,
       });

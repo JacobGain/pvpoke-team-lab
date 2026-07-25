@@ -1,5 +1,11 @@
 import { useMemo, useState, type FormEvent } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import {
+  Link,
+  useLocation,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
 
 import {
   createInventoryPokemon,
@@ -17,6 +23,7 @@ import type {
 } from "@/domain/pokemon/catalog";
 import {
   useCreateInventoryPokemon,
+  useInventoryList,
   useInventoryPokemon,
   useUpdateInventoryPokemon,
 } from "@/features/inventory/inventoryQueries";
@@ -25,6 +32,7 @@ import { usePokemonCatalog } from "@/features/meta/usePokemonCatalog";
 interface InventoryFormProps {
   readonly catalog: PokemonCatalog;
   readonly existingRecord?: InventoryPokemon;
+  readonly initialRecord?: InventoryPokemon;
 }
 
 interface InventoryFormFieldsProps extends InventoryFormProps {
@@ -54,13 +62,15 @@ function getAvailablePokemon(
 function InventoryFormFields({
   catalog,
   existingRecord,
+  initialRecord,
   initialPokemon,
   pokemonOptions,
 }: InventoryFormFieldsProps) {
   const navigate = useNavigate();
   const createMutation = useCreateInventoryPokemon();
   const updateMutation = useUpdateInventoryPokemon();
-  const initialBuild = existingRecord?.currentBuild;
+  const sourceRecord = existingRecord ?? initialRecord;
+  const initialBuild = sourceRecord?.currentBuild;
   const initialDefaultIvs = initialPokemon.defaultGreatLeagueIvs;
   const initialIvSource =
     initialBuild?.ivProfile.source ??
@@ -78,7 +88,7 @@ function InventoryFormFields({
       : 1500);
   const [speciesId, setSpeciesId] = useState(initialPokemon.speciesId);
   const [buildStatus, setBuildStatus] = useState<"current" | "planned">(
-    existingRecord?.buildStatus ?? "current",
+    sourceRecord?.buildStatus ?? "current",
   );
   const [cp, setCp] = useState(String(initialCp));
   const [ivSource, setIvSource] = useState<
@@ -104,8 +114,8 @@ function InventoryFormFields({
     initialBuild?.moveset.chargedMoveIds[1] ?? "",
   );
   const existingPlan =
-    existingRecord?.buildStatus === "planned"
-      ? existingRecord.plannedBuild
+    sourceRecord?.buildStatus === "planned"
+      ? sourceRecord.plannedBuild
       : undefined;
   const [targetSpeciesId, setTargetSpeciesId] = useState(
     existingPlan?.targetSpeciesId ?? initialPokemon.speciesId,
@@ -132,8 +142,9 @@ function InventoryFormFields({
   const [desiredChargedMoveTwo, setDesiredChargedMoveTwo] = useState(
     existingPlan?.desiredMoveset.chargedMoveIds[1] ?? "",
   );
-  const [favorite, setFavorite] = useState(existingRecord?.favorite ?? false);
-  const [notes, setNotes] = useState(existingRecord?.notes ?? "");
+  const [favorite, setFavorite] = useState(sourceRecord?.favorite ?? false);
+  const [notes, setNotes] = useState(sourceRecord?.notes ?? "");
+  const [speciesSearch, setSpeciesSearch] = useState("");
   const [formError, setFormError] = useState<unknown>();
 
   const selectedPokemon =
@@ -151,6 +162,15 @@ function InventoryFormFields({
   const selectedTarget =
     targetOptions.find((pokemon) => pokemon.speciesId === targetSpeciesId) ??
     selectedPokemon;
+  const filteredPokemonOptions = pokemonOptions.filter((pokemon) => {
+    const normalizedSearch = speciesSearch.trim().toLocaleLowerCase();
+    return (
+      pokemon.speciesId === selectedPokemon.speciesId ||
+      normalizedSearch === "" ||
+      pokemon.speciesName.toLocaleLowerCase().includes(normalizedSearch) ||
+      pokemon.speciesId.toLocaleLowerCase().includes(normalizedSearch)
+    );
+  });
   const effectiveIvs =
     ivSource === "assumed-rank-1"
       ? selectedPokemon.defaultGreatLeagueIvs
@@ -184,6 +204,9 @@ function InventoryFormFields({
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormError(undefined);
+    const submitter = (event.nativeEvent as SubmitEvent)
+      .submitter as HTMLButtonElement | null;
+    const saveIntent = submitter?.value ?? "finish";
 
     try {
       const chargedMoveIds = [chargedMoveOne, chargedMoveTwo].filter(
@@ -238,7 +261,11 @@ function InventoryFormFields({
 
       mutation.mutate(record, {
         onSuccess: () => {
-          void navigate("/inventory");
+          void navigate(
+            !existingRecord && saveIntent === "add-another"
+              ? `/inventory/new?duplicate=${record.inventoryId}&continued=${Date.now()}`
+              : "/inventory",
+          );
         },
         onError: setFormError,
       });
@@ -273,6 +300,15 @@ function InventoryFormFields({
         <div className="form-grid">
           <label className="form-field form-field--wide">
             <span>Species, form, and Shadow state</span>
+            <input
+              type="search"
+              value={speciesSearch}
+              onChange={(event) => {
+                setSpeciesSearch(event.target.value);
+              }}
+              placeholder="Filter by name or species ID"
+              aria-label="Filter species options"
+            />
             <select
               value={speciesId}
               onChange={(event) => {
@@ -301,7 +337,7 @@ function InventoryFormFields({
                 }
               }}
             >
-              {pokemonOptions.map((pokemon) => (
+              {filteredPokemonOptions.map((pokemon) => (
                 <option value={pokemon.speciesId} key={pokemon.speciesId}>
                   {pokemon.speciesName}
                 </option>
@@ -605,7 +641,22 @@ function InventoryFormFields({
         <Link className="secondary-link" to="/inventory">
           Cancel
         </Link>
-        <button type="submit" disabled={mutationPending}>
+        {!existingRecord ? (
+          <button
+            type="submit"
+            name="save-intent"
+            value="add-another"
+            disabled={mutationPending}
+          >
+            {mutationPending ? "Saving…" : "Save and add another"}
+          </button>
+        ) : null}
+        <button
+          type="submit"
+          name="save-intent"
+          value="finish"
+          disabled={mutationPending}
+        >
           {mutationPending
             ? "Saving…"
             : existingRecord
@@ -624,7 +675,9 @@ function InventoryForm(props: InventoryFormProps) {
   );
   const initialPokemon =
     pokemonOptions.find(
-      (pokemon) => pokemon.speciesId === props.existingRecord?.speciesId,
+      (pokemon) =>
+        pokemon.speciesId ===
+        (props.existingRecord ?? props.initialRecord)?.speciesId,
     ) ??
     pokemonOptions.find(
       (pokemon) => pokemon.defaultGreatLeagueIvs !== undefined,
@@ -646,13 +699,20 @@ function InventoryForm(props: InventoryFormProps) {
 
 export function InventoryFormPage() {
   const { inventoryId } = useParams();
+  const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const duplicateId = searchParams.get("duplicate") ?? undefined;
+  const continued = searchParams.has("continued");
+  const sourceRecordId = inventoryId ?? duplicateId;
   const catalogResult = usePokemonCatalog();
-  const inventoryResult = useInventoryPokemon(inventoryId);
+  const inventoryListResult = useInventoryList();
+  const inventoryResult = useInventoryPokemon(sourceRecordId);
   const isEditing = inventoryId !== undefined;
+  const isDuplicating = !isEditing && duplicateId !== undefined;
 
   if (
     catalogResult.isLoading ||
-    (isEditing && inventoryResult.isPending)
+    (sourceRecordId !== undefined && inventoryResult.isPending)
   ) {
     return <main className="inventory-page">Loading inventory form…</main>;
   }
@@ -670,11 +730,15 @@ export function InventoryFormPage() {
     );
   }
 
-  if (isEditing && !inventoryResult.data) {
+  if (sourceRecordId !== undefined && !inventoryResult.data) {
     return (
       <main className="inventory-page">
         <Link to="/inventory">← Inventory</Link>
-        <h1>Inventory record not found</h1>
+        <h1>
+          {isDuplicating
+            ? "Source inventory record not found"
+            : "Inventory record not found"}
+        </h1>
       </main>
     );
   }
@@ -684,15 +748,31 @@ export function InventoryFormPage() {
       <header className="form-page-header">
         <Link to="/inventory">← Inventory</Link>
         <p className="eyebrow">Open Great League</p>
-        <h1>{isEditing ? "Edit Pokémon" : "Add Pokémon"}</h1>
+        <h1>
+          {isEditing
+            ? "Edit Pokémon"
+            : isDuplicating
+              ? "Duplicate Pokémon"
+              : "Add Pokémon"}
+        </h1>
         <p>
           Record the specimen you own, its exact current build, and an optional
           future plan.
         </p>
+        {continued ? (
+          <p className="backup-success" role="status">
+            Previous Pokémon saved. Your inventory now contains{" "}
+            {inventoryListResult.data?.length ?? "the saved"}{" "}
+            {inventoryListResult.data?.length === 1 ? "record" : "records"};
+            adjust the carried-forward fields for the next specimen.
+          </p>
+        ) : null}
       </header>
       <InventoryForm
+        key={location.key}
         catalog={catalogResult.data}
-        existingRecord={inventoryResult.data}
+        existingRecord={isEditing ? inventoryResult.data : undefined}
+        initialRecord={isDuplicating ? inventoryResult.data : undefined}
       />
     </main>
   );

@@ -427,13 +427,20 @@ a {
 
 .inventory-controls {
   display: grid;
-  grid-template-columns: minmax(15rem, 1fr) 12rem;
+  grid-template-columns: minmax(15rem, 1fr) repeat(2, 12rem) auto;
+  align-items: end;
   gap: 1rem;
   margin-bottom: 1.5rem;
   padding: 1rem;
   border: 1px solid #dce4f1;
   border-radius: 1rem;
   background: #ffffff;
+}
+
+.inventory-controls .check-control {
+  display: flex;
+  align-items: center;
+  min-height: 2.7rem;
 }
 
 .inventory-controls label {
@@ -712,6 +719,122 @@ a {
   font-weight: 750;
 }
 
+.backup-section,
+.danger-zone {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.backup-section h2,
+.danger-zone h2 {
+  margin-bottom: 0.5rem;
+}
+
+.backup-section p:not(.eyebrow),
+.danger-zone p:not(.eyebrow) {
+  max-width: 42rem;
+  color: #52607a;
+  line-height: 1.6;
+}
+
+.backup-section button,
+.restore-controls > button,
+.danger-zone button {
+  flex: none;
+  padding: 0.75rem 1rem;
+  border: 0;
+  border-radius: 0.75rem;
+  color: #ffffff;
+  background: #3157c8;
+  cursor: pointer;
+  font-weight: 750;
+}
+
+.file-picker {
+  display: grid;
+  gap: 0.5rem;
+  color: #52607a;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.file-picker input {
+  padding: 0.8rem;
+  border: 1px dashed #9eacc2;
+  border-radius: 0.75rem;
+  background: #f8faff;
+}
+
+.backup-inspection {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 0.8rem;
+}
+
+.backup-inspection--valid,
+.backup-success {
+  color: #11663b;
+  background: #e5f7ed;
+}
+
+.backup-inspection--invalid {
+  color: #8f2525;
+  background: #fceaea;
+}
+
+.backup-inspection p,
+.backup-inspection ol {
+  margin: 0.35rem 0 0;
+}
+
+.restore-controls {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+.restore-controls fieldset {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid #dce4f1;
+  border-radius: 0.8rem;
+}
+
+.restore-controls label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.restore-controls label span {
+  display: grid;
+  gap: 0.2rem;
+  color: #52607a;
+  font-size: 0.85rem;
+}
+
+.backup-success {
+  padding: 1rem;
+  border-radius: 0.8rem;
+}
+
+.danger-zone {
+  border-color: #efc8c8;
+}
+
+.danger-zone button {
+  color: #8f2525;
+  background: #fceaea;
+}
+
 @media (max-width: 760px) {
   .inventory-header,
   .inventory-card {
@@ -728,6 +851,13 @@ a {
   .iv-grid,
   .status-selector {
     grid-template-columns: 1fr;
+  }
+
+  .backup-section,
+  .danger-zone,
+  .restore-controls {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .inventory-card__actions {
