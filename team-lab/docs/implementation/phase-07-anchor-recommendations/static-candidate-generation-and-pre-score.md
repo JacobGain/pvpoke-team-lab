@@ -327,7 +327,8 @@ Static finalists now feed the shared exact TeamRanker boundary, Phase 6
 scorecards, alternatives, final selection score, and requested-result
 diversity.
 
-The remaining consumer is the recommendation UI and explanation workflow.
+The recommendation UI and explanation consumer was completed in
+[Recommendation workflow and result presentation](recommendation-workflow-and-result-presentation.md).
 
 ## Relevant commits
 

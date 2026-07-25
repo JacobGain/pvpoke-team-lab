@@ -248,12 +248,13 @@ Deferred enhancements:
 
 ### Phase 7 — Anchor recommendations
 
-Status: **In progress**
+Status: **Complete for MVP**
 
 - [Phase overview](phase-07-anchor-recommendations/README.md)
 - [Anchor request and owned candidate pool](phase-07-anchor-recommendations/anchor-request-and-candidate-pool.md)
 - [Static candidate generation and pre-score](phase-07-anchor-recommendations/static-candidate-generation-and-pre-score.md)
 - [Exact finalist simulation and selection](phase-07-anchor-recommendations/exact-finalist-simulation-and-selection.md)
+- [Recommendation workflow and result presentation](phase-07-anchor-recommendations/recommendation-workflow-and-result-presentation.md)
 
 Implemented:
 
@@ -279,12 +280,17 @@ Implemented:
 - Phase 6 scorecards and alternatives per finalist
 - versioned final selection score
 - exact result diversity, failure, and shortfall handling
+- cooperative per-finalist progress and cancellation
+- evidence-derived recommendation explanations
+- complete `/recommend` workflow and responsive result presentation
+- explicit selected-result conversion into saved teams
 
-Remaining:
+Deferred enhancements:
 
-- explanation policy
-- progress and cancellation
-- recommendation UI
+- recommendation-run caching and history
+- in-flight synchronous engine interruption
+- worker or chunked finalist execution
+- expanded individual exclusion diagnostics
 
 ## Updating these records
 

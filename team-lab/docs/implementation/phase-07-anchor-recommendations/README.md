@@ -1,6 +1,6 @@
 # Phase 7 — Anchor Recommendations
 
-> **Status:** In progress  
+> **Status:** Complete for MVP
 > **Project-plan phase:** Phase 7: anchor recommendations  
 > **Last reviewed:** 2026-07-25
 
@@ -45,19 +45,28 @@ The phase must preserve the distinction between:
 - versioned exact/static final selection score
 - isolated finalist failure reporting
 - requested-result selection, diversity relaxation, and shortfall reporting
+- per-finalist progress events and cooperative cancellation between finalists
+- deterministic user-facing reasons, tradeoffs, and scope explanations
+- `/recommend` anchor, role, result, build-scope, meta, and shield controls
+- discovery, evidence-exclusion, progress, failure, shortfall, and diversity UI
+- ordered exact-build results with scorecards, threats, alternatives,
+  requirements, provenance, and PvPoke Team Builder links
+- explicit conversion of a selected recommendation into a persisted saved team
+- responsive recommendation result presentation
 
 ## Out of scope
 
-- explanations and result presentation
 - recommendation persistence or caching
-- `/recommend` UI
-- progress and cancellation
+- interruption of a synchronous TeamRanker call already in progress
+- Web Worker execution or exact-battle chunking
+- saved recommendation histories
 
 ## Implementation records
 
 - [Anchor request and owned candidate pool](anchor-request-and-candidate-pool.md)
 - [Static candidate generation and pre-score](static-candidate-generation-and-pre-score.md)
 - [Exact finalist simulation and selection](exact-finalist-simulation-and-selection.md)
+- [Recommendation workflow and result presentation](recommendation-workflow-and-result-presentation.md)
 
 ## Important decisions
 
@@ -83,6 +92,12 @@ The phase must preserve the distinction between:
   provenance under a separate versioned formula.
 - Exact result diversity is strict first and relaxes optional-core repetition
   only when necessary to fill the requested count.
+- Recommendation prose is derived only from retained evidence and explicitly
+  states the selected target, shield, and data-version scope.
+- Cancellation is cooperative: it prevents the next finalist from starting
+  but cannot interrupt the upstream synchronous engine mid-finalist.
+- Recommendation results remain ephemeral until the user explicitly saves one
+  through the existing saved-team factory and repository.
 
 ## Validation
 
@@ -97,13 +112,13 @@ Focused characterization verifies request bounds, duplicate anchor and
 position rejection, exact build/evidence preparation, ready-now ordering,
 build-status filtering, missing-anchor rejection, species clause, eligibility,
 ordering, pre-score formulas, deduplication, finalist diversity, exact
-TeamRanker preparation, Phase 6 reuse, failure isolation, final scoring, and
-result selection.
+TeamRanker preparation, Phase 6 reuse, failure isolation, final scoring,
+result selection, progress events, cancellation, and explanation output.
 
-Observed after the third slice:
+Observed after the fourth slice:
 
 ```text
-npm test          22 files, 62 tests passed
+npm test          22 files, 63 tests passed
 npm run typecheck passed
 npm run lint      passed
 npm run build     passed with the existing >500 kB chunk warning
@@ -116,17 +131,19 @@ npm run build     passed with the existing >500 kB chunk warning
 - A large inventory is analyzed synchronously.
 - Ambiguous CP-to-level records cannot become exact candidates until an
   explicit level-selection workflow exists.
-- Exclusions are returned to the application boundary but have no UI yet.
 - Build requirements remain the qualitative Phase 3 requirements.
 - Candidate-pool order is discovery priority; static team order is only a
   pre-simulation heuristic.
 - Static thresholds and score weights are initial TeamLab heuristics.
 - Published matchup evidence represents default builds and selected key
   matchups rather than exact complete matrices.
-- Exact finalist work is sequential and has no progress or cancellation.
+- Exact finalist work is sequential. Cancellation takes effect only before
+  the next finalist.
 - Large finalist/meta scopes can block the browser runtime.
 - Final selection weights are initial TeamLab heuristics.
-- Results remain in memory and have no UI.
+- Exclusion counts are visible, but individual exclusion messages are not yet
+  expanded in the page.
+- Recommendation runs and unsaved results remain in memory.
 
 ## Exit criteria
 
@@ -141,16 +158,17 @@ npm run build     passed with the existing >500 kB chunk warning
 - [x] Finalists are evaluated through exact TeamRanker simulations.
 - [x] One-to-five ordered, materially distinct domain results are returned
       when enough finalists succeed.
-- [ ] Recommendations include explanations, scorecards, threats, alternatives,
+- [x] Recommendations include explanations, scorecards, threats, alternatives,
       and build requirements.
-- [ ] The anchor recommendation workflow is available in the UI.
+- [x] The anchor recommendation workflow is available in the UI.
 
 ## Next phase dependencies
 
-The next Phase 7 slice can build the `/recommend` workflow around the complete
-domain pipeline. It must add progress/cancellation, present static versus exact
-evidence clearly, generate user-facing explanations, and allow explicit
-conversion of a selected result into a saved team.
+Phase 8 can harden the completed MVP workflow with representative 100-record
+profiling, worker or chunked engine execution where needed, broader responsive
+verification, and critical browser-level workflow tests. Recommendation
+caching remains deferred until its invalidation and formula-version policy is
+designed.
 
 ## Relevant commits
 

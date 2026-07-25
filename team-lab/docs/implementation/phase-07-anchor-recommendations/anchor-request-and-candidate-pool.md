@@ -259,7 +259,8 @@ The immediate follow-up was completed in
 The candidate pool now feeds a versioned policy, ordered team generator,
 static pre-score, species-level deduplication, and diverse finalist selector.
 
-The remaining consumer is exact finalist simulation.
+Exact finalist simulation and the `/recommend` workflow now consume this
+candidate boundary.
 
 ## Relevant commits
 

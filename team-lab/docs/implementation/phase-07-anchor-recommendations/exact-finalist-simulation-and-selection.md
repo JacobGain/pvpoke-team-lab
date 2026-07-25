@@ -21,8 +21,9 @@ Each result retains:
 - build requirements through its candidate members;
 - a versioned final selection score.
 
-The workflow remains domain/application logic. A recommendation UI and
-user-facing explanations are separate work.
+The service also exposes per-finalist progress and cooperative cancellation.
+The recommendation page and its user-facing explanations are documented in
+[Recommendation workflow and result presentation](recommendation-workflow-and-result-presentation.md).
 
 ## Problem being solved
 
@@ -204,8 +205,27 @@ finalist fails, the service returns no selected results and an explicit
 shortfall.
 
 Runs are sequential because the upstream TeamRanker adapter wraps a mutable
-global singleton. Sequential orchestration also provides a clean future
-progress/cancellation boundary.
+global singleton.
+
+## Progress and cancellation
+
+`RecommendationFinalistSimulationControls` accepts:
+
+- an optional `AbortSignal`;
+- an optional progress callback;
+- an optional asynchronous yield between finalists.
+
+Progress events report `starting`, `completed`, `failed`, or `cancelled`, the
+attempted count, the total finalist count, and the current team key when one
+exists.
+
+The service checks cancellation before each finalist. The UI yields to the
+browser event loop between finalists so a cancel click can set the abort
+signal. The upstream engine remains synchronous, so an already-started
+finalist finishes before cancellation takes effect.
+
+The returned simulation records `attemptedFinalistCount` and `cancelled`.
+Successful results completed before cancellation remain selectable.
 
 ## Contracts
 
@@ -275,10 +295,10 @@ can still require:
 15 finalists × 3 members × 48 targets = 2,160 battles
 ```
 
-The service is intentionally sequential and currently exposes no progress,
-cancellation, batching, or worker execution. The future UI should begin with a
-smaller explicit target scope and must add progress/cancellation before
-presenting large runs as routine.
+The service is intentionally sequential. It reports progress and accepts
+cooperative cancellation between finalists, but it does not batch battles,
+use a worker, or interrupt an in-flight synchronous finalist. The UI defaults
+to a small explicit target scope and warns before larger scopes.
 
 ## Validation
 
@@ -306,7 +326,7 @@ Characterization verifies:
 Observed after this slice:
 
 ```text
-npm test          22 files, 62 tests passed
+npm test          22 files, 63 tests passed
 npm run typecheck passed
 npm run lint      passed
 npm run build     passed with the existing >500 kB chunk warning
@@ -314,41 +334,33 @@ npm run build     passed with the existing >500 kB chunk warning
 
 ## Known limitations
 
-- No progress callback or cancellation signal exists.
 - TeamRanker runs synchronously inside the upstream browser runtime.
+- Cancellation takes effect before the next finalist, not during the current
+  one.
 - Large finalist/meta combinations can block the tab.
 - The target scope remains unweighted.
 - Final score weights are initial TeamLab policy requiring representative-team
   characterization.
 - A systemic engine failure is recorded once per attempted finalist.
 - Results are derived in memory and not cached or persisted.
-- No recommendation explanations or UI exist yet.
 - Exact unowned substitutions are not part of inventory-constrained finalist
   generation.
 
 ## Safe extension points
 
-- Add progress events around each sequential finalist.
-- Accept an abort signal before starting each next finalist.
+- Move synchronous TeamRanker work to a worker or chunked boundary if Phase 8
+  profiling shows unacceptable blocking.
 - Add formula version to future cache keys.
-- Present static and exact evidence separately in the UI.
-- Generate explanation statements from stored score dimensions and threats.
-- Persist a selected result only by explicitly converting it into a saved
-  team.
+- Preserve the existing progress contract if engine execution becomes
+  interruptible.
 
 ## Follow-up work
 
-The next slice should build the `/recommend` workflow:
-
-1. select one or two anchors and fixed/flexible positions;
-2. choose result count, build scope, target count, and shields;
-3. display discovery exclusions and static finalists;
-4. run exact finalists with progress and cancellation;
-5. present ordered results, scorecards, threats, alternatives, requirements,
-   assumptions, and diversity/shortfall states;
-6. allow a selected result to become a saved team explicitly.
+The immediate follow-up was completed in
+[Recommendation workflow and result presentation](recommendation-workflow-and-result-presentation.md).
+The `/recommend` page consumes this service, displays progress and results,
+and explicitly converts selected results into saved teams.
 
 ## Relevant commits
 
 Not yet committed.
-
