@@ -9,6 +9,9 @@ what has actually been built, why it was built that way, which files own the
 behavior, how it was validated, which limitations remain, and what work should
 follow.
 
+Local setup and product operation are documented separately in the
+[TeamLab Local User Guide](../USER-GUIDE.md).
+
 The documentation hierarchy is:
 
 ```text
@@ -294,7 +297,7 @@ Deferred enhancements:
 
 ### Phase 8 — Backup and MVP hardening
 
-Status: **In progress**
+Status: **Complete for MVP**
 
 - [Phase overview](phase-08-mvp-hardening/README.md)
 - [Full-data backup and atomic restore](phase-08-mvp-hardening/full-data-backup-and-atomic-restore.md)
@@ -302,6 +305,7 @@ Status: **In progress**
 - [Representative-scale characterization](phase-08-mvp-hardening/representative-scale-characterization.md)
 - [Responsive and browser hardening](phase-08-mvp-hardening/responsive-and-browser-hardening.md)
 - [Critical browser workflow coverage](phase-08-mvp-hardening/critical-browser-workflow-coverage.md)
+- [Local user documentation](phase-08-mvp-hardening/local-user-documentation.md)
 
 Implemented:
 
@@ -329,10 +333,13 @@ Implemented:
 - Top-20 matrix and Top-48 cancellation responsiveness measurements
 - browser-level full-data download, reset, inspection, and restore
 - measured no-worker decision for current MVP browser scopes
+- complete local setup, operation, recovery, troubleshooting, and limitations
+  guide
 
-Remaining:
+Post-MVP:
 
-- local user documentation
+- hosted deployment documentation when a supported target exists
+- user-guide updates alongside future leagues, imports, and persistence changes
 
 ## Updating these records
 
@@ -398,8 +405,6 @@ Present recommendation evidence and explicitly save selected teams
 Guard or atomically reset persisted local data
 ```
 
-TeamLab cannot yet:
-
-- provide finished local user documentation.
-
-That documentation is the remaining Phase 8 hardening scope.
+The local MVP implementation and its Phase 8 hardening criteria are complete.
+Post-MVP capabilities remain intentionally outside this implementation
+boundary.

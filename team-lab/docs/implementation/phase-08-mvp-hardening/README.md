@@ -1,6 +1,6 @@
 # Phase 8 — Backup and MVP Hardening
 
-> **Status:** In progress
+> **Status:** Complete for MVP
 > **Project-plan phase:** Phase 8: backup and MVP hardening  
 > **Last reviewed:** 2026-07-25
 
@@ -65,12 +65,18 @@ extends or verifies those capabilities rather than recreating them.
 - populated 320 px analysis, simulation, recommendation, and reset checks
 - asynchronous saved-team member-default hydration repair
 - measured no-worker decision for current MVP browser workflows
+- complete local setup and operation guide
+- user-facing inventory, analysis, team, simulation, and recommendation
+  instructions
+- browser-origin, backup/recovery, destructive-control, and troubleshooting
+  guidance
 
 ## Out of scope
 
 - settings backup until a persisted settings domain exists
 - saved analysis or recommendation-run caches
-- local user documentation
+- public hosting and deployment documentation
+- screenshots, video walkthroughs, and translated guides
 
 ## Implementation records
 
@@ -79,6 +85,7 @@ extends or verifies those capabilities rather than recreating them.
 - [Representative-scale characterization](representative-scale-characterization.md)
 - [Responsive and browser hardening](responsive-and-browser-hardening.md)
 - [Critical browser workflow coverage](critical-browser-workflow-coverage.md)
+- [Local user documentation](local-user-documentation.md)
 
 ## Important decisions
 
@@ -110,6 +117,10 @@ extends or verifies those capabilities rather than recreating them.
 - Current Top-20 saved-team, Top-48 cancellation, and default finalist
   measurements do not justify a worker boundary. A future event-loop-gap
   regression must reopen that decision.
+- User operation belongs in `docs/USER-GUIDE.md`; implementation records remain
+  contributor-facing.
+- The supported local startup includes both inherited PvPoke Docker and the
+  TeamLab Vite server.
 
 ## Validation
 
@@ -120,6 +131,7 @@ npm run test:browser
 npm run typecheck
 npm run lint
 npm run build
+npm run validate:data
 ```
 
 Focused characterization verifies version-two round trips, legacy inspection,
@@ -129,7 +141,7 @@ rollback, clear-saved-team isolation, guarded inventory clear, atomic
 reset-all, legacy replace semantics, and the complete representative-scale
 workflow.
 
-Observed after the fifth slice:
+Observed after the sixth slice:
 
 ```text
 npm test          26 files, 76 tests passed
@@ -138,8 +150,9 @@ npm run test:browser passed; complete isolated UI recovery workflow
 npm run typecheck passed
 npm run lint      passed
 npm run build     passed; largest entry chunk approximately 406 kB
-Top-20 TeamRanker 123 ms end-to-end / 29 ms maximum pulse gap
-Top-48 cancel     151 ms end-to-end / 38 ms maximum pulse gap
+npm run validate:data passed against checked-in upstream data
+Top-20 TeamRanker 122 ms end-to-end / 27 ms maximum pulse gap
+Top-48 cancel     152 ms end-to-end / 38 ms maximum pulse gap
 default recommend 70 ms end-to-end / 21 ms maximum pulse gap
 ```
 
@@ -158,6 +171,7 @@ default recommend 70 ms end-to-end / 21 ms maximum pulse gap
 - Browser automation currently targets Chrome rather than a multi-browser
   compatibility matrix.
 - The 12-record browser fixture complements the 120-record Node scale fixture.
+- Local documentation does not define a supported production deployment.
 
 ## Exit criteria
 
@@ -172,14 +186,14 @@ default recommend 70 ms end-to-end / 21 ms maximum pulse gap
 - [x] Long work remains responsive or is moved to a worker where needed.
 - [x] The responsive audit is complete.
 - [x] Critical browser-level workflow coverage is complete.
-- [ ] Local user documentation is complete.
+- [x] Local user documentation is complete.
 - [x] No TeamLab feature requires edits to inherited upstream source.
 
 ## Next phase dependencies
 
-The final Phase 8 slice should write local user documentation covering the
-complete Great League workflow, local-data model, backup/recovery,
-destructive controls, performance warnings, and current MVP limitations.
+Phase 8 is complete for the MVP. Post-MVP work should follow
+`docs/PROJECT-PLAN.md` and preserve the backup, responsive, browser, and user
+documentation contracts established here.
 
 ## Relevant commits
 

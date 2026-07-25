@@ -178,8 +178,8 @@ Exact TeamRanker execution is intentionally outside this Node
 characterization because it depends on the real browser-hosted upstream
 runtime. It remains sequential, defaults to Top 5 targets, reports progress,
 supports cancellation before the next finalist, and warns for large target
-scopes. Browser-level hardening must verify its main-thread behavior before
-the remaining Phase 8 responsiveness criterion is closed.
+scopes. The subsequent browser workflow coverage verifies its main-thread
+behavior and closes the Phase 8 responsiveness criterion.
 
 ## File ownership
 

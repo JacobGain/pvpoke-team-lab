@@ -200,11 +200,11 @@ Final recorded run:
 
 | Workflow | Scope | End to end | Maximum pulse gap |
 | --- | --- | ---: | ---: |
-| Saved-team matrix | 3 × Top 20, 60 battles | 123 ms | 29 ms |
-| Cancellation | 5 requested, Top 48; stop after active finalist | 151 ms | 38 ms |
+| Saved-team matrix | 3 × Top 20, 60 battles | 122 ms | 27 ms |
+| Cancellation | 5 requested, Top 48; stop after active finalist | 152 ms | 38 ms |
 | Default recommendation | 9 finalists, Top 5; 3 selected | 70 ms | 21 ms |
 
-The saved-team UI reported 58 ms for its engine work. The default
+The saved-team UI reported 57 ms for its engine work. The default
 recommendation completed all nine finalists without failure and returned all
 three requested teams.
 
@@ -350,7 +350,8 @@ suite exited successfully in approximately 12 seconds
 
 ## Follow-up work
 
-The remaining Phase 8 slice is local user documentation. It should explain
+The subsequent
+[Local User Documentation](local-user-documentation.md) slice explains
 inventory, teams, recommendations, backup/recovery, destructive controls,
 scope warnings, data locality, and the current Great League-only boundary
 without requiring implementation records.

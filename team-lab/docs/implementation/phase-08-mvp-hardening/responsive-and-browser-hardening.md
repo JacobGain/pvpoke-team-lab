@@ -240,7 +240,9 @@ The subsequent
 slice seeded persisted data, exercised parameterized and recovery routes, and
 closed the no-worker decision with realistic TeamRanker measurements.
 
-Local user documentation is the remaining Phase 8 slice.
+Local user documentation was completed in
+[Local User Documentation](local-user-documentation.md), closing Phase 8 for
+the MVP.
 
 ## Relevant commits
 
