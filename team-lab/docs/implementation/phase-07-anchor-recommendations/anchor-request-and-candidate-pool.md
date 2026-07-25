@@ -232,32 +232,34 @@ npm run build     passed with the existing >500 kB chunk warning
 
 ## Known limitations
 
-- No candidate team combinations or role assignments exist yet.
-- No complementarity or static pre-score exists yet.
-- Pairwise species clause between partner candidates is not evaluated yet.
-- Exact simulations and scorecard comparisons are not invoked.
+- The candidate-pool boundary itself does not generate teams or scores; its
+  downstream static generator owns that policy.
+- Pairwise species clause between partner candidates is evaluated during
+  downstream team generation, not while records are pooled.
+- Exact simulations and scorecard comparisons are not invoked by this
+  subsystem.
 - Exclusion diagnostics have no feature UI.
-- There is no candidate limit beyond inventory size.
+- The pool retains all valid records; downstream static policy owns work
+  limits.
 
 ## Safe extension points
 
-- Add a pure eligibility/threshold policy over `RecommendationCandidatePool`.
-- Add a static scorer that consumes only `staticEvidence` and explicit policy
-  constants.
-- Generate ordered teams while honoring fixed/flexible anchor positions.
-- Enforce partner-to-partner species clause during team construction.
+- Extend eligibility without changing exact candidate preparation.
+- Add new static evidence fields without mixing them into exact builds.
+- Preserve fixed/flexible position metadata for future ordering policies.
+- Keep partner-to-partner species clause in team construction.
 - Serialize only shortlisted finalists into existing TeamRanker requests.
-- Add formula and policy versions before caching recommendation results.
+- Include existing formula and policy versions before caching recommendation
+  results.
 
 ## Follow-up work
 
-The next slice should define:
+The immediate follow-up was completed in
+[Static candidate generation and pre-score](static-candidate-generation-and-pre-score.md).
+The candidate pool now feeds a versioned policy, ordered team generator,
+static pre-score, species-level deduplication, and diverse finalist selector.
 
-1. published-rank and role eligibility policy;
-2. complementary matchup/coverage evidence;
-3. ordered candidate generation around fixed and flexible anchors;
-4. a transparent, versioned static pre-score;
-5. finalist and diversity limits before exact simulation.
+The remaining consumer is exact finalist simulation.
 
 ## Relevant commits
 

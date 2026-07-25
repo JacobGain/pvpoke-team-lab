@@ -252,6 +252,7 @@ Status: **In progress**
 
 - [Phase overview](phase-07-anchor-recommendations/README.md)
 - [Anchor request and owned candidate pool](phase-07-anchor-recommendations/anchor-request-and-candidate-pool.md)
+- [Static candidate generation and pre-score](phase-07-anchor-recommendations/static-candidate-generation-and-pre-score.md)
 
 Implemented:
 
@@ -265,13 +266,17 @@ Implemented:
 - deterministic ready-now-first discovery ordering
 - static rank, role, matchup, and counter evidence boundary
 - explicit exclusion diagnostics
+- versioned partner eligibility thresholds
+- anchor-aware ordered team generation
+- partner-to-partner species clause
+- transparent versioned static pre-score
+- species-team deduplication
+- bounded and core-diverse finalist selection
 
 Remaining:
 
-- role/complementarity policy and static pre-score
-- ordered candidate-team generation
 - finalist simulation and scorecard comparison
-- diversity and explanation policy
+- final-result diversity and explanation policy
 - recommendation UI
 
 ## Updating these records
@@ -328,13 +333,14 @@ Prepare and run exact saved-team TeamRanker matrices
 Derive scorecards, threats, alternatives, and upstream links
     ↓
 Resolve anchors into an exact, ready-now-prioritized candidate pool
+    ↓
+Generate, pre-score, deduplicate, and shortlist ordered candidate teams
 ```
 
 TeamLab cannot yet:
 
-- pre-score or generate ordered recommendation candidates;
 - simulate recommendation finalists;
-- enforce recommendation diversity;
+- enforce diversity across final exact-simulation results;
 - present complete recommendation results in the UI.
 
 Those capabilities belong to later phases in `PROJECT-PLAN.md`.
