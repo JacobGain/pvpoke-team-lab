@@ -60,6 +60,7 @@ export interface SavedTeamScoreEvidence {
 
 export interface SavedTeamRankerRun {
   readonly scope: SavedTeamRankerScope;
+  readonly request?: TeamRankerRequest;
   readonly result: TeamRankerResult;
   readonly evidence: SavedTeamScoreEvidence;
   readonly durationMs: number;
@@ -233,6 +234,7 @@ export class SavedTeamRankingService {
 
     return {
       scope: prepared.scope,
+      request: prepared.request,
       result,
       evidence: prepared.evidence,
       durationMs,
