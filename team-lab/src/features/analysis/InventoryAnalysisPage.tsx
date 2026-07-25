@@ -7,6 +7,7 @@ import type {
 import { useInventoryBuildAnalysis } from "@/features/analysis/analysisQueries";
 import { useInventoryPokemon } from "@/features/inventory/inventoryQueries";
 import { usePokemonCatalog } from "@/features/meta/usePokemonCatalog";
+import { NamedOpponentInsights } from "@/features/analysis/NamedOpponentInsights";
 
 function formatNumber(value: number, digits = 2): string {
   return value.toLocaleString(undefined, {
@@ -260,7 +261,7 @@ export function InventoryAnalysisPage() {
     );
   }
 
-  if (error || !analysisResult.data) {
+  if (error || !analysisResult.data || !catalogResult.data) {
     return (
       <main className="analysis-page">
         <Link to="/inventory">← Inventory</Link>
@@ -287,15 +288,19 @@ export function InventoryAnalysisPage() {
 
       <BuildPanel build={analysis.current} />
       {analysis.planned ? <BuildPanel build={analysis.planned} /> : null}
+      <NamedOpponentInsights
+        analysis={analysis}
+        catalog={catalogResult.data}
+      />
       <Requirements analysis={analysis} />
 
       <aside className="analysis-scope">
         <strong>Current scope</strong>
         <p>
           IV rank measures stat product, not matchup quality. Attack percentile
-          provides CMP context only. Opponent-specific breakpoints, bulkpoints,
-          role rankings, and simulated matchup impact require later Phase 3
-          integrations.
+          provides broad CMP context only. Named-opponent CMP and fast-move
+          thresholds use the displayed default opponent build. Full simulated
+          matchup impact remains a later integration.
         </p>
       </aside>
     </main>

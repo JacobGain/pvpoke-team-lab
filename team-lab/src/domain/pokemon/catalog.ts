@@ -5,6 +5,10 @@ export interface CatalogMove {
   readonly name: string;
   readonly type: string;
   readonly kind: MoveKind;
+  readonly power: number;
+  readonly energy: number;
+  readonly energyGain: number;
+  readonly turns: number;
   readonly isLegacy: boolean;
   readonly isElite: boolean;
 }

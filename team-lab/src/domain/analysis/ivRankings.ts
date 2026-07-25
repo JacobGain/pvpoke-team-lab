@@ -31,6 +31,7 @@ export interface IvRankingSummary {
   readonly combination: IvRankedCombination;
   readonly rankOne: IvRankedCombination;
   readonly highestAttack: IvRankedCombination;
+  readonly highestDefense: IvRankedCombination;
   readonly attackPercentile: number;
   readonly statProductPercentage: number;
 }
@@ -177,6 +178,9 @@ export function analyzeIvRanking(
   const highestAttack = table.reduce((highest, candidate) =>
     candidate.stats.attack > highest.stats.attack ? candidate : highest,
   );
+  const highestDefense = table.reduce((highest, candidate) =>
+    candidate.stats.defense > highest.stats.defense ? candidate : highest,
+  );
 
   return {
     rank: combination.rank,
@@ -188,6 +192,7 @@ export function analyzeIvRanking(
     combination,
     rankOne,
     highestAttack,
+    highestDefense,
     attackPercentile:
       (table.filter(
         (candidate) =>

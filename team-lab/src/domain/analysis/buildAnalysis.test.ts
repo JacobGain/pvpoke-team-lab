@@ -54,7 +54,7 @@ describe("inventory build analysis", () => {
           role: "consistency",
           score: 93.1,
           rank: 1,
-          count: 1,
+          count: 2,
         },
       },
       dataVersion: "test-data-v1",
