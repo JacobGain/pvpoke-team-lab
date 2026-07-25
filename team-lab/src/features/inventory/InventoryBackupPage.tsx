@@ -2,18 +2,19 @@ import { useState, type ChangeEvent } from "react";
 import { Link } from "react-router-dom";
 
 import {
-  createInventoryBackup,
-  inspectInventoryBackup,
-  serializeInventoryBackup,
-  type InventoryBackupInspection,
-} from "@/domain/inventory/backup";
-import type { InventoryRestoreMode } from "@/domain/inventory/repository";
+  createTeamLabBackup,
+  inspectTeamLabBackup,
+  serializeTeamLabBackup,
+  type TeamLabBackupInspection,
+  type TeamLabRestoreMode,
+} from "@/domain/backup/teamLabBackup";
+import { useRestoreTeamLabBackup } from "@/features/backup/backupQueries";
 import {
   useClearInventory,
   useInventoryList,
-  useRestoreInventory,
 } from "@/features/inventory/inventoryQueries";
 import { usePokemonCatalog } from "@/features/meta/usePokemonCatalog";
+import { useSavedTeamList } from "@/features/teams/savedTeamQueries";
 
 function formatError(error: unknown): string {
   return error instanceof Error
@@ -35,18 +36,25 @@ function downloadBackup(contents: string, filename: string) {
 export function InventoryBackupPage() {
   const catalogResult = usePokemonCatalog();
   const inventoryResult = useInventoryList();
-  const restoreMutation = useRestoreInventory();
+  const savedTeamsResult = useSavedTeamList();
+  const restoreMutation = useRestoreTeamLabBackup();
   const clearMutation = useClearInventory();
-  const [inspection, setInspection] = useState<InventoryBackupInspection>();
+  const [inspection, setInspection] = useState<TeamLabBackupInspection>();
   const [selectedFilename, setSelectedFilename] = useState("");
+  const [exportError, setExportError] = useState<unknown>();
   const [restoreMode, setRestoreMode] =
-    useState<InventoryRestoreMode>("merge");
+    useState<TeamLabRestoreMode>("merge");
 
-  if (catalogResult.isLoading || inventoryResult.isPending) {
+  if (
+    catalogResult.isLoading ||
+    inventoryResult.isPending ||
+    savedTeamsResult.isPending
+  ) {
     return <main className="inventory-page">Loading backup tools…</main>;
   }
 
-  const loadError = catalogResult.error ?? inventoryResult.error;
+  const loadError =
+    catalogResult.error ?? inventoryResult.error ?? savedTeamsResult.error;
 
   if (!catalogResult.data || loadError) {
     return (
@@ -61,6 +69,7 @@ export function InventoryBackupPage() {
 
   const catalog = catalogResult.data;
   const records = inventoryResult.data ?? [];
+  const savedTeams = savedTeamsResult.data ?? [];
 
   async function handleFile(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -73,16 +82,22 @@ export function InventoryBackupPage() {
     }
 
     setSelectedFilename(file.name);
-    setInspection(inspectInventoryBackup(await file.text(), catalog));
+    setInspection(inspectTeamLabBackup(await file.text(), catalog));
   }
 
   function handleExport() {
-    const backup = createInventoryBackup(records);
-    const date = backup.exportedAt.slice(0, 10);
-    downloadBackup(
-      serializeInventoryBackup(backup),
-      `teamlab-inventory-${date}.json`,
-    );
+    setExportError(undefined);
+
+    try {
+      const backup = createTeamLabBackup(records, savedTeams, catalog);
+      const date = backup.exportedAt.slice(0, 10);
+      downloadBackup(
+        serializeTeamLabBackup(backup),
+        `teamlab-backup-${date}.json`,
+      );
+    } catch (error) {
+      setExportError(error);
+    }
   }
 
   function handleRestore() {
@@ -93,15 +108,16 @@ export function InventoryBackupPage() {
     if (
       restoreMode === "replace" &&
       !window.confirm(
-        "Replace the entire local inventory with this backup? Records not in the backup will be deleted.",
+        "Replace all local inventory and saved teams with this backup? Data not in the backup will be deleted.",
       )
     ) {
       return;
     }
 
     restoreMutation.mutate({
-      records: inspection.backup.inventory,
+      backup: inspection.backup,
       mode: restoreMode,
+      catalog,
     });
   }
 
@@ -112,8 +128,8 @@ export function InventoryBackupPage() {
         <p className="eyebrow">Local data safety</p>
         <h1>Backup and restore</h1>
         <p>
-          Export a portable, versioned TeamLab JSON backup or validate a backup
-          completely before changing IndexedDB.
+          Export inventory and saved teams in one portable TeamLab JSON backup,
+          or validate every record and reference before changing IndexedDB.
         </p>
       </header>
 
@@ -123,14 +139,22 @@ export function InventoryBackupPage() {
           <h2>Download a recovery copy</h2>
           <p>
             The backup contains {records.length} inventory{" "}
-            {records.length === 1 ? "record" : "records"}, record schema
-            versions, and export metadata.
+            {records.length === 1 ? "record" : "records"} and{" "}
+            {savedTeams.length} saved{" "}
+            {savedTeams.length === 1 ? "team" : "teams"}, plus their schema
+            versions and export metadata.
           </p>
         </div>
         <button type="button" onClick={handleExport}>
           Download JSON backup
         </button>
       </section>
+      {exportError ? (
+        <p className="inventory-error" role="alert">
+          The current local data cannot produce a restorable backup.{" "}
+          {formatError(exportError)}
+        </p>
+      ) : null}
 
       <section className="form-section">
         <p className="eyebrow">Import</p>
@@ -151,9 +175,16 @@ export function InventoryBackupPage() {
             <div className="backup-inspection backup-inspection--valid">
               <strong>{selectedFilename} is valid</strong>
               <span>
-                {inspection.backup.inventory.length} records · exported{" "}
+                {inspection.backup.inventory.length} inventory records ·{" "}
+                {inspection.backup.savedTeams.length} saved teams · schema{" "}
+                {inspection.backup.sourceSchemaVersion} · exported{" "}
                 {new Date(inspection.backup.exportedAt).toLocaleString()}
               </span>
+              {inspection.backup.sourceSchemaVersion === 1 ? (
+                <small>
+                  Legacy inventory-only backup: it contains no saved teams.
+                </small>
+              ) : null}
             </div>
           ) : (
             <div
@@ -164,9 +195,10 @@ export function InventoryBackupPage() {
               {inspection.envelopeError ? (
                 <p>{inspection.envelopeError}</p>
               ) : null}
-              {inspection.recordCount !== undefined ? (
+              {inspection.inventoryCount !== undefined ? (
                 <p>
-                  Checked all {inspection.recordCount} records and found{" "}
+                  Checked {inspection.inventoryCount} inventory records and{" "}
+                  {inspection.savedTeamCount ?? 0} saved teams and found{" "}
                   {inspection.issues.length} blocking{" "}
                   {inspection.issues.length === 1 ? "issue" : "issues"}.
                 </p>
@@ -174,9 +206,14 @@ export function InventoryBackupPage() {
               {inspection.issues.length > 0 ? (
                 <ol>
                   {inspection.issues.map((issue) => (
-                    <li key={`${issue.index}-${issue.kind}`}>
-                      Record {issue.index + 1}
-                      {issue.inventoryId ? ` (${issue.inventoryId})` : ""}:{" "}
+                    <li
+                      key={`${issue.collection}-${issue.index}-${issue.kind}`}
+                    >
+                      {issue.collection === "inventory"
+                        ? "Inventory"
+                        : "Saved team"}{" "}
+                      record {issue.index + 1}
+                      {issue.recordId ? ` (${issue.recordId})` : ""}:{" "}
                       {issue.message}
                     </li>
                   ))}
@@ -201,8 +238,9 @@ export function InventoryBackupPage() {
                 />
                 <span>
                   <strong>Merge</strong>
-                  Keep unrelated local records. Backup records replace matching
-                  inventory IDs.
+                  Keep unrelated local inventory and teams. Backup records
+                  replace matching IDs only when the complete merged state
+                  remains legal.
                 </span>
               </label>
               <label>
@@ -216,7 +254,8 @@ export function InventoryBackupPage() {
                 />
                 <span>
                   <strong>Replace</strong>
-                  Make the backup authoritative and remove other local records.
+                  Make the backup authoritative for both inventory and saved
+                  teams, removing other local data.
                 </span>
               </label>
             </fieldset>
@@ -225,7 +264,9 @@ export function InventoryBackupPage() {
               disabled={restoreMutation.isPending}
               onClick={handleRestore}
             >
-              {restoreMutation.isPending ? "Restoring…" : "Restore inventory"}
+              {restoreMutation.isPending
+                ? "Restoring…"
+                : "Restore TeamLab data"}
             </button>
           </div>
         ) : null}
@@ -242,10 +283,15 @@ export function InventoryBackupPage() {
         ) : null}
         {restoreMutation.data ? (
           <p className="backup-success" role="status">
-            Restore complete: {restoreMutation.data.inserted} inserted,{" "}
-            {restoreMutation.data.updated} updated,{" "}
-            {restoreMutation.data.removed} removed. Local inventory now has{" "}
-            {restoreMutation.data.finalCount} records.
+            Restore complete. Inventory:{" "}
+            {restoreMutation.data.inventory.inserted} inserted,{" "}
+            {restoreMutation.data.inventory.updated} updated,{" "}
+            {restoreMutation.data.inventory.removed} removed,{" "}
+            {restoreMutation.data.inventory.finalCount} total. Saved teams:{" "}
+            {restoreMutation.data.savedTeams.inserted} inserted,{" "}
+            {restoreMutation.data.savedTeams.updated} updated,{" "}
+            {restoreMutation.data.savedTeams.removed} removed,{" "}
+            {restoreMutation.data.savedTeams.finalCount} total.
           </p>
         ) : null}
       </section>
