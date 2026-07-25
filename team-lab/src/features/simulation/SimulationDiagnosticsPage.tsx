@@ -3,10 +3,15 @@ import { Link } from "react-router-dom";
 
 import {
   runSimulationCharacterizationSuite,
+  runTeamRankerCharacterization,
   type SimulationCharacterizationReport,
+  type TeamRankerCharacterizationReport,
 } from "@/domain/simulation/characterization";
 import { usePokemonCatalog } from "@/features/meta/usePokemonCatalog";
-import { createPvpokeOneOnOneAdapter } from "@/pvpoke/simulation";
+import {
+  createPvpokeOneOnOneAdapter,
+  createPvpokeTeamRankerAdapter,
+} from "@/pvpoke/simulation";
 
 function formatError(error: unknown): string {
   return error instanceof Error
@@ -31,6 +36,10 @@ export function SimulationDiagnosticsPage() {
   const [report, setReport] = useState<SimulationCharacterizationReport>();
   const [error, setError] = useState<unknown>();
   const [running, setRunning] = useState(false);
+  const [rankerReport, setRankerReport] =
+    useState<TeamRankerCharacterizationReport>();
+  const [rankerError, setRankerError] = useState<unknown>();
+  const [rankerRunning, setRankerRunning] = useState(false);
 
   if (catalogResult.isLoading) {
     return <main className="diagnostics-page">Loading upstream data…</main>;
@@ -61,6 +70,23 @@ export function SimulationDiagnosticsPage() {
       setError(runError);
     } finally {
       setRunning(false);
+    }
+  }
+
+  async function runRankerSuite() {
+    setRankerRunning(true);
+    setRankerError(undefined);
+    setRankerReport(undefined);
+
+    try {
+      const adapter = createPvpokeTeamRankerAdapter(dataVersion);
+      setRankerReport(
+        await runTeamRankerCharacterization(adapter, dataVersion),
+      );
+    } catch (runError) {
+      setRankerError(runError);
+    } finally {
+      setRankerRunning(false);
     }
   }
 
@@ -187,6 +213,57 @@ export function SimulationDiagnosticsPage() {
             ))}
           </section>
         </>
+      ) : null}
+
+      <section className="form-section diagnostics-summary">
+        <div>
+          <h2>TeamRanker check</h2>
+          <p>
+            Rank exact Whiscash against an exact Azumarill/Altaria team twice.
+            This exercises the real upstream RankerMaster singleton.
+          </p>
+        </div>
+        <button
+          className="primary-button"
+          type="button"
+          disabled={rankerRunning}
+          onClick={() => void runRankerSuite()}
+        >
+          {rankerRunning ? "Running TeamRanker…" : "Run TeamRanker check"}
+        </button>
+      </section>
+
+      {rankerError ? (
+        <p className="inventory-error" role="alert">
+          {formatError(rankerError)}
+        </p>
+      ) : null}
+
+      {rankerReport ? (
+        <section
+          className={`diagnostics-banner ${
+            rankerReport.passed
+              ? "diagnostics-banner--pass"
+              : "diagnostics-banner--fail"
+          }`}
+        >
+          <div>
+            <p className="eyebrow">TeamRanker result</p>
+            <h2>{rankerReport.passed ? "Passed" : "Failed"}</h2>
+            <p>
+              {rankerReport.result.battleCount} battles ·{" "}
+              {Math.round(rankerReport.durationMs)} ms · Whiscash rating{" "}
+              {rankerReport.result.rankings[0]?.averageRating ?? "unavailable"}
+            </p>
+            {rankerReport.invariantFailures.length > 0 ? (
+              <ul>
+                {rankerReport.invariantFailures.map((failure) => (
+                  <li key={failure}>{failure}</li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+        </section>
       ) : null}
 
       <aside className="analysis-scope">

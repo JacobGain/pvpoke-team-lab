@@ -5,6 +5,8 @@ import {
   type OneOnOneSimulationRequest,
   type OneOnOneSimulationResult,
   type ShieldCount,
+  type TeamRankerAdapter,
+  type TeamRankerResult,
 } from "@/domain/simulation/contracts";
 
 export interface SimulationCharacterizationCase {
@@ -29,6 +31,17 @@ export interface SimulationCharacterizationReport {
   readonly dataVersion: string;
   readonly passed: boolean;
   readonly observations: readonly SimulationCharacterizationObservation[];
+}
+
+export interface TeamRankerCharacterizationReport {
+  readonly reportVersion: 1;
+  readonly generatedAt: string;
+  readonly dataVersion: string;
+  readonly passed: boolean;
+  readonly deterministic: boolean;
+  readonly durationMs: number;
+  readonly result: TeamRankerResult;
+  readonly invariantFailures: readonly string[];
 }
 
 function build(
@@ -211,5 +224,69 @@ export async function runSimulationCharacterizationSuite(
       (observation) => observation.invariantFailures.length === 0,
     ),
     observations,
+  };
+}
+
+function stableRankerResult(result: TeamRankerResult): string {
+  return JSON.stringify({
+    rankings: result.rankings,
+    teamRatings: result.teamRatings,
+    battleCount: result.battleCount,
+    dataVersion: result.dataVersion,
+    engine: result.engine,
+  });
+}
+
+export async function runTeamRankerCharacterization(
+  adapter: TeamRankerAdapter,
+  dataVersion: string,
+  now: () => Date = () => new Date(),
+): Promise<TeamRankerCharacterizationReport> {
+  const cases = createOpenGreatLeagueCharacterizationCases();
+  const azumarill = cases[0]!.builds[0];
+  const altaria = cases[0]!.builds[1];
+  const whiscash = cases[1]!.builds[0];
+  const request = {
+    team: [azumarill, altaria],
+    targets: [whiscash],
+    teamShields: 1 as const,
+    targetShields: 1 as const,
+    dataVersion,
+  };
+  const startedAt = performance.now();
+  const first = await adapter.rank(request);
+  const second = await adapter.rank(request);
+  const durationMs = performance.now() - startedAt;
+  const deterministic = stableRankerResult(first) === stableRankerResult(second);
+  const failures: string[] = [];
+
+  if (first.engine !== "pvpoke-team-ranker") {
+    failures.push("Unexpected TeamRanker engine identity.");
+  }
+  if (first.dataVersion !== dataVersion) {
+    failures.push("TeamRanker data version does not match the catalog.");
+  }
+  if (first.battleCount !== 2) {
+    failures.push(`Expected 2 battles, received ${first.battleCount}.`);
+  }
+  if (first.rankings.length !== 1 || first.rankings[0]?.speciesId !== "whiscash") {
+    failures.push("Explicit Whiscash target was not preserved.");
+  }
+  if (first.rankings[0]?.matchups.length !== 2) {
+    failures.push("Expected one matchup per team member.");
+  }
+  if (!deterministic) {
+    failures.push("Repeated TeamRanker execution produced different results.");
+  }
+
+  return {
+    reportVersion: 1,
+    generatedAt: now().toISOString(),
+    dataVersion,
+    passed: failures.length === 0,
+    deterministic,
+    durationMs,
+    result: first,
+    invariantFailures: failures,
   };
 }

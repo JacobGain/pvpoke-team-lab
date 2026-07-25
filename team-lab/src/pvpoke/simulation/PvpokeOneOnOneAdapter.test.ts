@@ -10,6 +10,7 @@ import type {
   PvpokeBattle,
   PvpokeBattleRuntime,
   PvpokePokemon,
+  PvpokeTeamRanker,
   PvpokeWinner,
 } from "@/pvpoke/simulation/runtime";
 
@@ -119,6 +120,10 @@ class CharacterizationRuntime implements PvpokeBattleRuntime {
     void index;
     void battle;
     return new CharacterizationPokemon(speciesId);
+  }
+
+  getTeamRanker(): PvpokeTeamRanker {
+    throw new Error("TeamRanker is not used by this characterization.");
   }
 }
 

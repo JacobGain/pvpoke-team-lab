@@ -3,11 +3,15 @@ import { describe, expect, it } from "vitest";
 import {
   createOpenGreatLeagueCharacterizationCases,
   runSimulationCharacterizationSuite,
+  runTeamRankerCharacterization,
 } from "@/domain/simulation/characterization";
 import type {
   OneOnOneSimulationAdapter,
   OneOnOneSimulationRequest,
   OneOnOneSimulationResult,
+  TeamRankerAdapter,
+  TeamRankerRequest,
+  TeamRankerResult,
 } from "@/domain/simulation/contracts";
 
 class DeterministicAdapter implements OneOnOneSimulationAdapter {
@@ -103,6 +107,69 @@ describe("real-engine characterization contracts", () => {
           invariantFailures: [],
         },
       ],
+    });
+  });
+});
+
+class DeterministicTeamRankerAdapter implements TeamRankerAdapter {
+  calls = 0;
+
+  rank(request: TeamRankerRequest): Promise<TeamRankerResult> {
+    this.calls += 1;
+    return Promise.resolve({
+      rankings: [
+        {
+          speciesId: request.targets[0]!.speciesId,
+          speciesName: request.targets[0]!.speciesName,
+          averageRating: 525,
+          score: 550,
+          matchups: request.team.map((opponent) => ({
+            opponentSpeciesId: opponent.speciesId,
+            rating: 525,
+            score: 550,
+            durationMs: 30_000,
+            fastMoveDamage: 3,
+            incomingFastMoveDamage: 4,
+            attackDifferential: 1,
+          })),
+        },
+      ],
+      teamRatings: request.team.map(() => [475]),
+      battleCount: request.team.length * request.targets.length,
+      dataVersion: request.dataVersion,
+      engine: "pvpoke-team-ranker",
+      assumptions: [],
+    });
+  }
+}
+
+describe("TeamRanker characterization", () => {
+  it("repeats the explicit target matrix and validates translated shape", async () => {
+    const adapter = new DeterministicTeamRankerAdapter();
+    const report = await runTeamRankerCharacterization(
+      adapter,
+      "test-data-v1",
+      () => new Date("2026-07-25T20:00:00.000Z"),
+    );
+
+    expect(adapter.calls).toBe(2);
+    expect(report).toMatchObject({
+      generatedAt: "2026-07-25T20:00:00.000Z",
+      passed: true,
+      deterministic: true,
+      invariantFailures: [],
+      result: {
+        battleCount: 2,
+        rankings: [
+          {
+            speciesId: "whiscash",
+            matchups: [
+              { opponentSpeciesId: "azumarill" },
+              { opponentSpeciesId: "altaria" },
+            ],
+          },
+        ],
+      },
     });
   });
 });
