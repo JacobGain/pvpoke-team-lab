@@ -10,7 +10,7 @@ import {
 import { assertInventoryPokemonAgainstCatalog } from "@/domain/inventory/validation";
 import type { PokemonCatalog } from "@/domain/pokemon/catalog";
 
-interface InventoryFactoryDependencies {
+export interface InventoryFactoryDependencies {
   readonly catalog: PokemonCatalog;
   readonly createId?: () => string;
   readonly now?: () => Date;
@@ -133,4 +133,45 @@ export function touchInventoryPokemon(
     ...record,
     updatedAt: now().toISOString(),
   });
+}
+
+export function updateInventoryPokemon(
+  existingRecord: InventoryPokemon,
+  input: CreateInventoryPokemonInput,
+  dependencies: InventoryFactoryDependencies,
+): InventoryPokemon {
+  const updatedAt = (dependencies.now ?? (() => new Date()))().toISOString();
+  const currentBuild = resolveBuild(
+    input.currentBuild,
+    input.speciesId,
+    dependencies.catalog,
+  );
+  const metadata = {
+    schemaVersion: INVENTORY_RECORD_SCHEMA_VERSION,
+    inventoryId: existingRecord.inventoryId,
+    favorite: input.favorite ?? false,
+    notes: input.notes ?? "",
+    sourceDataVersion: dependencies.catalog.dataVersion,
+    createdAt: existingRecord.createdAt,
+    updatedAt,
+  };
+  const candidate =
+    input.buildStatus === "planned"
+      ? {
+          ...metadata,
+          buildStatus: input.buildStatus,
+          speciesId: input.speciesId,
+          currentBuild,
+          plannedBuild: input.plannedBuild,
+        }
+      : {
+          ...metadata,
+          buildStatus: input.buildStatus,
+          speciesId: input.speciesId,
+          currentBuild,
+        };
+  const record = inventoryPokemonSchema.parse(candidate);
+
+  assertInventoryPokemonAgainstCatalog(record, dependencies.catalog);
+  return record;
 }

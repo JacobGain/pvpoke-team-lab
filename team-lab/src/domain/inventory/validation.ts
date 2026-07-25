@@ -6,6 +6,7 @@ import type {
   PokemonCatalog,
   PokemonCatalogEntry,
 } from "@/domain/pokemon/catalog";
+import { inferCombatPowerLevel } from "@/domain/pokemon/combatPower";
 
 export interface InventoryValidationIssue {
   readonly code:
@@ -13,7 +14,9 @@ export interface InventoryValidationIssue {
     | "target-species-not-found"
     | "fast-move-not-found"
     | "charged-move-not-found"
-    | "assumed-ivs-unavailable";
+    | "assumed-ivs-unavailable"
+    | "combat-power-no-match"
+    | "invalid-evolution";
   readonly path: string;
   readonly message: string;
 }
@@ -88,6 +91,20 @@ export function validateInventoryPokemonAgainstCatalog(
     ),
   );
 
+  const currentCpInference = inferCombatPowerLevel(
+    currentPokemon,
+    record.currentBuild.ivProfile.ivs,
+    record.currentBuild.cp,
+  );
+
+  if (currentCpInference.status === "no-match") {
+    issues.push({
+      code: "combat-power-no-match",
+      path: "currentBuild.cp",
+      message: `CP ${record.currentBuild.cp} cannot be produced by ${currentPokemon.speciesName} with these IVs between levels ${currentPokemon.levelFloor} and ${currentPokemon.levelCap + 1}.`,
+    });
+  }
+
   if (
     record.currentBuild.ivProfile.source === "assumed-rank-1" &&
     !currentPokemon.defaultGreatLeagueIvs
@@ -109,6 +126,17 @@ export function validateInventoryPokemonAgainstCatalog(
         message: `${record.plannedBuild.targetSpeciesId} does not exist in catalog ${catalog.dataVersion}.`,
       });
     } else {
+      if (
+        targetPokemon.speciesId !== currentPokemon.speciesId &&
+        !currentPokemon.evolutionIds.includes(targetPokemon.speciesId)
+      ) {
+        issues.push({
+          code: "invalid-evolution",
+          path: "plannedBuild.targetSpeciesId",
+          message: `${targetPokemon.speciesName} is not a direct evolution of ${currentPokemon.speciesName}.`,
+        });
+      }
+
       issues.push(
         ...validateMoveset(
           record.plannedBuild.desiredMoveset,
@@ -116,6 +144,22 @@ export function validateInventoryPokemonAgainstCatalog(
           "plannedBuild.desiredMoveset",
         ),
       );
+
+      if (record.plannedBuild.targetCp !== undefined) {
+        const targetCpInference = inferCombatPowerLevel(
+          targetPokemon,
+          record.currentBuild.ivProfile.ivs,
+          record.plannedBuild.targetCp,
+        );
+
+        if (targetCpInference.status === "no-match") {
+          issues.push({
+            code: "combat-power-no-match",
+            path: "plannedBuild.targetCp",
+            message: `Target CP ${record.plannedBuild.targetCp} cannot be produced by ${targetPokemon.speciesName} with these IVs.`,
+          });
+        }
+      }
     }
   }
 

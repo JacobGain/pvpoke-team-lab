@@ -12,6 +12,14 @@ export const inventoryTestCatalog: PokemonCatalog = {
       isReleased: true,
       isShadow: false,
       isShadowEligible: false,
+      baseStats: {
+        attack: 112,
+        defense: 152,
+        hp: 225,
+      },
+      levelFloor: 1,
+      levelCap: 50,
+      evolutionIds: [],
       fastMoves: [
         {
           id: "BUBBLE",

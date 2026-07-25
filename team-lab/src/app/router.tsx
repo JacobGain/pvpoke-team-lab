@@ -2,7 +2,8 @@ import { createBrowserRouter } from "react-router-dom";
 
 import { HomePage } from "@/app/routes/HomePage";
 import { NotFoundPage } from "@/app/routes/NotFoundPage";
-import { InventoryPersistencePage } from "@/features/inventory/InventoryPersistencePage";
+import { InventoryFormPage } from "@/features/inventory/InventoryFormPage";
+import { InventoryPage } from "@/features/inventory/InventoryPage";
 import { PokemonCatalogPage } from "@/features/meta/PokemonCatalogPage";
 
 export const router = createBrowserRouter(
@@ -17,7 +18,15 @@ export const router = createBrowserRouter(
     },
     {
       path: "/inventory",
-      element: <InventoryPersistencePage />,
+      element: <InventoryPage />,
+    },
+    {
+      path: "/inventory/new",
+      element: <InventoryFormPage />,
+    },
+    {
+      path: "/inventory/:inventoryId",
+      element: <InventoryFormPage />,
     },
     {
       path: "*",

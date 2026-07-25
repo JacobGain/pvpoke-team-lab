@@ -24,6 +24,14 @@ export function useInventoryList() {
   return useQuery(inventoryListQueryOptions);
 }
 
+export function useInventoryPokemon(inventoryId: string | undefined) {
+  return useQuery({
+    queryKey: inventoryQueryKeys.detail(inventoryId ?? ""),
+    queryFn: () => inventoryRepository.get(inventoryId!),
+    enabled: inventoryId !== undefined,
+  });
+}
+
 export function useCreateInventoryPokemon() {
   const queryClient = useQueryClient();
 

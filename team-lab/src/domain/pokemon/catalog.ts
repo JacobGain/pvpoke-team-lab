@@ -23,6 +23,12 @@ export interface CatalogIvSpread {
   readonly hp: number;
 }
 
+export interface CatalogBaseStats {
+  readonly attack: number;
+  readonly defense: number;
+  readonly hp: number;
+}
+
 export interface PokemonCatalogEntry {
   readonly speciesId: string;
   readonly speciesName: string;
@@ -32,6 +38,10 @@ export interface PokemonCatalogEntry {
   readonly isReleased: boolean;
   readonly isShadow: boolean;
   readonly isShadowEligible: boolean;
+  readonly baseStats: CatalogBaseStats;
+  readonly levelFloor: number;
+  readonly levelCap: number;
+  readonly evolutionIds: readonly string[];
   readonly fastMoves: readonly CatalogMove[];
   readonly chargedMoves: readonly CatalogMove[];
   readonly defaultGreatLeagueIvs?: CatalogIvSpread;

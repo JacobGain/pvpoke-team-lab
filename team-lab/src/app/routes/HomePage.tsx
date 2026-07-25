@@ -17,7 +17,7 @@ export function HomePage() {
             Explore the Great League catalog
           </Link>
           <Link className="secondary-link" to="/inventory">
-            Verify local inventory
+            Open your inventory
           </Link>
         </div>
       </section>

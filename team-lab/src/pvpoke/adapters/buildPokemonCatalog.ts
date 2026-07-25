@@ -182,6 +182,23 @@ export function buildPokemonCatalog(
 
     const rankingData = rankingMap.get(pokemon.speciesId);
     const tags = Object.freeze([...(pokemon.tags ?? [])]);
+    const specialChargedMoveIds = [
+      ...(tags.includes("shadoweligible") ? ["RETURN"] : []),
+      ...(tags.includes("shadow") ? ["FRUSTRATION"] : []),
+    ];
+
+    for (const moveId of specialChargedMoveIds) {
+      const move = moveMap.get(moveId);
+
+      if (move && !chargedMoves.some((entry) => entry.id === moveId)) {
+        chargedMoves.push(
+          Object.freeze({
+            ...createMove(move, "charged", pokemon),
+            isLegacy: true,
+          }),
+        );
+      }
+    }
 
     return Object.freeze({
       speciesId: pokemon.speciesId,
@@ -193,6 +210,14 @@ export function buildPokemonCatalog(
       isShadow:
         tags.includes("shadow") || pokemon.speciesId.endsWith("_shadow"),
       isShadowEligible: tags.includes("shadoweligible"),
+      baseStats: Object.freeze({
+        attack: pokemon.baseStats.atk,
+        defense: pokemon.baseStats.def,
+        hp: pokemon.baseStats.hp,
+      }),
+      levelFloor: pokemon.levelFloor ?? 1,
+      levelCap: pokemon.levelCap ?? 50,
+      evolutionIds: Object.freeze([...(pokemon.family?.evolutions ?? [])]),
       fastMoves: Object.freeze(fastMoves),
       chargedMoves: Object.freeze(chargedMoves),
       defaultGreatLeagueIvs: createDefaultIvs(pokemon),

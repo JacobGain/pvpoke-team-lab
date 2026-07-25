@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { createInventoryPokemon } from "@/domain/inventory/factory";
+import {
+  createInventoryPokemon,
+  updateInventoryPokemon,
+} from "@/domain/inventory/factory";
 import { inventoryTestCatalog } from "@/domain/inventory/inventoryTestFixtures";
 import { InventoryCatalogValidationError } from "@/domain/inventory/validation";
 
@@ -70,5 +73,91 @@ describe("createInventoryPokemon", () => {
         },
       ),
     ).toThrow(InventoryCatalogValidationError);
+  });
+
+  it("rejects a CP that cannot be produced by the selected IV spread", () => {
+    expect(() =>
+      createInventoryPokemon(
+        {
+          buildStatus: "current",
+          speciesId: "azumarill",
+          currentBuild: {
+            cp: 1498,
+            ivProfile: {
+              source: "user-entered",
+              ivs: { attack: 0, defense: 15, hp: 15 },
+            },
+            moveset: {
+              fastMoveId: "BUBBLE",
+              chargedMoveIds: ["ICE_BEAM"],
+            },
+          },
+        },
+        {
+          catalog: inventoryTestCatalog,
+          createId: () => fixedId,
+          now: () => fixedDate,
+        },
+      ),
+    ).toThrow(/cannot be produced/);
+  });
+
+  it("updates user fields while preserving specimen identity and creation time", () => {
+    const original = createInventoryPokemon(
+      {
+        buildStatus: "current",
+        speciesId: "azumarill",
+        currentBuild: {
+          cp: 1499,
+          ivProfile: { source: "assumed-rank-1" },
+          moveset: {
+            fastMoveId: "BUBBLE",
+            chargedMoveIds: ["ICE_BEAM"],
+          },
+        },
+      },
+      {
+        catalog: inventoryTestCatalog,
+        createId: () => fixedId,
+        now: () => fixedDate,
+      },
+    );
+    const updated = updateInventoryPokemon(
+      original,
+      {
+        buildStatus: "planned",
+        speciesId: "azumarill",
+        favorite: true,
+        notes: "Build a second charged move.",
+        currentBuild: {
+          cp: 1499,
+          ivProfile: { source: "assumed-rank-1" },
+          moveset: {
+            fastMoveId: "BUBBLE",
+            chargedMoveIds: ["ICE_BEAM"],
+          },
+        },
+        plannedBuild: {
+          targetSpeciesId: "azumarill",
+          targetCp: 1499,
+          desiredMoveset: {
+            fastMoveId: "BUBBLE",
+            chargedMoveIds: ["ICE_BEAM", "PLAY_ROUGH"],
+          },
+        },
+      },
+      {
+        catalog: inventoryTestCatalog,
+        now: () => new Date("2026-07-24T13:00:00.000Z"),
+      },
+    );
+
+    expect(updated).toMatchObject({
+      inventoryId: original.inventoryId,
+      createdAt: original.createdAt,
+      updatedAt: "2026-07-24T13:00:00.000Z",
+      buildStatus: "planned",
+      favorite: true,
+    });
   });
 });
