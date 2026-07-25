@@ -71,6 +71,14 @@ export const inventoryTestCatalog: PokemonCatalog = {
         score: 94.2,
         rating: 612,
         recommendedMoveIds: ["BUBBLE", "ICE_BEAM", "PLAY_ROUGH"],
+        matchups: [
+          { speciesId: "altaria", rating: 646 },
+          { speciesId: "whiscash", rating: 552 },
+        ],
+        counters: [
+          { speciesId: "whiscash", rating: 314 },
+          { speciesId: "altaria", rating: 400 },
+        ],
         roleScores: {
           lead: 84.5,
           closer: 87.3,
@@ -210,6 +218,11 @@ export const inventoryTestCatalog: PokemonCatalog = {
           "DRAGON_BREATH",
           "SKY_ATTACK",
           "MOONBLAST",
+        ],
+        matchups: [{ speciesId: "whiscash", rating: 610 }],
+        counters: [
+          { speciesId: "azumarill", rating: 300 },
+          { speciesId: "whiscash", rating: 420 },
         ],
         roleScores: {
           lead: 70,

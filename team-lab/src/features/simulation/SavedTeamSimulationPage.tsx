@@ -13,6 +13,7 @@ import { useInventoryList } from "@/features/inventory/inventoryQueries";
 import { usePokemonCatalog } from "@/features/meta/usePokemonCatalog";
 import { useSavedTeam } from "@/features/teams/savedTeamQueries";
 import { createPvpokeTeamRankerAdapter } from "@/pvpoke/simulation";
+import { deriveTeamAlternatives } from "@/domain/teamAnalysis/alternatives";
 import { analyzeSavedTeamMatrix } from "@/domain/teamAnalysis/teamAnalysis";
 
 function formatError(error: unknown): string {
@@ -44,6 +45,17 @@ export function SavedTeamSimulationPage() {
   const analysis = useMemo(
     () => (run ? analyzeSavedTeamMatrix(run) : undefined),
     [run],
+  );
+  const alternatives = useMemo(
+    () =>
+      analysis && inventoryResult.data && catalogResult.data
+        ? deriveTeamAlternatives(
+            analysis,
+            inventoryResult.data,
+            catalogResult.data,
+          )
+        : undefined,
+    [analysis, catalogResult.data, inventoryResult.data],
   );
 
   if (
@@ -309,6 +321,120 @@ export function SavedTeamSimulationPage() {
                   </p>
                 )}
               </section>
+
+              {alternatives ? (
+                <section className="analysis-panel">
+                  <div className="analysis-panel__heading">
+                    <div>
+                      <p className="eyebrow">Threat alternatives</p>
+                      <h2>Owned and theoretical answers</h2>
+                      <p>
+                        Candidates follow PvPoke’s published overall-ranking
+                        counter evidence. Owned cards reference your exact
+                        saved record; unowned cards use PvPoke’s default Great
+                        League build.
+                      </p>
+                    </div>
+                    <span className="rank-badge">
+                      {alternatives.consideredThreats} threats
+                    </span>
+                  </div>
+                  <p className="analysis-notice">
+                    These candidates have not been substituted into this team
+                    and resimulated. Their displayed rating is the published
+                    counter matchup viewed from the alternative’s side.
+                  </p>
+                  {alternatives.threats.length > 0 ? (
+                    <div className="alternative-threat-list">
+                      {alternatives.threats.map((threat) => (
+                        <article
+                          className="alternative-threat"
+                          key={threat.threatSpeciesId}
+                        >
+                          <div>
+                            <p className="eyebrow">
+                              {threat.threatLevel.replaceAll("-", " ")}
+                            </p>
+                            <h3>Answers to {threat.threatSpeciesName}</h3>
+                          </div>
+                          <div className="alternative-columns">
+                            <div>
+                              <h4>Owned exact records</h4>
+                              {threat.owned.length > 0 ? (
+                                <div className="alternative-card-list">
+                                  {threat.owned.map((candidate) => (
+                                    <Link
+                                      className="alternative-card alternative-card--owned"
+                                      key={candidate.inventoryId}
+                                      to={`/inventory/${candidate.inventoryId}/analysis`}
+                                    >
+                                      <strong>{candidate.speciesName}</strong>
+                                      <span>
+                                        {candidate.buildStatus}
+                                        {candidate.cp
+                                          ? ` · CP ${candidate.cp}`
+                                          : ""}
+                                      </span>
+                                      <small>
+                                        Published matchup rating{" "}
+                                        {candidate.alternativeRating}
+                                      </small>
+                                    </Link>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p>No eligible exact owned counter found.</p>
+                              )}
+                            </div>
+                            <div>
+                              <h4>Unowned PvPoke defaults</h4>
+                              {threat.unowned.length > 0 ? (
+                                <div className="alternative-card-list">
+                                  {threat.unowned.map((candidate) => (
+                                    <article
+                                      className="alternative-card alternative-card--unowned"
+                                      key={candidate.speciesId}
+                                    >
+                                      <strong>{candidate.speciesName}</strong>
+                                      <span>
+                                        Level {candidate.defaultIvs.level} ·{" "}
+                                        {candidate.defaultIvs.attack}/
+                                        {candidate.defaultIvs.defense}/
+                                        {candidate.defaultIvs.hp}
+                                      </span>
+                                      <small>
+                                        {candidate.recommendedMoveIds.join(
+                                          " · ",
+                                        )}
+                                      </small>
+                                      <small>
+                                        Published matchup rating{" "}
+                                        {candidate.alternativeRating}
+                                      </small>
+                                    </article>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p>No eligible unowned default found.</p>
+                              )}
+                            </div>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  ) : (
+                    <p>
+                      No published counter list was available for the major
+                      threats in this selected scope.
+                    </p>
+                  )}
+                  <small className="analysis-provenance">
+                    Source:{" "}
+                    {alternatives.counterEvidenceSource.replaceAll("-", " ")}{" "}
+                    · data {alternatives.dataVersion}
+                  </small>
+                </section>
+              ) : null}
 
               <section className="analysis-panel">
                 <p className="eyebrow">Member coverage</p>

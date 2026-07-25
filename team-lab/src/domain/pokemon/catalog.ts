@@ -19,6 +19,13 @@ export interface CatalogRanking {
   readonly rating: number;
   readonly recommendedMoveIds: readonly string[];
   readonly roleScores: CatalogRoleScores;
+  readonly matchups: readonly CatalogRankedOpponent[];
+  readonly counters: readonly CatalogRankedOpponent[];
+}
+
+export interface CatalogRankedOpponent {
+  readonly speciesId: string;
+  readonly rating: number;
 }
 
 export interface CatalogRoleScores {

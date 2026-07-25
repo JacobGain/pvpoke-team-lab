@@ -1330,6 +1330,73 @@ a {
   padding-left: 1.2rem;
 }
 
+.alternative-threat-list {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.alternative-threat {
+  padding: 1rem;
+  border: 1px solid #dce4f1;
+  border-radius: 0.8rem;
+  background: #f8faff;
+}
+
+.alternative-threat h3,
+.alternative-threat h4 {
+  margin-top: 0;
+}
+
+.alternative-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.alternative-columns > div > p {
+  color: #69758d;
+}
+
+.alternative-card-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.alternative-card {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.8rem;
+  border: 1px solid #dce4f1;
+  border-radius: 0.7rem;
+  color: inherit;
+  background: #ffffff;
+  text-decoration: none;
+}
+
+.alternative-card--owned {
+  border-left: 0.3rem solid #3157c8;
+}
+
+.alternative-card--owned:hover {
+  border-color: #3157c8;
+}
+
+.alternative-card--unowned {
+  border-left: 0.3rem solid #9aa6bb;
+}
+
+.alternative-card span,
+.alternative-card small,
+.analysis-provenance {
+  color: #69758d;
+}
+
+.analysis-provenance {
+  display: block;
+  margin-top: 1rem;
+}
+
 @media (max-width: 760px) {
   .inventory-header,
   .inventory-card {
@@ -1394,6 +1461,10 @@ a {
   }
 
   .team-scorecard {
+    grid-template-columns: 1fr;
+  }
+
+  .alternative-columns {
     grid-template-columns: 1fr;
   }
 }

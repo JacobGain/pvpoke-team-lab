@@ -94,6 +94,22 @@ function createRanking(
     score: ranking.score,
     rating: ranking.rating,
     recommendedMoveIds: Object.freeze([...ranking.moveset]),
+    matchups: Object.freeze(
+      ranking.matchups.map((matchup) =>
+        Object.freeze({
+          speciesId: matchup.opponent,
+          rating: matchup.rating,
+        }),
+      ),
+    ),
+    counters: Object.freeze(
+      ranking.counters.map((counter) =>
+        Object.freeze({
+          speciesId: counter.opponent,
+          rating: counter.rating,
+        }),
+      ),
+    ),
     roleScores: Object.freeze({
       lead: ranking.scores[0] ?? 0,
       closer: ranking.scores[1] ?? 0,
