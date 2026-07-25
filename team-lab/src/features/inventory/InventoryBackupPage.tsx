@@ -10,17 +10,25 @@ import {
 } from "@/domain/backup/teamLabBackup";
 import { useRestoreTeamLabBackup } from "@/features/backup/backupQueries";
 import {
-  useClearInventory,
-  useInventoryList,
-} from "@/features/inventory/inventoryQueries";
+  useClearGuardedInventory,
+  useClearSavedTeams,
+  useResetAllLocalData,
+} from "@/features/backup/maintenanceQueries";
+import { useInventoryList } from "@/features/inventory/inventoryQueries";
 import { usePokemonCatalog } from "@/features/meta/usePokemonCatalog";
 import { useSavedTeamList } from "@/features/teams/savedTeamQueries";
 
 function formatError(error: unknown): string {
   return error instanceof Error
     ? error.message
-    : "The inventory operation failed.";
+    : "The local data operation failed.";
 }
+
+type ConfirmationAction =
+  | "restore-replace"
+  | "clear-saved-teams"
+  | "clear-inventory"
+  | "reset-all";
 
 function downloadBackup(contents: string, filename: string) {
   const blob = new Blob([contents], { type: "application/json" });
@@ -38,10 +46,15 @@ export function InventoryBackupPage() {
   const inventoryResult = useInventoryList();
   const savedTeamsResult = useSavedTeamList();
   const restoreMutation = useRestoreTeamLabBackup();
-  const clearMutation = useClearInventory();
+  const clearSavedTeamsMutation = useClearSavedTeams();
+  const clearInventoryMutation = useClearGuardedInventory();
+  const resetAllMutation = useResetAllLocalData();
   const [inspection, setInspection] = useState<TeamLabBackupInspection>();
   const [selectedFilename, setSelectedFilename] = useState("");
   const [exportError, setExportError] = useState<unknown>();
+  const [confirmationAction, setConfirmationAction] =
+    useState<ConfirmationAction>();
+  const [resetConfirmation, setResetConfirmation] = useState("");
   const [restoreMode, setRestoreMode] =
     useState<TeamLabRestoreMode>("merge");
 
@@ -74,6 +87,7 @@ export function InventoryBackupPage() {
   async function handleFile(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
 
+    closeConfirmation();
     restoreMutation.reset();
     if (!file) {
       setInspection(undefined);
@@ -105,21 +119,100 @@ export function InventoryBackupPage() {
       return;
     }
 
-    if (
-      restoreMode === "replace" &&
-      !window.confirm(
-        "Replace all local inventory and saved teams with this backup? Data not in the backup will be deleted.",
-      )
-    ) {
+    if (restoreMode === "replace") {
+      openConfirmation("restore-replace");
+      return;
+    }
+
+    performRestore();
+  }
+
+  function performRestore(mode: TeamLabRestoreMode = restoreMode) {
+    if (!inspection?.success) {
       return;
     }
 
     restoreMutation.mutate({
       backup: inspection.backup,
-      mode: restoreMode,
+      mode,
       catalog,
+    }, {
+      onSuccess: () => {
+        setConfirmationAction(undefined);
+      },
     });
   }
+
+  function closeConfirmation() {
+    setConfirmationAction(undefined);
+    setResetConfirmation("");
+  }
+
+  function openConfirmation(action: ConfirmationAction) {
+    restoreMutation.reset();
+    clearSavedTeamsMutation.reset();
+    clearInventoryMutation.reset();
+    resetAllMutation.reset();
+    setResetConfirmation("");
+    setConfirmationAction(action);
+  }
+
+  function confirmLocalDataAction() {
+    const mutationOptions = { onSuccess: closeConfirmation };
+
+    if (confirmationAction === "restore-replace") {
+      performRestore("replace");
+    } else if (confirmationAction === "clear-saved-teams") {
+      clearSavedTeamsMutation.mutate(undefined, mutationOptions);
+    } else if (confirmationAction === "clear-inventory") {
+      clearInventoryMutation.mutate(undefined, mutationOptions);
+    } else if (
+      confirmationAction === "reset-all" &&
+      resetConfirmation === "RESET"
+    ) {
+      resetAllMutation.mutate(undefined, mutationOptions);
+    }
+  }
+
+  const maintenancePending =
+    clearSavedTeamsMutation.isPending ||
+    clearInventoryMutation.isPending ||
+    resetAllMutation.isPending;
+  const confirmation = confirmationAction
+    ? {
+        "restore-replace": {
+          title: "Replace all local data?",
+          message: inspection?.success
+            ? `This will make ${selectedFilename} authoritative, replacing ${records.length} inventory records and ${savedTeams.length} saved teams with ${inspection.backup.inventory.length} inventory records and ${inspection.backup.savedTeams.length} saved teams.`
+            : "The selected backup is no longer available.",
+          confirmLabel: restoreMutation.isPending
+            ? "Replacing…"
+            : "Replace with backup",
+        },
+        "clear-saved-teams": {
+          title: "Clear every saved team?",
+          message: `This permanently deletes ${savedTeams.length} saved ${savedTeams.length === 1 ? "team" : "teams"}. Inventory records are preserved.`,
+          confirmLabel: clearSavedTeamsMutation.isPending
+            ? "Clearing…"
+            : "Clear saved teams",
+        },
+        "clear-inventory": {
+          title: "Clear every inventory record?",
+          message: `This permanently deletes ${records.length} inventory ${records.length === 1 ? "record" : "records"}. This action is allowed only when no saved teams can be orphaned.`,
+          confirmLabel: clearInventoryMutation.isPending
+            ? "Clearing…"
+            : "Clear inventory",
+        },
+        "reset-all": {
+          title: "Reset all TeamLab data?",
+          message: `This permanently deletes ${records.length} inventory ${records.length === 1 ? "record" : "records"} and ${savedTeams.length} saved ${savedTeams.length === 1 ? "team" : "teams"} from this browser.`,
+          confirmLabel: resetAllMutation.isPending
+            ? "Resetting…"
+            : "Reset all data",
+        },
+      }[confirmationAction]
+    : undefined;
+  const confirmationPending = restoreMutation.isPending || maintenancePending;
 
   return (
     <main className="inventory-page backup-page">
@@ -234,6 +327,7 @@ export function InventoryBackupPage() {
                   checked={restoreMode === "merge"}
                   onChange={() => {
                     setRestoreMode("merge");
+                    closeConfirmation();
                   }}
                 />
                 <span>
@@ -250,6 +344,7 @@ export function InventoryBackupPage() {
                   checked={restoreMode === "replace"}
                   onChange={() => {
                     setRestoreMode("replace");
+                    closeConfirmation();
                   }}
                 />
                 <span>
@@ -276,11 +371,6 @@ export function InventoryBackupPage() {
             {formatError(restoreMutation.error)}
           </p>
         ) : null}
-        {clearMutation.error ? (
-          <p className="inventory-error" role="alert">
-            {formatError(clearMutation.error)}
-          </p>
-        ) : null}
         {restoreMutation.data ? (
           <p className="backup-success" role="status">
             Restore complete. Inventory:{" "}
@@ -296,34 +386,173 @@ export function InventoryBackupPage() {
         ) : null}
       </section>
 
-      <section className="form-section danger-zone">
-        <div>
-          <p className="eyebrow">Danger zone</p>
-          <h2>Clear local inventory</h2>
-          <p>
-            This permanently removes all inventory records from this browser.
-            Download a backup first if you may need them.
-          </p>
-        </div>
-        <button
-          type="button"
-          disabled={records.length === 0 || clearMutation.isPending}
-          onClick={() => {
-            if (
-              window.confirm(
-                `Permanently delete all ${records.length} local inventory records?`,
-              )
-            ) {
-              clearMutation.mutate();
-            }
-          }}
+      {confirmation ? (
+        <section
+          className="destructive-confirmation"
+          role="alertdialog"
+          aria-labelledby="destructive-confirmation-title"
+          aria-describedby="destructive-confirmation-description"
         >
-          {clearMutation.isPending ? "Clearing…" : "Clear inventory"}
-        </button>
+          <div>
+            <p className="eyebrow">Confirmation required</p>
+            <h2 id="destructive-confirmation-title">
+              {confirmation.title}
+            </h2>
+            <p id="destructive-confirmation-description">
+              {confirmation.message} Download a backup first if this data may
+              be needed again.
+            </p>
+          </div>
+          {confirmationAction === "reset-all" ? (
+            <label className="form-field">
+              <span>
+                Type <strong>RESET</strong> to continue
+              </span>
+              <input
+                value={resetConfirmation}
+                disabled={confirmationPending}
+                autoComplete="off"
+                onChange={(event) =>
+                  setResetConfirmation(event.target.value)
+                }
+              />
+            </label>
+          ) : null}
+          <div className="destructive-confirmation__actions">
+            <button
+              className="secondary-button"
+              type="button"
+              disabled={confirmationPending}
+              onClick={closeConfirmation}
+            >
+              Cancel
+            </button>
+            <button
+              className="danger-button"
+              type="button"
+              disabled={
+                confirmationPending ||
+                (confirmationAction === "reset-all" &&
+                  resetConfirmation !== "RESET")
+              }
+              onClick={confirmLocalDataAction}
+            >
+              {confirmation.confirmLabel}
+            </button>
+          </div>
+        </section>
+      ) : null}
+
+      <section className="form-section danger-zone">
+        <header>
+          <p className="eyebrow">Danger zone</p>
+          <h2>Manage local data</h2>
+          <p>
+            These operations permanently remove local browser data. Each
+            requires a separate confirmation and reports exact removal counts.
+          </p>
+        </header>
+        <div className="danger-zone-grid">
+          <article>
+            <h3>Clear saved teams</h3>
+            <p>
+              Delete {savedTeams.length} saved{" "}
+              {savedTeams.length === 1 ? "team" : "teams"} while preserving all
+              inventory.
+            </p>
+            <button
+              type="button"
+              disabled={
+                savedTeams.length === 0 ||
+                maintenancePending ||
+                restoreMutation.isPending
+              }
+              onClick={() => openConfirmation("clear-saved-teams")}
+            >
+              Clear saved teams
+            </button>
+          </article>
+          <article>
+            <h3>Clear inventory</h3>
+            <p>
+              Delete {records.length} inventory{" "}
+              {records.length === 1 ? "record" : "records"}. Saved teams must
+              be cleared first so references cannot be orphaned.
+            </p>
+            {savedTeams.length > 0 ? (
+              <small>
+                Blocked by {savedTeams.length} saved{" "}
+                {savedTeams.length === 1 ? "team" : "teams"}.
+              </small>
+            ) : null}
+            <button
+              type="button"
+              disabled={
+                records.length === 0 ||
+                savedTeams.length > 0 ||
+                maintenancePending ||
+                restoreMutation.isPending
+              }
+              onClick={() => openConfirmation("clear-inventory")}
+            >
+              Clear inventory
+            </button>
+          </article>
+          <article className="danger-zone-card--critical">
+            <h3>Reset TeamLab</h3>
+            <p>
+              Delete all {records.length} inventory records and{" "}
+              {savedTeams.length} saved teams together in one transaction.
+            </p>
+            <button
+              type="button"
+              disabled={
+                records.length + savedTeams.length === 0 ||
+                maintenancePending ||
+                restoreMutation.isPending
+              }
+              onClick={() => openConfirmation("reset-all")}
+            >
+              Reset all data
+            </button>
+          </article>
+        </div>
       </section>
-      {clearMutation.isSuccess ? (
+
+      {clearSavedTeamsMutation.error ||
+      clearInventoryMutation.error ||
+      resetAllMutation.error ? (
+        <p className="inventory-error" role="alert">
+          {formatError(
+            clearSavedTeamsMutation.error ??
+              clearInventoryMutation.error ??
+              resetAllMutation.error,
+          )}
+        </p>
+      ) : null}
+      {clearSavedTeamsMutation.data ? (
         <p className="backup-success" role="status">
-          Local inventory cleared.
+          Cleared {clearSavedTeamsMutation.data.removedSavedTeamCount} saved{" "}
+          {clearSavedTeamsMutation.data.removedSavedTeamCount === 1
+            ? "team"
+            : "teams"}
+          . Inventory was preserved.
+        </p>
+      ) : null}
+      {clearInventoryMutation.data ? (
+        <p className="backup-success" role="status">
+          Cleared {clearInventoryMutation.data.removedInventoryCount} inventory{" "}
+          {clearInventoryMutation.data.removedInventoryCount === 1
+            ? "record"
+            : "records"}
+          .
+        </p>
+      ) : null}
+      {resetAllMutation.data ? (
+        <p className="backup-success" role="status">
+          TeamLab reset complete:{" "}
+          {resetAllMutation.data.removedInventoryCount} inventory records and{" "}
+          {resetAllMutation.data.removedSavedTeamCount} saved teams removed.
         </p>
       ) : null}
     </main>
