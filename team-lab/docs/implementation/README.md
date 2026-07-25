@@ -174,12 +174,13 @@ Deferred enhancements:
 
 ### Phase 5 — PvPoke simulation adapter
 
-Status: **In progress — engine boundary and one-on-one adapter complete**
+Status: **Complete for MVP**
 
 - [Phase overview](phase-05-simulation-adapter/README.md)
 - [Engine bootstrap and exact one-on-one adapter](phase-05-simulation-adapter/engine-bootstrap-and-one-on-one-adapter.md)
 - [Real-engine browser characterization](phase-05-simulation-adapter/real-engine-characterization.md)
 - [TeamRanker adapter](phase-05-simulation-adapter/team-ranker-adapter.md)
+- [Saved-team meta matrix service](phase-05-simulation-adapter/saved-team-meta-matrix.md)
 
 Implemented:
 
@@ -198,12 +199,14 @@ Implemented:
 - singleton-safe serialized ranking and target cleanup
 - translated target/matchup results
 - real-browser TeamRanker diagnostic
+- ordered saved-team exact-build preparation
+- catalog-derived top-meta targets
+- measured saved-team TeamRanker service and raw matrix route
 
-Remaining:
+Deferred enhancements:
 
 - verified real-browser golden output fixtures
-- diagnostics and application-facing invocation
-- saved-team/meta orchestration and performance measurement
+- worker/chunking, cancellation, and progress reporting
 
 ## Updating these records
 

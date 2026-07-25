@@ -1,6 +1,6 @@
 # Phase 5 — PvPoke Simulation Adapter
 
-> **Status:** In progress — engine boundary and one-on-one adapter complete
+> **Status:** Complete for MVP
 > **Project-plan phase:** Phase 5: PvPoke simulation adapter
 > **Last reviewed:** 2026-07-25
 
@@ -36,6 +36,11 @@ upstream global constructors and mutable battle objects.
 - serialized access to the global RankerMaster singleton
 - guaranteed target cleanup
 - real-browser TeamRanker repeat diagnostic
+- ordered saved-team exact-build preparation
+- explicit catalog-derived meta target subsets
+- measured TeamRanker application service
+- `/teams/:teamId/simulation` raw matrix workflow
+- initial interactive performance classifications
 
 ## Deferred scope
 
@@ -52,6 +57,7 @@ upstream global constructors and mutable battle objects.
 - [Engine bootstrap and exact one-on-one adapter](engine-bootstrap-and-one-on-one-adapter.md)
 - [Real-engine browser characterization](real-engine-characterization.md)
 - [TeamRanker adapter](team-ranker-adapter.md)
+- [Saved-team meta matrix service](saved-team-meta-matrix.md)
 
 ## Exit criteria
 
@@ -62,13 +68,13 @@ upstream global constructors and mutable battle objects.
 - [x] Known simulations are characterized against the real upstream engine in
   a browser runtime.
 - [x] TeamRanker is wrapped.
-- [ ] Exact owned builds can be invoked through an application-facing workflow.
+- [x] Exact owned builds can be invoked through an application-facing workflow.
 
 ## Next slice
 
-Run the new TeamRanker browser diagnostic, then connect exact saved teams and
-catalog-derived meta targets through an application service. Large target sets
-must be measured before Phase 6 UI relies on synchronous browser ranking.
+Begin Phase 6 team analysis using the measured matrix contract. Start with
+scope-aware threat aggregation and coverage evidence before adding grades,
+alternatives, and scorecard presentation.
 
 ## Relevant commits
 
