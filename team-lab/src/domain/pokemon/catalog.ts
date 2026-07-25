@@ -14,6 +14,16 @@ export interface CatalogRanking {
   readonly score: number;
   readonly rating: number;
   readonly recommendedMoveIds: readonly string[];
+  readonly roleScores: CatalogRoleScores;
+}
+
+export interface CatalogRoleScores {
+  readonly lead: number;
+  readonly closer: number;
+  readonly switch: number;
+  readonly charger: number;
+  readonly attacker: number;
+  readonly consistency: number;
 }
 
 export interface CatalogIvSpread {

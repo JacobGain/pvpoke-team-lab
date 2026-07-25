@@ -2,6 +2,7 @@ import { createBrowserRouter } from "react-router-dom";
 
 import { HomePage } from "@/app/routes/HomePage";
 import { NotFoundPage } from "@/app/routes/NotFoundPage";
+import { InventoryAnalysisPage } from "@/features/analysis/InventoryAnalysisPage";
 import { InventoryFormPage } from "@/features/inventory/InventoryFormPage";
 import { InventoryBackupPage } from "@/features/inventory/InventoryBackupPage";
 import { InventoryPage } from "@/features/inventory/InventoryPage";
@@ -28,6 +29,10 @@ export const router = createBrowserRouter(
     {
       path: "/inventory/backup",
       element: <InventoryBackupPage />,
+    },
+    {
+      path: "/inventory/:inventoryId/analysis",
+      element: <InventoryAnalysisPage />,
     },
     {
       path: "/inventory/:inventoryId",

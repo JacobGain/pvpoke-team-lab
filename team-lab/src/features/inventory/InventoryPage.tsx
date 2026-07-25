@@ -254,6 +254,12 @@ export function InventoryPage() {
                   Edit
                 </Link>
                 <Link
+                  className="primary-link"
+                  to={`/inventory/${record.inventoryId}/analysis`}
+                >
+                  Analyze
+                </Link>
+                <Link
                   className="secondary-link"
                   to={`/inventory/new?duplicate=${record.inventoryId}`}
                 >
