@@ -298,6 +298,7 @@ Status: **In progress**
 
 - [Phase overview](phase-08-mvp-hardening/README.md)
 - [Full-data backup and atomic restore](phase-08-mvp-hardening/full-data-backup-and-atomic-restore.md)
+- [Destructive local-data controls](phase-08-mvp-hardening/destructive-local-data-controls.md)
 
 Implemented:
 
@@ -309,10 +310,13 @@ Implemented:
 - final merged-state validation
 - atomic two-table Dexie restore and rollback
 - application-wide backup UI counts, diagnostics, and query invalidation
+- clear-saved-teams with inventory preservation
+- reference-guarded bulk inventory clearing
+- atomic reset-all across persisted MVP tables
+- explicit inline confirmations and typed reset intent
 
 Remaining:
 
-- complete destructive reset controls
 - representative 100-record characterization
 - worker decision for remaining synchronous long work
 - complete responsive audit

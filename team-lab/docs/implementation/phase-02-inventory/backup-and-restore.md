@@ -98,15 +98,17 @@ An empty valid backup therefore clears inventory in replace mode.
 Dexie rolls back the transaction if any database operation fails. Tests also
 prove structurally invalid restore input leaves the existing inventory intact.
 
-## Clear inventory
+## Historical clear-inventory behavior
 
-The backup page includes a separate danger zone. Clearing:
+The Phase 2 backup page originally included a separate inventory-only danger
+zone. That behavior required browser confirmation and did not know about saved
+teams.
 
-- is disabled for an empty inventory;
-- states the exact local record count;
-- requires explicit browser confirmation;
-- invalidates the inventory query after completion;
-- recommends exporting first.
+Phase 8 supersedes it with
+[reference-aware destructive local-data controls](../phase-08-mvp-hardening/destructive-local-data-controls.md).
+Bulk inventory clear is now blocked while saved teams exist, clear-saved-team
+and reset-all actions are available, and confirmation is explicit application
+state.
 
 ## File ownership
 
@@ -141,8 +143,8 @@ unchanged storage after invalid restore input.
   yet.
 - Catalog-invalid historical records block restore rather than entering a
   repair state.
-- The browser confirmation dialog is functional but will eventually be
-  replaced with accessible application dialogs.
+- The version-one subsystem has no saved-team semantics; Phase 8 owns current
+  destructive controls.
 
 ## Safe extension points
 

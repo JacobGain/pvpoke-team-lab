@@ -30,13 +30,19 @@ extends or verifies those capabilities rather than recreating them.
 - rollback when any final-state validation or database operation fails
 - inventory and saved-team query invalidation after restore
 - application-wide counts and results in the backup UI
+- dedicated local-data maintenance repository
+- clear-saved-teams while preserving inventory
+- guarded inventory clearing that cannot orphan saved teams
+- atomic reset-all across inventory and saved teams
+- exact removal-count results
+- explicit inline confirmation for destructive replace and clear operations
+- typed `RESET` confirmation for complete application reset
+- inventory and saved-team query invalidation after every maintenance action
 
 ## Out of scope
 
 - settings backup until a persisted settings domain exists
 - saved analysis or recommendation-run caches
-- clear-saved-teams and reset-all controls
-- accessible application confirmation dialogs
 - representative 100-record profiling
 - worker execution for synchronous TeamRanker work
 - browser-level workflow tests
@@ -46,6 +52,7 @@ extends or verifies those capabilities rather than recreating them.
 ## Implementation records
 
 - [Full-data backup and atomic restore](full-data-backup-and-atomic-restore.md)
+- [Destructive local-data controls](destructive-local-data-controls.md)
 
 ## Important decisions
 
@@ -62,6 +69,12 @@ extends or verifies those capabilities rather than recreating them.
   state and removes saved teams; the UI discloses this before confirmation.
 - Inventory and team writes share one transaction so restore cannot partially
   apply across tables.
+- Inventory-only clearing fails while any saved team exists, preventing bulk
+  operations from manufacturing missing-member state.
+- Reset-all is the only operation that intentionally removes both collections
+  without preserving references.
+- Destructive confirmation is visible application state rather than a browser
+  dialog; reset-all additionally requires the exact text `RESET`.
 
 ## Validation
 
@@ -74,13 +87,14 @@ npm run build
 
 Focused characterization verifies version-two round trips, legacy inspection,
 complete saved-team issue reporting, refusal to export unrestorable state,
-cross-table merge and replace counts, final-state validation, rollback, and
-legacy replace semantics.
+cross-table merge and replace counts, final-state validation, restore
+rollback, clear-saved-team isolation, guarded inventory clear, atomic
+reset-all, and legacy replace semantics.
 
-Observed after the first slice:
+Observed after the second slice:
 
 ```text
-npm test          24 files, 71 tests passed
+npm test          25 files, 75 tests passed
 npm run typecheck passed
 npm run lint      passed
 npm run build     passed with the existing >500 kB chunk warning
@@ -95,8 +109,9 @@ npm run build     passed with the existing >500 kB chunk warning
   unrelated existing saved team.
 - An existing broken saved-team reference prevents full-data export until the
   team is repaired or removed.
-- Confirmation still uses `window.confirm`.
 - No settings table or persisted simulation cache exists to include.
+- Individual inventory-record deletion can still create a saved-team recovery
+  state by design; the bulk inventory-clear operation is stricter.
 
 ## Exit criteria
 
@@ -104,7 +119,8 @@ npm run build     passed with the existing >500 kB chunk warning
 - [x] Versioned imports are completely validated before persistence.
 - [x] Merge and replace are atomic across persisted MVP collections.
 - [x] Legacy inventory-only backups remain recoverable.
-- [ ] All planned destructive reset controls are available.
+- [x] All planned destructive reset controls are available for persisted MVP
+      data.
 - [ ] Core workflows are characterized with 100+ records.
 - [ ] Long work remains responsive or is moved to a worker where needed.
 - [ ] The responsive audit is complete.
@@ -114,9 +130,10 @@ npm run build     passed with the existing >500 kB chunk warning
 
 ## Next phase dependencies
 
-The next Phase 8 slice should consolidate destructive local-data controls:
-clear saved teams, clear inventory with reference-aware messaging, and reset
-all TeamLab data with explicit confirmation and cache invalidation.
+The next Phase 8 slice should characterize core domain, persistence, and
+candidate-generation workflows with a representative inventory of more than
+100 records, record timings, and use measurements to decide whether additional
+worker boundaries are necessary.
 
 ## Relevant commits
 

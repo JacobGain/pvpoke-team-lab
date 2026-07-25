@@ -131,7 +131,7 @@ The existing backup page now:
 - identifies legacy version-one files;
 - reports issues by inventory or saved-team collection;
 - explains cross-collection merge and replace behavior;
-- confirms destructive replace;
+- confirms destructive replace through the shared in-page confirmation panel;
 - displays per-collection restore results;
 - invalidates both TanStack Query namespaces after success.
 
@@ -223,7 +223,7 @@ The eight focused tests cover:
   workflow.
 - Individual issue downloads are not available for very large invalid files.
 - Restore has no dry-run comparison beyond inspection and result semantics.
-- Confirmation uses the browser-native dialog.
+- The shared confirmation panel is inline rather than a focus-trapped modal.
 
 ## Safe extension points
 
