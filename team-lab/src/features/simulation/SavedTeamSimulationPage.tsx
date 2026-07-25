@@ -13,6 +13,7 @@ import { useInventoryList } from "@/features/inventory/inventoryQueries";
 import { usePokemonCatalog } from "@/features/meta/usePokemonCatalog";
 import { useSavedTeam } from "@/features/teams/savedTeamQueries";
 import { createPvpokeTeamRankerAdapter } from "@/pvpoke/simulation";
+import { analyzeSavedTeamMatrix } from "@/domain/teamAnalysis/teamAnalysis";
 
 function formatError(error: unknown): string {
   return error instanceof Error
@@ -39,6 +40,10 @@ export function SavedTeamSimulationPage() {
           )
         : undefined,
     [catalogResult.data],
+  );
+  const analysis = useMemo(
+    () => (run ? analyzeSavedTeamMatrix(run) : undefined),
+    [run],
   );
 
   if (
@@ -191,6 +196,110 @@ export function SavedTeamSimulationPage() {
             </div>
           </section>
 
+          {analysis ? (
+            <>
+              <section className="team-scorecard">
+                <article>
+                  <span>Coverage grade</span>
+                  <strong>{analysis.coverage.grade}</strong>
+                  <small>
+                    {analysis.coverage.coveredTargets}/
+                    {analysis.coverage.totalTargets} targets have an answer
+                  </small>
+                </article>
+                <article>
+                  <span>Covered targets</span>
+                  <strong>
+                    {analysis.coverage.coveredTargetPercentage.toFixed(1)}%
+                  </strong>
+                  <small>at least one favorable team member</small>
+                </article>
+                <article>
+                  <span>Positive matchups</span>
+                  <strong>
+                    {analysis.coverage.positiveMatchupPercentage.toFixed(1)}%
+                  </strong>
+                  <small>
+                    {analysis.coverage.positiveMatchups}/
+                    {analysis.coverage.totalMatchups} individual battles
+                  </small>
+                </article>
+                <article>
+                  <span>Core breakers</span>
+                  <strong>{analysis.coreBreakers.length}</strong>
+                  <small>{analysis.teamWalls.length} full team walls</small>
+                </article>
+              </section>
+
+              <section className="analysis-panel">
+                <div className="analysis-panel__heading">
+                  <div>
+                    <p className="eyebrow">Threat evidence</p>
+                    <h2>Major threats and core breakers</h2>
+                    <p>
+                      Targets are ordered by how many team members they beat,
+                      then by their average target-side rating.
+                    </p>
+                  </div>
+                  <span className="rank-badge">
+                    {analysis.shieldScenario} shields
+                  </span>
+                </div>
+                {analysis.majorThreats.length > 0 ? (
+                  <div className="threat-grid">
+                    {analysis.majorThreats.map((threat) => (
+                      <article key={threat.speciesId}>
+                        <p className="eyebrow">
+                          {threat.threatLevel.replaceAll("-", " ")}
+                        </p>
+                        <h3>{threat.speciesName}</h3>
+                        <p>
+                          Favored against {threat.targetWins}/
+                          {threat.matchupRatings.length} members · average
+                          target rating {threat.targetAverageRating}
+                        </p>
+                        <ul>
+                          {threat.matchupRatings.map((matchup) => (
+                            <li key={matchup.teamSpeciesId}>
+                              {matchup.teamSpeciesId}: team rating{" "}
+                              {matchup.teamMemberRating}
+                            </li>
+                          ))}
+                        </ul>
+                      </article>
+                    ))}
+                  </div>
+                ) : (
+                  <p>
+                    No selected target is favored against multiple members or
+                    averages above a neutral rating.
+                  </p>
+                )}
+              </section>
+
+              <section className="analysis-panel">
+                <p className="eyebrow">Member coverage</p>
+                <h2>Individual records in this scope</h2>
+                <div className="threat-grid">
+                  {analysis.members.map((member) => (
+                    <article key={member.position}>
+                      <p className="eyebrow">{member.position}</p>
+                      <h3>{member.speciesId}</h3>
+                      <p>
+                        {member.wins}-{member.losses}-{member.ties} ·{" "}
+                        {member.positiveMatchupPercentage.toFixed(1)}% positive
+                      </p>
+                      <small>
+                        Average member-side rating{" "}
+                        {member.averageMemberRating.toFixed(1)}
+                      </small>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            </>
+          ) : null}
+
           <section className="diagnostics-grid">
             {run.result.rankings.map((ranking) => (
               <article className="team-card" key={ranking.speciesId}>
@@ -224,7 +333,7 @@ export function SavedTeamSimulationPage() {
 
           <aside className="analysis-scope">
             <strong>Scope and assumptions</strong>
-            <p>{run.result.assumptions.join(" · ")}</p>
+            <p>{analysis?.assumptions.join(" · ")}</p>
           </aside>
         </>
       ) : null}
