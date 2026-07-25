@@ -35,6 +35,27 @@ than decoration.
 - local, revision-pinned PokeAPI sprite sync and WebP optimization pipeline
 - updated real-browser automation for the progressive workflows
 
+## UX hardening follow-up
+
+The first post-overhaul review also delivered:
+
+- one accessible species/form autocomplete in place of separate search and
+  select controls;
+- compact, aligned IV-source radio controls at desktop and mobile widths;
+- shared sentence-case formatting for move IDs, evidence sources, statuses,
+  and team positions;
+- explicit saved-team role/name structure so labels cannot visually collapse;
+- PvPoke-recommended default movesets for new inventory records and plans;
+- Rankings as a desktop primary-navigation destination;
+- removal of redundant Shadow and Meta pills from Rankings;
+- removal of the upstream `none` placeholder from all displayed type lists;
+- Meta pills retained where they aid selection in Inventory and team building;
+- icon-led simulation score evidence;
+- sprite-backed priority-threat cards with per-member result labels;
+- the full technical battle matrix collapsed behind an explicit disclosure;
+- new browser regressions for recommended moves, compact radio sizing,
+  Rankings tags/navigation, saved-team role labels, and 320 px overflow.
+
 ## Navigation and progressive flow
 
 The global destinations remain reachable at all times. Individual tasks then
@@ -112,7 +133,7 @@ The authoritative fallback list and source terms live in
 Observed after the overhaul:
 
 ```text
-npm test          26 files, 76 tests passed
+npm test          27 files, 78 tests passed
 npm run test:scale passed
 npm run test:browser passed; complete create/edit/team/recommend/backup flow
 npm run typecheck passed

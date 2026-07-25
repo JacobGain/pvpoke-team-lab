@@ -47,6 +47,11 @@ import {
   pvpokeBaseUrl,
 } from "@/pvpoke/links";
 import { createPvpokeTeamRankerAdapter } from "@/pvpoke/simulation";
+import {
+  formatIdentifier,
+  formatMoveList,
+  formatMoveName,
+} from "@/utils/formatters";
 
 const anchorPositions: readonly {
   readonly value: RecommendationAnchorPosition;
@@ -82,6 +87,17 @@ function formatError(error: unknown): string {
   return error instanceof Error
     ? error.message
     : "TeamLab could not generate recommendations.";
+}
+
+function formatBuildRequirement(
+  message: string,
+  moveIds: readonly string[],
+): string {
+  return moveIds.reduce(
+    (formatted, moveId) =>
+      formatted.replaceAll(moveId, formatMoveName(moveId)),
+    message,
+  );
 }
 
 function RecommendationResultCard({
@@ -143,18 +159,21 @@ function RecommendationResultCard({
               {candidate.exactBuild.ivs.hp}
             </p>
             <p>
-              {candidate.exactBuild.fastMoveId} ·{" "}
-              {candidate.exactBuild.chargedMoveIds.join(" / ")}
+              {formatMoveName(candidate.exactBuild.fastMoveId)} ·{" "}
+              {formatMoveList(candidate.exactBuild.chargedMoveIds)}
             </p>
             <small>
-              {candidate.readiness}
+              {formatIdentifier(candidate.readiness)}
               {candidate.favorite ? " · favorite" : ""}
             </small>
             {candidate.buildRequirements.length > 0 ? (
               <ul>
                 {candidate.buildRequirements.map((requirement) => (
                   <li key={`${requirement.code}-${requirement.message}`}>
-                    {requirement.message}
+                    {formatBuildRequirement(requirement.message, [
+                      candidate.exactBuild.fastMoveId,
+                      ...candidate.exactBuild.chargedMoveIds,
+                    ])}
                   </li>
                 ))}
               </ul>
@@ -210,7 +229,7 @@ function RecommendationResultCard({
             {finalist.analysis.majorThreats.slice(0, 3).map((threat) => (
               <span key={threat.speciesId}>
                 {threat.speciesName} ·{" "}
-                {threat.threatLevel.replaceAll("-", " ")}
+                {formatIdentifier(threat.threatLevel)}
               </span>
             ))}
           </div>
@@ -765,7 +784,7 @@ export function RecommendationPage() {
                 ? "Run cancelled"
                 : `Finalists ${progress.completedFinalists}/${progress.totalFinalists}`}
             </strong>
-            <span>{progress.status.replaceAll("-", " ")}</span>
+            <span>{formatIdentifier(progress.status)}</span>
           </div>
           <progress
             value={progress.completedFinalists}

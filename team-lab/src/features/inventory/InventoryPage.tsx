@@ -22,6 +22,11 @@ import {
   type InventoryViewStatus,
 } from "@/features/inventory/inventoryView";
 import { usePokemonCatalog } from "@/features/meta/usePokemonCatalog";
+import {
+  formatIdentifier,
+  formatMoveList,
+  formatMoveName,
+} from "@/utils/formatters";
 
 function formatError(error: unknown): string {
   return error instanceof Error ? error.message : "Unable to load inventory.";
@@ -207,11 +212,28 @@ export function InventoryPage() {
                     CP {record.currentBuild.cp}
                   </span>
                 </div>
+                {pokemon ? (
+                  <div className="type-list">
+                    {pokemon.types
+                      .filter((type) => type !== "none")
+                      .map((type) => (
+                      <span
+                        className={`type-pill type-pill--${type}`}
+                        key={type}
+                      >
+                        {type}
+                      </span>
+                      ))}
+                    {pokemon.isMeta ? (
+                      <span className="type-pill type-pill--meta">Meta</span>
+                    ) : null}
+                  </div>
+                ) : null}
                 <p>
                   IVs {record.currentBuild.ivProfile.ivs.attack}/
                   {record.currentBuild.ivProfile.ivs.defense}/
                   {record.currentBuild.ivProfile.ivs.hp} ·{" "}
-                  {record.currentBuild.ivProfile.source}
+                  {formatIdentifier(record.currentBuild.ivProfile.source)}
                 </p>
                 <p>
                   Level{" "}
@@ -219,8 +241,10 @@ export function InventoryPage() {
                     .map((match) => match.level)
                     .join(" or ") ?? "unresolved"}
                   {" · "}
-                  {record.currentBuild.moveset.fastMoveId} ·{" "}
-                  {record.currentBuild.moveset.chargedMoveIds.join(" / ")}
+                  {formatMoveName(record.currentBuild.moveset.fastMoveId)} ·{" "}
+                  {formatMoveList(
+                    record.currentBuild.moveset.chargedMoveIds,
+                  )}
                 </p>
                 {plan && target ? (
                   <p className="planned-summary">
@@ -229,8 +253,8 @@ export function InventoryPage() {
                       ? ` at CP ${plan.targetCp}`
                       : ""}
                     {" · "}
-                    {plan.desiredMoveset.fastMoveId} ·{" "}
-                    {plan.desiredMoveset.chargedMoveIds.join(" / ")}
+                    {formatMoveName(plan.desiredMoveset.fastMoveId)} ·{" "}
+                    {formatMoveList(plan.desiredMoveset.chargedMoveIds)}
                   </p>
                 ) : null}
                 {record.notes ? (

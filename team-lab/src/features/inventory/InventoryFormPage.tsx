@@ -14,6 +14,7 @@ import {
 } from "react-router-dom";
 
 import { PageHeader } from "@/components/PageHeader";
+import { PokemonCombobox } from "@/components/PokemonCombobox";
 import { PokemonSprite } from "@/components/PokemonSprite";
 import {
   createInventoryPokemon,
@@ -36,6 +37,7 @@ import {
   useUpdateInventoryPokemon,
 } from "@/features/inventory/inventoryQueries";
 import { usePokemonCatalog } from "@/features/meta/usePokemonCatalog";
+import { formatMoveList, formatMoveName } from "@/utils/formatters";
 
 interface InventoryFormProps {
   readonly catalog: PokemonCatalog;
@@ -67,6 +69,28 @@ function getAvailablePokemon(
     );
 }
 
+function getDefaultMoves(pokemon: PokemonCatalogEntry) {
+  const recommendedMoveIds = pokemon.ranking?.recommendedMoveIds ?? [];
+  const fastMoveId =
+    recommendedMoveIds.find((moveId) =>
+      pokemon.fastMoves.some((move) => move.id === moveId),
+    ) ??
+    pokemon.fastMoves[0]?.id ??
+    "";
+  const chargedMoveIds = recommendedMoveIds
+    .filter((moveId) =>
+      pokemon.chargedMoves.some((move) => move.id === moveId),
+    )
+    .slice(0, 2);
+
+  return {
+    fastMoveId,
+    chargedMoveOne:
+      chargedMoveIds[0] ?? pokemon.chargedMoves[0]?.id ?? "",
+    chargedMoveTwo: chargedMoveIds[1] ?? "",
+  };
+}
+
 function InventoryFormFields({
   catalog,
   existingRecord,
@@ -93,6 +117,7 @@ function InventoryFormFields({
           initialDefaultIvs.level,
         )
       : 1500);
+  const initialDefaultMoves = getDefaultMoves(initialPokemon);
   const [speciesId, setSpeciesId] = useState(initialPokemon.speciesId);
   const [buildStatus, setBuildStatus] = useState<"current" | "planned">(
     sourceRecord?.buildStatus ?? "current",
@@ -111,14 +136,15 @@ function InventoryFormFields({
     String(initialIvs.hp),
   );
   const [fastMoveId, setFastMoveId] = useState(
-    initialBuild?.moveset.fastMoveId ?? initialPokemon.fastMoves[0]!.id,
+    initialBuild?.moveset.fastMoveId ?? initialDefaultMoves.fastMoveId,
   );
   const [chargedMoveOne, setChargedMoveOne] = useState(
     initialBuild?.moveset.chargedMoveIds[0] ??
-      initialPokemon.chargedMoves[0]!.id,
+      initialDefaultMoves.chargedMoveOne,
   );
   const [chargedMoveTwo, setChargedMoveTwo] = useState(
-    initialBuild?.moveset.chargedMoveIds[1] ?? "",
+    initialBuild?.moveset.chargedMoveIds[1] ??
+      initialDefaultMoves.chargedMoveTwo,
   );
   const existingPlan =
     sourceRecord?.buildStatus === "planned"
@@ -136,22 +162,21 @@ function InventoryFormFields({
     catalog.entries.find(
       (pokemon) => pokemon.speciesId === existingPlan?.targetSpeciesId,
     ) ?? initialPokemon;
+  const initialTargetDefaultMoves = getDefaultMoves(initialTarget);
   const [desiredFastMoveId, setDesiredFastMoveId] = useState(
     existingPlan?.desiredMoveset.fastMoveId ??
-      initialTarget.fastMoves[0]?.id ??
-      "",
+      initialTargetDefaultMoves.fastMoveId,
   );
   const [desiredChargedMoveOne, setDesiredChargedMoveOne] = useState(
     existingPlan?.desiredMoveset.chargedMoveIds[0] ??
-      initialTarget.chargedMoves[0]?.id ??
-      "",
+      initialTargetDefaultMoves.chargedMoveOne,
   );
   const [desiredChargedMoveTwo, setDesiredChargedMoveTwo] = useState(
-    existingPlan?.desiredMoveset.chargedMoveIds[1] ?? "",
+    existingPlan?.desiredMoveset.chargedMoveIds[1] ??
+      initialTargetDefaultMoves.chargedMoveTwo,
   );
   const [favorite, setFavorite] = useState(sourceRecord?.favorite ?? false);
   const [notes, setNotes] = useState(sourceRecord?.notes ?? "");
-  const [speciesSearch, setSpeciesSearch] = useState("");
   const [formError, setFormError] = useState<unknown>();
   const [step, setStep] = useState(0);
 
@@ -170,15 +195,6 @@ function InventoryFormFields({
   const selectedTarget =
     targetOptions.find((pokemon) => pokemon.speciesId === targetSpeciesId) ??
     selectedPokemon;
-  const filteredPokemonOptions = pokemonOptions.filter((pokemon) => {
-    const normalizedSearch = speciesSearch.trim().toLocaleLowerCase();
-    return (
-      pokemon.speciesId === selectedPokemon.speciesId ||
-      normalizedSearch === "" ||
-      pokemon.speciesName.toLocaleLowerCase().includes(normalizedSearch) ||
-      pokemon.speciesId.toLocaleLowerCase().includes(normalizedSearch)
-    );
-  });
   const effectiveIvs =
     ivSource === "assumed-rank-1"
       ? selectedPokemon.defaultGreatLeagueIvs
@@ -196,16 +212,18 @@ function InventoryFormFields({
       : undefined;
 
   function resetMoves(pokemon: PokemonCatalogEntry) {
-    setFastMoveId(pokemon.fastMoves[0]?.id ?? "");
-    setChargedMoveOne(pokemon.chargedMoves[0]?.id ?? "");
-    setChargedMoveTwo("");
+    const defaults = getDefaultMoves(pokemon);
+    setFastMoveId(defaults.fastMoveId);
+    setChargedMoveOne(defaults.chargedMoveOne);
+    setChargedMoveTwo(defaults.chargedMoveTwo);
   }
 
   function resetTarget(pokemon: PokemonCatalogEntry) {
+    const defaults = getDefaultMoves(pokemon);
     setTargetSpeciesId(pokemon.speciesId);
-    setDesiredFastMoveId(pokemon.fastMoves[0]?.id ?? "");
-    setDesiredChargedMoveOne(pokemon.chargedMoves[0]?.id ?? "");
-    setDesiredChargedMoveTwo("");
+    setDesiredFastMoveId(defaults.fastMoveId);
+    setDesiredChargedMoveOne(defaults.chargedMoveOne);
+    setDesiredChargedMoveTwo(defaults.chargedMoveTwo);
     setTargetCp("");
   }
 
@@ -357,55 +375,33 @@ function InventoryFormFields({
         </div>
 
         <div className="form-grid">
-          <label className="form-field form-field--wide">
-            <span>Species, form, and Shadow state</span>
-            <input
-              type="search"
-              value={speciesSearch}
-              onChange={(event) => {
-                setSpeciesSearch(event.target.value);
-              }}
-              placeholder="Filter by name or species ID"
-              aria-label="Filter species options"
-            />
-            <select
-              value={speciesId}
-              onChange={(event) => {
-                const pokemon = catalog.entries.find(
-                  (entry) => entry.speciesId === event.target.value,
+          <PokemonCombobox
+            label="Species, form, and Shadow state"
+            onSelect={(pokemon) => {
+              setSpeciesId(pokemon.speciesId);
+              resetMoves(pokemon);
+              resetTarget(pokemon);
+              if (!pokemon.defaultGreatLeagueIvs) {
+                setIvSource("user-entered");
+              } else {
+                const defaultIvs = pokemon.defaultGreatLeagueIvs;
+                setAttackIv(String(defaultIvs.attack));
+                setDefenseIv(String(defaultIvs.defense));
+                setHpIv(String(defaultIvs.hp));
+                setCp(
+                  String(
+                    calculateCombatPower(
+                      pokemon.baseStats,
+                      defaultIvs,
+                      defaultIvs.level,
+                    ),
+                  ),
                 );
-
-                if (pokemon) {
-                  setSpeciesId(pokemon.speciesId);
-                  resetMoves(pokemon);
-                  resetTarget(pokemon);
-                  if (!pokemon.defaultGreatLeagueIvs) {
-                    setIvSource("user-entered");
-                  } else {
-                    const defaultIvs = pokemon.defaultGreatLeagueIvs;
-                    setAttackIv(String(defaultIvs.attack));
-                    setDefenseIv(String(defaultIvs.defense));
-                    setHpIv(String(defaultIvs.hp));
-                    setCp(
-                      String(
-                        calculateCombatPower(
-                          pokemon.baseStats,
-                          defaultIvs,
-                          defaultIvs.level,
-                        ),
-                      ),
-                    );
-                  }
-                }
-              }}
-            >
-              {filteredPokemonOptions.map((pokemon) => (
-                <option value={pokemon.speciesId} key={pokemon.speciesId}>
-                  {pokemon.speciesName}
-                </option>
-              ))}
-            </select>
-          </label>
+              }
+            }}
+            options={pokemonOptions}
+            selected={selectedPokemon}
+          />
 
           <label className="form-field">
             <span>Current CP</span>
@@ -725,9 +721,10 @@ function InventoryFormFields({
             <div>
               <dt>Moves</dt>
               <dd>
-                {fastMoveId} · {[chargedMoveOne, chargedMoveTwo]
-                  .filter(Boolean)
-                  .join(" / ")}
+                {formatMoveName(fastMoveId)} ·{" "}
+                {formatMoveList(
+                  [chargedMoveOne, chargedMoveTwo].filter(Boolean),
+                )}
               </dd>
             </div>
             <div>

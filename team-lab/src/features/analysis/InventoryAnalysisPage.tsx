@@ -11,6 +11,11 @@ import { useInventoryBuildAnalysis } from "@/features/analysis/analysisQueries";
 import { useInventoryPokemon } from "@/features/inventory/inventoryQueries";
 import { usePokemonCatalog } from "@/features/meta/usePokemonCatalog";
 import { NamedOpponentInsights } from "@/features/analysis/NamedOpponentInsights";
+import {
+  formatIdentifier,
+  formatMoveList,
+  formatMoveName,
+} from "@/utils/formatters";
 
 function formatNumber(value: number, digits = 2): string {
   return value.toLocaleString(undefined, {
@@ -79,7 +84,7 @@ function BuildPanel({ build }: { readonly build: AnalyzedPokemonBuild }) {
           </strong>
           <small>
             {build.metaRanking.strongestRole
-              ? `best role: ${build.metaRanking.strongestRole.role} #${build.metaRanking.strongestRole.rank}`
+              ? `best role: ${formatIdentifier(build.metaRanking.strongestRole.role)} #${build.metaRanking.strongestRole.rank}`
               : build.metaRanking.isMeta
                 ? "current meta group"
                 : "not meta-tagged"}
@@ -128,7 +133,7 @@ function BuildPanel({ build }: { readonly build: AnalyzedPokemonBuild }) {
               <dt>Your spread</dt>
               <dd>
                 {build.ivs.attack}/{build.ivs.defense}/{build.ivs.hp} ·{" "}
-                {build.ivSource}
+                {formatIdentifier(build.ivSource)}
               </dd>
             </div>
             <div>
@@ -157,16 +162,18 @@ function BuildPanel({ build }: { readonly build: AnalyzedPokemonBuild }) {
             <div>
               <dt>Entered</dt>
               <dd>
-                {build.moves.enteredFastMoveId} ·{" "}
-                {build.moves.enteredChargedMoveIds.join(" / ")}
+                {formatMoveName(build.moves.enteredFastMoveId)} ·{" "}
+                {formatMoveList(build.moves.enteredChargedMoveIds)}
               </dd>
             </div>
             <div>
               <dt>PvPoke recommended</dt>
               <dd>
-                {build.moves.recommendedFastMoveId ?? "No published fast move"}
+                {build.moves.recommendedFastMoveId
+                  ? formatMoveName(build.moves.recommendedFastMoveId)
+                  : "No published fast move"}
                 {" · "}
-                {build.moves.recommendedChargedMoveIds.join(" / ") ||
+                {formatMoveList(build.moves.recommendedChargedMoveIds) ||
                   "No published charged moves"}
               </dd>
             </div>
@@ -179,7 +186,10 @@ function BuildPanel({ build }: { readonly build: AnalyzedPokemonBuild }) {
                   : [
                       !build.moves.fastMoveMatches ? "fast move differs" : "",
                       build.moves.missingRecommendedChargedMoveIds.length > 0
-                        ? `missing ${build.moves.missingRecommendedChargedMoveIds.join(", ")}`
+                        ? `missing ${formatMoveList(
+                            build.moves.missingRecommendedChargedMoveIds,
+                            ", ",
+                          )}`
                         : "",
                     ]
                       .filter(Boolean)
@@ -195,7 +205,7 @@ function BuildPanel({ build }: { readonly build: AnalyzedPokemonBuild }) {
             <dl className="analysis-stat-list">
               {build.metaRanking.roles.map((role) => (
                 <div key={role.role}>
-                  <dt>{role.role}</dt>
+                  <dt>{formatIdentifier(role.role)}</dt>
                   <dd>
                     #{role.rank} · {formatNumber(role.score, 1)}
                   </dd>
@@ -216,6 +226,23 @@ function Requirements({
 }: {
   readonly analysis: InventoryBuildAnalysis;
 }) {
+  const moveIds = [
+    analysis.current.moves.enteredFastMoveId,
+    ...analysis.current.moves.enteredChargedMoveIds,
+    analysis.current.moves.recommendedFastMoveId,
+    ...analysis.current.moves.recommendedChargedMoveIds,
+    analysis.planned?.moves.enteredFastMoveId,
+    ...(analysis.planned?.moves.enteredChargedMoveIds ?? []),
+    analysis.planned?.moves.recommendedFastMoveId,
+    ...(analysis.planned?.moves.recommendedChargedMoveIds ?? []),
+  ].filter((moveId): moveId is string => Boolean(moveId));
+  const formatRequirement = (message: string) =>
+    moveIds.reduce(
+      (formatted, moveId) =>
+        formatted.replaceAll(moveId, formatMoveName(moveId)),
+      message,
+    );
+
   return (
     <section className="analysis-requirements">
       <p className="eyebrow">Build readiness</p>
@@ -226,8 +253,8 @@ function Requirements({
         <ul>
           {analysis.requirements.map((requirement) => (
             <li key={`${requirement.code}-${requirement.message}`}>
-              <strong>{requirement.code.replaceAll("-", " ")}</strong>
-              <span>{requirement.message}</span>
+              <strong>{formatIdentifier(requirement.code)}</strong>
+              <span>{formatRequirement(requirement.message)}</span>
             </li>
           ))}
         </ul>

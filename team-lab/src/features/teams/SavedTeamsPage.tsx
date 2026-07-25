@@ -11,6 +11,7 @@ import {
   useDeleteSavedTeam,
   useSavedTeamList,
 } from "@/features/teams/savedTeamQueries";
+import { formatTeamPosition } from "@/utils/formatters";
 
 function formatError(error: unknown): string {
   return error instanceof Error ? error.message : "Unable to load saved teams.";
@@ -118,15 +119,24 @@ export function SavedTeamsPage() {
                         speciesId={member.pokemon.speciesId}
                         speciesName={member.pokemon.speciesName}
                       />
-                      <span>
-                        {member.position.replace("-", " ")}
+                      <div className="team-member__copy">
+                        <small className="team-member__role">
+                          {formatTeamPosition(member.position)}
+                        </small>
+                        <div className="team-member__name">
                         <strong>
                           {member.pokemon.speciesName}
                           {member.inventory.buildStatus === "planned"
                             ? " · planned"
                             : ""}
                         </strong>
-                      </span>
+                          {member.pokemon.isMeta ? (
+                            <span className="type-pill type-pill--meta">
+                              Meta
+                            </span>
+                          ) : null}
+                        </div>
+                      </div>
                     </>
                   ) : (
                     <strong className="invalid-value">

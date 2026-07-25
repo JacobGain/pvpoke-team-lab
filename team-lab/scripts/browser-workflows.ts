@@ -475,6 +475,7 @@ class BrowserWorkflow {
     value: string,
     controlSelector = "input, select, textarea",
     labelIndex = 0,
+    verifyImmediateValue = true,
   ): Promise<void> {
     const changed = await this.evaluate<boolean>(`(() => {
       const labels = [...document.querySelectorAll("label")].filter((candidate) =>
@@ -483,7 +484,12 @@ class BrowserWorkflow {
         )
       );
       const owner = labels[${labelIndex}];
-      const control = owner?.querySelector(${JSON.stringify(controlSelector)});
+      const nestedControl = owner?.querySelector(${JSON.stringify(controlSelector)});
+      const associatedControl =
+        owner instanceof HTMLLabelElement && owner.htmlFor
+          ? document.getElementById(owner.htmlFor)
+          : null;
+      const control = nestedControl ?? associatedControl;
       if (
         !(control instanceof HTMLInputElement) &&
         !(control instanceof HTMLSelectElement) &&
@@ -500,7 +506,11 @@ class BrowserWorkflow {
       setter.call(control, ${JSON.stringify(value)});
       control.dispatchEvent(new Event("input", { bubbles: true }));
       control.dispatchEvent(new Event("change", { bubbles: true }));
-      return control.value === ${JSON.stringify(value)};
+      return ${
+        verifyImmediateValue
+          ? `control.value === ${JSON.stringify(value)}`
+          : "true"
+      };
     })()`);
 
     invariant(changed, `Could not set “${label}” to “${value}”.`);
@@ -644,23 +654,52 @@ async function createInventory(
 ): Promise<void> {
   for (const [index, speciesId] of INVENTORY_SPECIES.entries()) {
     await browser.navigate("/inventory/new", "Add Pokémon");
-    const optionAvailable = await browser.evaluate<boolean>(
-      `[...document.querySelectorAll('label select option')].some((option) => option.value === ${JSON.stringify(speciesId)})`,
-    );
-    invariant(
-      optionAvailable,
-      `The real catalog does not contain expected species ${speciesId}.`,
-    );
     await browser.setLabeledControl(
       "Species, form, and Shadow state",
       speciesId,
-      "select",
+      "input",
+      0,
+      false,
     );
     await browser.waitFor(
-      `document.querySelector('label select')?.value === ${JSON.stringify(speciesId)} && document.querySelector(".level-result")?.textContent?.includes("Level") && !document.querySelector(".level-result .invalid-value")`,
+      `document.querySelector('[data-selected-species-id="${speciesId}"]') && document.querySelector(".level-result")?.textContent?.includes("Level") && !document.querySelector(".level-result .invalid-value")`,
       `${speciesId} to resolve to a legal build`,
     );
     if (index === 0) {
+      const radioSizes = await browser.evaluate<
+        readonly { readonly width: number; readonly height: number }[]
+      >(`[
+        ...document.querySelectorAll('input[type="radio"]')
+      ].map((control) => {
+        const bounds = control.getBoundingClientRect();
+        return { width: bounds.width, height: bounds.height };
+      })`);
+      invariant(
+        radioSizes.every(
+          ({ width, height }) => width <= 24 && height <= 24,
+        ),
+        "Inventory IV radio controls exceeded their compact control bounds.",
+      );
+      await browser.setViewport(320);
+      await browser.assertNoHorizontalOverflow(
+        "inventory autocomplete and IV controls",
+      );
+      await browser.setViewport(1440, 1_000);
+      const defaultMoves = await browser.evaluate<readonly string[]>(`[
+        ...["Fast move", "Charged move 1", "Charged move 2"]
+      ].map((label) => {
+        const owner = [...document.querySelectorAll("label")].find(
+          (candidate) =>
+            candidate.querySelector("span")?.textContent?.trim() === label
+        );
+        const control = owner?.querySelector("select");
+        return control instanceof HTMLSelectElement ? control.value : "";
+      })`);
+      invariant(
+        JSON.stringify(defaultMoves) ===
+          JSON.stringify(["BUBBLE", "ICE_BEAM", "PLAY_ROUGH"]),
+        `Azumarill did not default to its published PvPoke moveset: ${defaultMoves.join(", ")}.`,
+      );
       await browser.setLabeledCheckbox("Favorite", true);
     }
     await browser.clickButton("Continue");
@@ -699,6 +738,37 @@ async function runCriticalWorkflows(
     `document.querySelector("#pvpoke-data-title")?.textContent?.trim() === "Connected"`,
     "real PvPoke data connection",
   );
+  const rankingsInDesktopNavigation = await browser.evaluate<boolean>(
+    `[...document.querySelectorAll(".app-nav--desktop a")].some(
+      (link) =>
+        link.getAttribute("href") === "/catalog" &&
+        link.textContent?.trim() === "Rankings"
+    )`,
+  );
+  invariant(
+    rankingsInDesktopNavigation,
+    "Rankings was not present in desktop primary navigation.",
+  );
+  await browser.navigate("/catalog", "Rankings");
+  await browser.waitFor(
+    `document.querySelectorAll(".pokemon-card").length > 0`,
+    "rankings cards",
+  );
+  const invalidRankingTags = await browser.evaluate<number>(
+    `[...document.querySelectorAll(".pokemon-card .type-pill")].filter(
+      (pill) => ["shadow", "meta", "none"].includes(
+        pill.textContent?.trim().toLocaleLowerCase() ?? ""
+      )
+    ).length`,
+  );
+  invariant(
+    invalidRankingTags === 0,
+    "Rankings rendered Shadow, Meta, or None as a type tag.",
+  );
+  await browser.setViewport(320);
+  await browser.assertNoHorizontalOverflow("rankings");
+  responsiveStates.push("rankings");
+  await browser.setViewport(1440, 1_000);
 
   await createInventory(browser);
   const inventoryCount = await browser.evaluate<number>(
@@ -795,6 +865,16 @@ async function runCriticalWorkflows(
   await browser.waitFor(
     `location.pathname === "/teams" && document.querySelector(".team-card h2")?.textContent === "Browser Coverage Team"`,
     "saved team creation",
+  );
+  const renderedTeamRoles = await browser.evaluate<readonly string[]>(
+    `[...document.querySelectorAll(".team-member__role")].map(
+      (role) => role.textContent?.trim() ?? ""
+    )`,
+  );
+  invariant(
+    JSON.stringify(renderedTeamRoles) ===
+      JSON.stringify(["Lead", "Safe switch", "Closer"]),
+    `Saved-team roles were not separated and humanized: ${renderedTeamRoles.join(", ")}.`,
   );
 
   const teamLinks = await browser.evaluate<{

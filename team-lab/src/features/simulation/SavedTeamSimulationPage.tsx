@@ -1,5 +1,12 @@
 import { useMemo, useState } from "react";
-import { Pencil, Play } from "lucide-react";
+import {
+  Heart,
+  Hourglass,
+  Pencil,
+  Play,
+  Shield,
+  Target,
+} from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 
 import { PageHeader } from "@/components/PageHeader";
@@ -23,6 +30,11 @@ import {
 } from "@/pvpoke/links";
 import { deriveTeamAlternatives } from "@/domain/teamAnalysis/alternatives";
 import { analyzeSavedTeamMatrix } from "@/domain/teamAnalysis/teamAnalysis";
+import {
+  formatIdentifier,
+  formatMoveList,
+  formatTeamPosition,
+} from "@/utils/formatters";
 
 function formatError(error: unknown): string {
   return error instanceof Error
@@ -99,6 +111,9 @@ export function SavedTeamSimulationPage() {
   const inventory = inventoryResult.data;
   const catalog = catalogResult.data;
   const rankingService = service;
+  const catalogById = new Map(
+    catalog.entries.map((pokemon) => [pokemon.speciesId, pokemon]),
+  );
   const previewMembers = [
     ["Lead", team.members.leadInventoryId],
     ["Safe switch", team.members.switchInventoryId],
@@ -257,7 +272,7 @@ export function SavedTeamSimulationPage() {
           <section className="diagnostics-banner diagnostics-banner--pass">
             <div>
               <p className="eyebrow">Measured matrix</p>
-              <h2>{run.performance.replaceAll("-", " ")}</h2>
+              <h2>{formatIdentifier(run.performance)}</h2>
               <p>
                 {run.result.battleCount} battles ·{" "}
                 {Math.round(run.durationMs)} ms ·{" "}
@@ -284,7 +299,12 @@ export function SavedTeamSimulationPage() {
             <>
               <section className="team-scorecard">
                 <article>
-                  <span>Coverage grade</span>
+                  <div className="team-scorecard__label">
+                    <span className="team-scorecard__icon">
+                      <Target aria-hidden="true" size={20} />
+                    </span>
+                    <span>Coverage</span>
+                  </div>
                   <strong>{analysis.coverage.grade}</strong>
                   <small>
                     {analysis.coverage.coveredTargetPercentage.toFixed(1)}% ·{" "}
@@ -293,26 +313,39 @@ export function SavedTeamSimulationPage() {
                   </small>
                 </article>
                 <article>
-                  <span>Bulk grade</span>
+                  <div className="team-scorecard__label">
+                    <span className="team-scorecard__icon">
+                      <Heart aria-hidden="true" size={20} />
+                    </span>
+                    <span>Bulk</span>
+                  </div>
                   <strong>{analysis.bulk.grade}</strong>
                   <small>
-                    {analysis.bulk.score.toFixed(1)} ·{" "}
-                    {analysis.bulk.evidenceSource.replaceAll("-", " ")}
+                    {analysis.bulk.score.toFixed(1)} / 100 · withstands damage
                   </small>
                 </article>
                 <article>
-                  <span>Safety grade</span>
+                  <div className="team-scorecard__label">
+                    <span className="team-scorecard__icon">
+                      <Shield aria-hidden="true" size={20} />
+                    </span>
+                    <span>Safety</span>
+                  </div>
                   <strong>{analysis.safety.grade}</strong>
                   <small>
-                    {analysis.safety.score.toFixed(1)} ·{" "}
-                    {analysis.safety.evidenceSource.replaceAll("-", " ")}
+                    {analysis.safety.score.toFixed(1)} / 100 · fallback options
                   </small>
                 </article>
                 <article>
-                  <span>Consistency grade</span>
+                  <div className="team-scorecard__label">
+                    <span className="team-scorecard__icon">
+                      <Hourglass aria-hidden="true" size={20} />
+                    </span>
+                    <span>Consistency</span>
+                  </div>
                   <strong>{analysis.consistency.grade}</strong>
                   <small>
-                    {analysis.consistency.score.toFixed(1)} ·{" "}
+                    {analysis.consistency.score.toFixed(1)} / 100 ·{" "}
                     {analysis.consistency.evidenceCount}/
                     {analysis.consistency.evidenceTotal} ranked members
                   </small>
@@ -321,31 +354,58 @@ export function SavedTeamSimulationPage() {
 
               <section className="analysis-panel">
                 <p className="eyebrow">Score evidence</p>
-                <h2>How these grades were calculated</h2>
-                <dl className="analysis-detail-list">
-                  <div>
-                    <dt>Coverage</dt>
-                    <dd>
+                <h2>What each score means</h2>
+                <p className="analysis-panel__intro">
+                  These grades summarize different qualities. Use them
+                  together; no single score determines whether a team is good.
+                </p>
+                <div className="score-evidence-grid">
+                  <article>
+                    <span className="score-evidence-grid__icon">
+                      <Target aria-hidden="true" size={22} />
+                    </span>
+                    <div>
+                      <h3>Coverage</h3>
+                      <p>
                       {analysis.coverage.coveredTargets}/
                       {analysis.coverage.totalTargets} selected targets have at
                       least one favorable team member.
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Bulk · {analysis.bulk.evidenceSource}</dt>
-                    <dd>{analysis.bulk.method}</dd>
-                  </div>
-                  <div>
-                    <dt>Safety · {analysis.safety.evidenceSource}</dt>
-                    <dd>{analysis.safety.method}</dd>
-                  </div>
-                  <div>
-                    <dt>
-                      Consistency · {analysis.consistency.evidenceSource}
-                    </dt>
-                    <dd>{analysis.consistency.method}</dd>
-                  </div>
-                </dl>
+                      </p>
+                      <small>Evidence: exact simulated matchups</small>
+                    </div>
+                  </article>
+                  {[
+                    {
+                      label: "Bulk",
+                      icon: Heart,
+                      evidence: analysis.bulk,
+                    },
+                    {
+                      label: "Safety",
+                      icon: Shield,
+                      evidence: analysis.safety,
+                    },
+                    {
+                      label: "Consistency",
+                      icon: Hourglass,
+                      evidence: analysis.consistency,
+                    },
+                  ].map(({ label, icon: Icon, evidence }) => (
+                    <article key={label}>
+                      <span className="score-evidence-grid__icon">
+                        <Icon aria-hidden="true" size={22} />
+                      </span>
+                      <div>
+                        <h3>{label}</h3>
+                        <p>{evidence.method}</p>
+                        <small>
+                          Evidence:{" "}
+                          {formatIdentifier(evidence.evidenceSource)}
+                        </small>
+                      </div>
+                    </article>
+                  ))}
+                </div>
               </section>
 
               <section className="analysis-panel">
@@ -354,8 +414,9 @@ export function SavedTeamSimulationPage() {
                     <p className="eyebrow">Threat evidence</p>
                     <h2>Major threats and core breakers</h2>
                     <p>
-                      Targets are ordered by how many team members they beat,
-                      then by their average target-side rating.
+                      Start with team walls and core breakers. Each card shows
+                      exactly which member is favored in the simulated
+                      matchup.
                     </p>
                   </div>
                   <span className="rank-badge">
@@ -363,26 +424,73 @@ export function SavedTeamSimulationPage() {
                   </span>
                 </div>
                 {analysis.majorThreats.length > 0 ? (
-                  <div className="threat-grid">
+                  <div className="threat-card-list">
                     {analysis.majorThreats.map((threat) => (
-                      <article key={threat.speciesId}>
-                        <p className="eyebrow">
-                          {threat.threatLevel.replaceAll("-", " ")}
-                        </p>
-                        <h3>{threat.speciesName}</h3>
-                        <p>
-                          Favored against {threat.targetWins}/
-                          {threat.matchupRatings.length} members · average
-                          target rating {threat.targetAverageRating}
-                        </p>
-                        <ul>
+                      <article className="threat-card" key={threat.speciesId}>
+                        <header className="threat-card__header">
+                          <PokemonSprite
+                            size="medium"
+                            speciesId={threat.speciesId}
+                            speciesName={threat.speciesName}
+                          />
+                          <div>
+                            <p className="eyebrow">
+                              {formatIdentifier(threat.threatLevel)}
+                            </p>
+                            <h3>{threat.speciesName}</h3>
+                            <p>
+                              Favored against {threat.targetWins} of{" "}
+                              {threat.matchupRatings.length} team members
+                            </p>
+                          </div>
+                          <span className="threat-card__rating">
+                            {threat.targetAverageRating}
+                            <small>avg rating</small>
+                          </span>
+                        </header>
+                        <div className="threat-matchups">
                           {threat.matchupRatings.map((matchup) => (
-                            <li key={matchup.teamSpeciesId}>
-                              {matchup.teamSpeciesId}: team rating{" "}
-                              {matchup.teamMemberRating}
-                            </li>
+                            <div
+                              className="threat-matchup"
+                              key={matchup.teamSpeciesId}
+                            >
+                              {catalogById.get(matchup.teamSpeciesId) ? (
+                                <PokemonSprite
+                                  size="small"
+                                  speciesId={matchup.teamSpeciesId}
+                                  speciesName={
+                                    catalogById.get(matchup.teamSpeciesId)!
+                                      .speciesName
+                                  }
+                                />
+                              ) : null}
+                              <span>
+                                <strong>
+                                  {catalogById.get(matchup.teamSpeciesId)
+                                    ?.speciesName ?? matchup.teamSpeciesId}
+                                </strong>
+                                <small>
+                                  Team rating {matchup.teamMemberRating}
+                                </small>
+                              </span>
+                              <span
+                                className={
+                                  matchup.teamMemberRating > 500
+                                    ? "matchup-result matchup-result--win"
+                                    : matchup.teamMemberRating < 500
+                                      ? "matchup-result matchup-result--loss"
+                                      : "matchup-result"
+                                }
+                              >
+                                {matchup.teamMemberRating > 500
+                                  ? "Answer"
+                                  : matchup.teamMemberRating < 500
+                                    ? "At risk"
+                                    : "Tie"}
+                              </span>
+                            </div>
                           ))}
-                        </ul>
+                        </div>
                       </article>
                     ))}
                   </div>
@@ -425,7 +533,7 @@ export function SavedTeamSimulationPage() {
                         >
                           <div>
                             <p className="eyebrow">
-                              {threat.threatLevel.replaceAll("-", " ")}
+                              {formatIdentifier(threat.threatLevel)}
                             </p>
                             <h3>Answers to {threat.threatSpeciesName}</h3>
                           </div>
@@ -475,7 +583,8 @@ export function SavedTeamSimulationPage() {
                                         {candidate.defaultIvs.hp}
                                       </span>
                                       <small>
-                                        {candidate.recommendedMoveIds.join(
+                                        {formatMoveList(
+                                          candidate.recommendedMoveIds,
                                           " · ",
                                         )}
                                       </small>
@@ -502,7 +611,7 @@ export function SavedTeamSimulationPage() {
                   )}
                   <small className="analysis-provenance">
                     Source:{" "}
-                    {alternatives.counterEvidenceSource.replaceAll("-", " ")}{" "}
+                    {formatIdentifier(alternatives.counterEvidenceSource)}{" "}
                     · data {alternatives.dataVersion}
                   </small>
                 </section>
@@ -513,9 +622,23 @@ export function SavedTeamSimulationPage() {
                 <h2>Individual records in this scope</h2>
                 <div className="threat-grid">
                   {analysis.members.map((member) => (
-                    <article key={member.position}>
-                      <p className="eyebrow">{member.position}</p>
-                      <h3>{member.speciesId}</h3>
+                    <article className="member-coverage-card" key={member.position}>
+                      {catalogById.get(member.speciesId) ? (
+                        <PokemonSprite
+                          size="medium"
+                          speciesId={member.speciesId}
+                          speciesName={
+                            catalogById.get(member.speciesId)!.speciesName
+                          }
+                        />
+                      ) : null}
+                      <p className="eyebrow">
+                        {formatTeamPosition(member.position)}
+                      </p>
+                      <h3>
+                        {catalogById.get(member.speciesId)?.speciesName ??
+                          member.speciesId}
+                      </h3>
                       <p>
                         {member.wins}-{member.losses}-{member.ties} ·{" "}
                         {member.positiveMatchupPercentage.toFixed(1)}% positive
@@ -531,64 +654,97 @@ export function SavedTeamSimulationPage() {
             </>
           ) : null}
 
-          <section className="diagnostics-grid">
-            {run.result.rankings.map((ranking) => (
-              <article className="team-card" key={ranking.speciesId}>
-                <div className="team-card__heading">
-                  <div>
-                    <p className="eyebrow">Meta target</p>
-                    <h2>{ranking.speciesName}</h2>
-                  </div>
-                  <span className="rank-badge">
-                    {ranking.averageRating}
-                  </span>
-                </div>
-                <dl className="analysis-detail-list">
-                  {ranking.matchups.map((matchup, index) => (
-                    <div key={`${matchup.opponentSpeciesId}-${index}`}>
-                      <dt>
-                        vs. {matchup.opponentSpeciesId} · team slot {index + 1}
-                      </dt>
-                      <dd>
-                        Rating {matchup.rating} · fast damage{" "}
-                        {matchup.fastMoveDamage}/{matchup.incomingFastMoveDamage}
-                        {" · "}Attack Δ{" "}
-                        {matchup.attackDifferential.toFixed(2)}
-                        {run.request?.team[index] &&
-                        run.request.targets.find(
-                          (target) =>
-                            target.speciesId === ranking.speciesId,
-                        ) ? (
-                          <>
-                            {" · "}
-                            <a
-                              className="inline-upstream-link"
-                              href={createPvpokeBattleLink(
-                                run.request.team[index],
-                                run.request.targets.find(
-                                  (target) =>
-                                    target.speciesId === ranking.speciesId,
-                                )!,
-                                [
-                                  run.scope.teamShields,
-                                  run.scope.targetShields,
-                                ],
-                                { baseUrl: pvpokeBaseUrl },
-                              )}
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              Open exact battle ↗
-                            </a>
-                          </>
-                        ) : null}
-                      </dd>
+          <details className="analysis-panel simulation-matrix">
+            <summary>
+              <span>
+                <strong>Exact battle matrix</strong>
+                <small>
+                  {run.result.rankings.length} targets ·{" "}
+                  {run.result.battleCount} battles
+                </small>
+              </span>
+              <span>Show details</span>
+            </summary>
+            <p className="analysis-panel__intro">
+              Open this technical detail when you need individual ratings,
+              fast-move damage, Attack differential, or PvPoke battle links.
+            </p>
+            <section className="diagnostics-grid">
+              {run.result.rankings.map((ranking) => (
+                <article className="team-card" key={ranking.speciesId}>
+                  <div className="team-card__heading">
+                    <PokemonSprite
+                      size="medium"
+                      speciesId={ranking.speciesId}
+                      speciesName={ranking.speciesName}
+                    />
+                    <div>
+                      <p className="eyebrow">Meta target</p>
+                      <h2>{ranking.speciesName}</h2>
                     </div>
-                  ))}
-                </dl>
-              </article>
-            ))}
-          </section>
+                    <span className="rank-badge">
+                      {ranking.averageRating}
+                    </span>
+                  </div>
+                  <dl className="analysis-detail-list">
+                    {ranking.matchups.map((matchup, index) => {
+                      const member = analysis?.members[index];
+                      const memberName = member
+                        ? catalogById.get(member.speciesId)?.speciesName ??
+                          member.speciesId
+                        : `Team slot ${index + 1}`;
+
+                      return (
+                        <div key={`${matchup.opponentSpeciesId}-${index}`}>
+                          <dt>
+                            vs. {memberName}
+                            {member
+                              ? ` · ${formatTeamPosition(member.position)}`
+                              : ""}
+                          </dt>
+                          <dd>
+                            Rating {matchup.rating} · fast damage{" "}
+                            {matchup.fastMoveDamage}/
+                            {matchup.incomingFastMoveDamage}
+                            {" · "}Attack Δ{" "}
+                            {matchup.attackDifferential.toFixed(2)}
+                            {run.request?.team[index] &&
+                            run.request.targets.find(
+                              (target) =>
+                                target.speciesId === ranking.speciesId,
+                            ) ? (
+                              <>
+                                {" · "}
+                                <a
+                                  className="inline-upstream-link"
+                                  href={createPvpokeBattleLink(
+                                    run.request.team[index],
+                                    run.request.targets.find(
+                                      (target) =>
+                                        target.speciesId === ranking.speciesId,
+                                    )!,
+                                    [
+                                      run.scope.teamShields,
+                                      run.scope.targetShields,
+                                    ],
+                                    { baseUrl: pvpokeBaseUrl },
+                                  )}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                >
+                                  Open exact battle ↗
+                                </a>
+                              </>
+                            ) : null}
+                          </dd>
+                        </div>
+                      );
+                    })}
+                  </dl>
+                </article>
+              ))}
+            </section>
+          </details>
 
           <aside className="analysis-scope">
             <strong>Scope and assumptions</strong>

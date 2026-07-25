@@ -303,8 +303,13 @@ function SavedTeamForm({
                       speciesName={selectedPokemon.speciesName}
                     />
                   ) : null}
-                  <div>
-                    <p className="eyebrow">{position.title}</p>
+                  <div className="team-position__copy">
+                    <div className="team-position__title">
+                      <p className="eyebrow">{position.title}</p>
+                      {selectedPokemon?.isMeta ? (
+                        <span className="type-pill type-pill--meta">Meta</span>
+                      ) : null}
+                    </div>
                     <p>{position.description}</p>
                   </div>
                   <label className="form-field">

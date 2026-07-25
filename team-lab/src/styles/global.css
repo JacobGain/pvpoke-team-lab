@@ -262,6 +262,358 @@ a {
   }
 }
 
+/* UX hardening: team labels and simulation evidence */
+
+.team-member__copy {
+  display: grid;
+  min-width: 0;
+  gap: 0.2rem;
+}
+
+.team-member__role {
+  color: var(--ink-500);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.team-member__name {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.team-member__name strong {
+  color: var(--ink-900);
+  font-size: 0.9rem;
+}
+
+.team-member__name .type-pill {
+  padding: 0.2rem 0.45rem;
+  font-size: 0.58rem;
+}
+
+.team-position__copy {
+  min-width: 0;
+}
+
+.team-position__title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.team-position__title .eyebrow {
+  margin: 0;
+}
+
+.team-position__title .type-pill {
+  padding: 0.2rem 0.45rem;
+  font-size: 0.58rem;
+}
+
+.diagnostics-page .team-scorecard article {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.4rem 0.75rem;
+}
+
+.diagnostics-page .team-scorecard__label {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.diagnostics-page .team-scorecard__icon,
+.score-evidence-grid__icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  border-radius: 0.75rem;
+  color: var(--lab-700) !important;
+  background: var(--lab-100);
+}
+
+.diagnostics-page .team-scorecard__icon {
+  width: 2.35rem;
+  height: 2.35rem;
+}
+
+.diagnostics-page .team-scorecard__label > span:last-child {
+  color: var(--ink-600);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.diagnostics-page .team-scorecard article > strong {
+  grid-row: 1 / 3;
+  grid-column: 2;
+  color: var(--ink-950);
+  font-size: 2.35rem;
+  letter-spacing: -0.06em;
+}
+
+.diagnostics-page .team-scorecard article > small {
+  grid-column: 1;
+  padding-left: 2.9rem;
+  line-height: 1.4;
+}
+
+.analysis-panel__intro {
+  max-width: 52rem;
+  color: var(--ink-600);
+  line-height: 1.6;
+}
+
+.score-evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-top: 1.25rem;
+}
+
+.score-evidence-grid article {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 0.85rem;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 0.9rem;
+  background: var(--surface-subtle);
+}
+
+.score-evidence-grid__icon {
+  width: 2.6rem;
+  height: 2.6rem;
+}
+
+.score-evidence-grid h3,
+.score-evidence-grid p {
+  margin: 0;
+}
+
+.score-evidence-grid p {
+  margin-top: 0.3rem;
+  color: var(--ink-600);
+  line-height: 1.5;
+}
+
+.score-evidence-grid small {
+  display: block;
+  margin-top: 0.55rem;
+  color: var(--ink-500);
+}
+
+.threat-card-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 29rem), 1fr));
+  gap: 1rem;
+}
+
+.threat-card {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.threat-card__header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 1rem;
+  background: var(--surface-subtle);
+}
+
+.threat-card__header h3,
+.threat-card__header p {
+  margin: 0;
+}
+
+.threat-card__header p:not(.eyebrow) {
+  margin-top: 0.25rem;
+  color: var(--ink-600);
+  font-size: 0.82rem;
+}
+
+.threat-card__rating {
+  display: grid;
+  justify-items: end;
+  color: var(--danger-600);
+  font-size: 1.45rem;
+  font-weight: 850;
+  letter-spacing: -0.04em;
+}
+
+.threat-card__rating small {
+  color: var(--ink-500);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.threat-matchups {
+  display: grid;
+}
+
+.threat-matchup {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.7rem 1rem;
+  border-top: 1px solid var(--line);
+}
+
+.threat-matchup > span:nth-child(2) {
+  display: grid;
+  min-width: 0;
+  gap: 0.12rem;
+}
+
+.threat-matchup small {
+  color: var(--ink-500);
+}
+
+.matchup-result {
+  padding: 0.3rem 0.55rem;
+  border-radius: 999px;
+  color: var(--ink-600);
+  background: var(--surface-muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.matchup-result--win {
+  color: var(--success-600);
+  background: var(--success-100);
+}
+
+.matchup-result--loss {
+  color: var(--danger-600);
+  background: var(--danger-100);
+}
+
+.member-coverage-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.15rem 0.75rem;
+}
+
+.member-coverage-card .pokemon-sprite {
+  grid-row: 1 / 5;
+}
+
+.member-coverage-card p,
+.member-coverage-card h3,
+.member-coverage-card small {
+  grid-column: 2;
+  margin-top: 0;
+}
+
+.simulation-matrix {
+  margin-top: 1.25rem;
+}
+
+.simulation-matrix > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.simulation-matrix > summary::-webkit-details-marker {
+  display: none;
+}
+
+.simulation-matrix > summary > span:first-child {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.simulation-matrix > summary strong {
+  color: var(--ink-950);
+  font-size: 1.25rem;
+}
+
+.simulation-matrix > summary small,
+.simulation-matrix > summary > span:last-child {
+  color: var(--ink-500);
+}
+
+.simulation-matrix > summary > span:last-child {
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.simulation-matrix[open] > summary > span:last-child {
+  font-size: 0;
+}
+
+.simulation-matrix[open] > summary > span:last-child::after {
+  font-size: 0.8rem;
+  content: "Hide details";
+}
+
+.simulation-matrix .diagnostics-grid {
+  margin-top: 1rem;
+}
+
+.simulation-matrix .team-card__heading {
+  justify-content: flex-start;
+}
+
+.simulation-matrix .rank-badge {
+  margin-left: auto;
+}
+
+@media (max-width: 760px) {
+  .score-evidence-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .diagnostics-page .team-scorecard article > small {
+    padding-left: 0;
+  }
+
+  .threat-card__header {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .threat-card__rating {
+    grid-column: 1 / -1;
+    grid-template-columns: auto auto;
+    justify-content: start;
+    align-items: baseline;
+    gap: 0.35rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .threat-matchup {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .matchup-result {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
+
 /* TeamLab application shell and battle-lab foundation */
 
 html {
@@ -1379,7 +1731,7 @@ html {
 .inventory-controls select,
 .inventory-create input,
 .inventory-create select,
-.form-field input,
+.form-field input:not([type="radio"]):not([type="checkbox"]),
 .form-field select,
 .form-field textarea {
   min-height: 2.85rem;
@@ -1391,7 +1743,7 @@ html {
 .catalog-controls input[type="search"]:focus,
 .inventory-controls input:focus,
 .inventory-controls select:focus,
-.form-field input:focus,
+.form-field input:not([type="radio"]):not([type="checkbox"]):focus,
 .form-field select:focus,
 .form-field textarea:focus {
   border-color: var(--lab-500);
@@ -2499,7 +2851,7 @@ html {
   grid-column: 1 / -1;
 }
 
-.form-field input,
+.form-field input:not([type="radio"]):not([type="checkbox"]),
 .form-field select,
 .form-field textarea {
   width: 100%;
@@ -2523,6 +2875,105 @@ html {
   color: #52607a;
   font-size: 0.85rem;
   font-weight: 650;
+}
+
+.inline-check input,
+.radio-control input,
+.status-selector input {
+  width: 1.05rem;
+  min-width: 1.05rem;
+  height: 1.05rem;
+  min-height: 1.05rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  accent-color: var(--lab-600);
+}
+
+.radio-control {
+  min-height: 2rem;
+}
+
+.pokemon-combobox {
+  position: relative;
+  z-index: 12;
+}
+
+.pokemon-combobox > label {
+  color: #52607a;
+}
+
+.pokemon-combobox__input {
+  position: relative;
+}
+
+.pokemon-combobox__input > svg {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: 0.9rem;
+  color: var(--ink-500);
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.pokemon-combobox__input input {
+  padding-left: 2.7rem !important;
+}
+
+.pokemon-combobox__results {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 0.35rem);
+  right: 0;
+  left: 0;
+  display: grid;
+  max-height: min(24rem, 55vh);
+  overflow-y: auto;
+  padding: 0.45rem;
+  border: 1px solid var(--line);
+  border-radius: 0.85rem;
+  background: white;
+  box-shadow: var(--shadow-lg);
+}
+
+.pokemon-combobox__results > p {
+  margin: 0;
+  padding: 1rem;
+  color: var(--ink-600);
+  font-weight: 500;
+}
+
+.pokemon-combobox__option {
+  display: flex;
+  width: 100%;
+  min-height: 3.25rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.65rem 0.75rem;
+  border: 0;
+  border-radius: 0.65rem;
+  color: var(--ink-900);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.pokemon-combobox__option > span {
+  display: grid;
+  gap: 0.08rem;
+}
+
+.pokemon-combobox__option small {
+  color: var(--ink-500);
+  font-weight: 600;
+}
+
+.pokemon-combobox__option--active,
+.pokemon-combobox__option:hover {
+  color: var(--lab-700);
+  background: var(--lab-100);
 }
 
 .iv-grid {

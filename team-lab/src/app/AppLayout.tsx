@@ -24,9 +24,17 @@ interface NavigationItem {
   readonly end: boolean;
 }
 
-const primaryNavigation = [
+const mobilePrimaryNavigation = [
   { to: "/", label: "Dashboard", icon: Home, end: true },
   { to: "/inventory", label: "Inventory", icon: Boxes, end: false },
+  { to: "/teams", label: "Teams", icon: Users, end: false },
+  { to: "/recommend", label: "Recommend", icon: Sparkles, end: false },
+] as const satisfies readonly NavigationItem[];
+
+const desktopPrimaryNavigation = [
+  { to: "/", label: "Dashboard", icon: Home, end: true },
+  { to: "/inventory", label: "Inventory", icon: Boxes, end: false },
+  { to: "/catalog", label: "Rankings", icon: BookOpen, end: false },
   { to: "/teams", label: "Teams", icon: Users, end: false },
   { to: "/recommend", label: "Recommend", icon: Sparkles, end: false },
 ] as const satisfies readonly NavigationItem[];
@@ -34,7 +42,7 @@ const primaryNavigation = [
 const utilityNavigation = [
   {
     to: "/catalog",
-    label: "Great League catalog",
+    label: "Rankings",
     icon: BookOpen,
     end: false,
   },
@@ -110,7 +118,7 @@ export function AppLayout() {
           </NavLink>
 
           <nav className="app-nav app-nav--desktop" aria-label="Primary">
-            {primaryNavigation.map((item) => (
+            {desktopPrimaryNavigation.map((item) => (
               <NavigationLink key={item.to} {...item} />
             ))}
           </nav>
@@ -174,7 +182,7 @@ export function AppLayout() {
       </div>
 
       <nav className="mobile-tabbar" aria-label="Primary mobile navigation">
-        {primaryNavigation.map(({ to, label, icon: Icon, end }) => (
+        {mobilePrimaryNavigation.map(({ to, label, icon: Icon, end }) => (
           <NavLink
             className={({ isActive }) =>
               `mobile-tabbar__link${isActive ? " mobile-tabbar__link--active" : ""}`

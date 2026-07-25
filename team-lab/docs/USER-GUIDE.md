@@ -117,13 +117,13 @@ download a JSON backup
 
 ## Navigate TeamLab
 
-On desktop, the top navigation keeps **Dashboard**, **Inventory**, **Teams**,
-and **Recommend** available throughout the application. The data indicator
-opens engine diagnostics. Catalog and local backup/reset tools are in the
-utility menu.
+On desktop, the top navigation keeps **Dashboard**, **Inventory**,
+**Rankings**, **Teams**, and **Recommend** available throughout the
+application. The data indicator opens engine diagnostics. Local backup/reset
+tools are in the utility menu.
 
 On a phone, the same four primary destinations remain in the bottom navigation.
-Choose **More** for the catalog, local data, and diagnostics.
+Choose **More** for Rankings, local data, and diagnostics.
 
 The Dashboard suggests one next action from your current local data. It does
 not lock the rest of the application; use global navigation whenever you want
@@ -131,7 +131,7 @@ to move to a different workflow.
 
 ## Explore the catalog
 
-Open **Explore the Great League catalog** from the home page.
+Open **Rankings** from the desktop navigation or the mobile **More** menu.
 
 The catalog shows normalized released Pokémon with:
 
@@ -153,7 +153,8 @@ Open **Open your inventory**, then choose **Add Pokémon**.
 
 ### Current Pokémon
 
-Select the exact species, form, and Shadow state you own. Record:
+Search and select the exact species, form, and Shadow state in the combined
+autocomplete field. Then record:
 
 - current CP;
 - actual IVs or the explicit PvPoke rank-one assumption;
@@ -176,6 +177,10 @@ The entry flow has three short steps:
 1. required exact specimen details, CP, IVs, and moves;
 2. required current-versus-planned intent; and
 3. a review with optional notes.
+
+When PvPoke publishes a recommended moveset for the selected Pokémon, TeamLab
+preselects that fast move and both charged moves. Change any move when your
+actual build differs.
 
 ### Current versus planned
 

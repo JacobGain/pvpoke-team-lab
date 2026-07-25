@@ -10,6 +10,7 @@ import {
   type PokemonCatalogEntry,
 } from "@/domain/pokemon/catalog";
 import { usePokemonCatalog } from "@/features/meta/usePokemonCatalog";
+import { formatMoveList } from "@/utils/formatters";
 
 const DISPLAY_LIMIT = 120;
 
@@ -100,8 +101,8 @@ export function PokemonCatalogPage() {
             membership from PvPoke.
           </p>
         }
-        eyebrow="Explore the meta"
-        title="Pokémon catalog"
+        eyebrow="PvPoke Great League"
+        title="Rankings"
       />
 
       <section className="catalog-controls" aria-label="Catalog filters">
@@ -161,24 +162,23 @@ export function PokemonCatalogPage() {
             </div>
 
             <div className="type-list">
-              {pokemon.types.map((type) => (
+              {pokemon.types.filter((type) => type !== "none").map((type) => (
                 <span className={`type-pill type-pill--${type}`} key={type}>
                   {type}
                 </span>
               ))}
-              {pokemon.isShadow ? (
-                <span className="type-pill type-pill--shadow">shadow</span>
-              ) : null}
-              {pokemon.isMeta ? (
-                <span className="type-pill type-pill--meta">meta</span>
-              ) : null}
             </div>
 
             <dl className="pokemon-card__details">
               <div>
                 <dt>Recommended</dt>
                 <dd>
-                  {pokemon.ranking?.recommendedMoveIds.join(" · ") ??
+                  {pokemon.ranking
+                    ? formatMoveList(
+                        pokemon.ranking.recommendedMoveIds,
+                        " · ",
+                      )
+                    :
                     "No published moveset"}
                 </dd>
               </div>
