@@ -203,32 +203,65 @@ export function SavedTeamSimulationPage() {
                   <span>Coverage grade</span>
                   <strong>{analysis.coverage.grade}</strong>
                   <small>
+                    {analysis.coverage.coveredTargetPercentage.toFixed(1)}% ·{" "}
                     {analysis.coverage.coveredTargets}/
-                    {analysis.coverage.totalTargets} targets have an answer
+                    {analysis.coverage.totalTargets} targets covered
                   </small>
                 </article>
                 <article>
-                  <span>Covered targets</span>
-                  <strong>
-                    {analysis.coverage.coveredTargetPercentage.toFixed(1)}%
-                  </strong>
-                  <small>at least one favorable team member</small>
-                </article>
-                <article>
-                  <span>Positive matchups</span>
-                  <strong>
-                    {analysis.coverage.positiveMatchupPercentage.toFixed(1)}%
-                  </strong>
+                  <span>Bulk grade</span>
+                  <strong>{analysis.bulk.grade}</strong>
                   <small>
-                    {analysis.coverage.positiveMatchups}/
-                    {analysis.coverage.totalMatchups} individual battles
+                    {analysis.bulk.score.toFixed(1)} ·{" "}
+                    {analysis.bulk.evidenceSource.replaceAll("-", " ")}
                   </small>
                 </article>
                 <article>
-                  <span>Core breakers</span>
-                  <strong>{analysis.coreBreakers.length}</strong>
-                  <small>{analysis.teamWalls.length} full team walls</small>
+                  <span>Safety grade</span>
+                  <strong>{analysis.safety.grade}</strong>
+                  <small>
+                    {analysis.safety.score.toFixed(1)} ·{" "}
+                    {analysis.safety.evidenceSource.replaceAll("-", " ")}
+                  </small>
                 </article>
+                <article>
+                  <span>Consistency grade</span>
+                  <strong>{analysis.consistency.grade}</strong>
+                  <small>
+                    {analysis.consistency.score.toFixed(1)} ·{" "}
+                    {analysis.consistency.evidenceCount}/
+                    {analysis.consistency.evidenceTotal} ranked members
+                  </small>
+                </article>
+              </section>
+
+              <section className="analysis-panel">
+                <p className="eyebrow">Score evidence</p>
+                <h2>How these grades were calculated</h2>
+                <dl className="analysis-detail-list">
+                  <div>
+                    <dt>Coverage</dt>
+                    <dd>
+                      {analysis.coverage.coveredTargets}/
+                      {analysis.coverage.totalTargets} selected targets have at
+                      least one favorable team member.
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Bulk · {analysis.bulk.evidenceSource}</dt>
+                    <dd>{analysis.bulk.method}</dd>
+                  </div>
+                  <div>
+                    <dt>Safety · {analysis.safety.evidenceSource}</dt>
+                    <dd>{analysis.safety.method}</dd>
+                  </div>
+                  <div>
+                    <dt>
+                      Consistency · {analysis.consistency.evidenceSource}
+                    </dt>
+                    <dd>{analysis.consistency.method}</dd>
+                  </div>
+                </dl>
               </section>
 
               <section className="analysis-panel">

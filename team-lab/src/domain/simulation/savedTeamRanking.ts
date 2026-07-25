@@ -15,6 +15,11 @@ import type {
 import { resolveSavedTeam } from "@/domain/teams/resolution";
 import type { SavedTeam } from "@/domain/teams/schemas";
 import type { InventoryPokemon } from "@/domain/inventory/schemas";
+import {
+  calculateEffectiveStats,
+  type EffectiveStats,
+} from "@/domain/analysis/ivRankings";
+import type { CatalogRoleScores } from "@/domain/pokemon/catalog";
 
 export const META_TARGET_LIMITS = [5, 10, 20, 48] as const;
 export type MetaTargetLimit = (typeof META_TARGET_LIMITS)[number];
@@ -33,11 +38,30 @@ export interface SavedTeamRankerScope {
 export interface SavedTeamRankerPreparedRequest {
   readonly request: TeamRankerRequest;
   readonly scope: SavedTeamRankerScope;
+  readonly evidence: SavedTeamScoreEvidence;
+}
+
+export interface SavedTeamMemberScoreEvidence {
+  readonly position: "lead" | "switch" | "closer";
+  readonly speciesId: string;
+  readonly stats: EffectiveStats;
+  readonly roleScores?: CatalogRoleScores;
+}
+
+export interface SavedTeamTargetScoreEvidence {
+  readonly speciesId: string;
+  readonly stats: EffectiveStats;
+}
+
+export interface SavedTeamScoreEvidence {
+  readonly members: readonly SavedTeamMemberScoreEvidence[];
+  readonly targets: readonly SavedTeamTargetScoreEvidence[];
 }
 
 export interface SavedTeamRankerRun {
   readonly scope: SavedTeamRankerScope;
   readonly result: TeamRankerResult;
+  readonly evidence: SavedTeamScoreEvidence;
   readonly durationMs: number;
   readonly performance:
     | "within-interactive-budget"
@@ -167,6 +191,30 @@ export function prepareSavedTeamRankerRequest(
       targetShields: options.targetShields,
       targetSpeciesIds: targets.map((target) => target.speciesId),
     },
+    evidence: {
+      members: teamBuilds.map((build, index) => {
+        const pokemon = catalog.entries.find(
+          (entry) => entry.speciesId === build.speciesId,
+        )!;
+
+        return {
+          position: (["lead", "switch", "closer"] as const)[index]!,
+          speciesId: build.speciesId,
+          stats: calculateEffectiveStats(pokemon, build.ivs, build.level),
+          roleScores: pokemon.ranking?.roleScores,
+        };
+      }),
+      targets: targets.map((build) => {
+        const pokemon = catalog.entries.find(
+          (entry) => entry.speciesId === build.speciesId,
+        )!;
+
+        return {
+          speciesId: build.speciesId,
+          stats: calculateEffectiveStats(pokemon, build.ivs, build.level),
+        };
+      }),
+    },
   };
 }
 
@@ -186,6 +234,7 @@ export class SavedTeamRankingService {
     return {
       scope: prepared.scope,
       result,
+      evidence: prepared.evidence,
       durationMs,
       performance:
         durationMs <= 2_000

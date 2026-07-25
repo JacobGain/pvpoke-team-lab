@@ -46,8 +46,23 @@ export interface TeamCoverageScore {
   readonly positiveMatchupPercentage: number;
 }
 
+export interface TeamScoreDimension {
+  readonly grade: CoverageGrade;
+  readonly score: number;
+  readonly evidenceSource:
+    | "exact-effective-stats"
+    | "simulated-matchup-distribution"
+    | "pvpoke-static-role-scores";
+  readonly method: string;
+  readonly evidenceCount: number;
+  readonly evidenceTotal: number;
+}
+
 export interface SavedTeamAnalysis {
   readonly coverage: TeamCoverageScore;
+  readonly bulk: TeamScoreDimension;
+  readonly safety: TeamScoreDimension;
+  readonly consistency: TeamScoreDimension;
   readonly members: readonly TeamMemberCoverage[];
   readonly threats: readonly TeamThreatEvidence[];
   readonly majorThreats: readonly TeamThreatEvidence[];
@@ -64,7 +79,7 @@ function percentage(value: number, total: number): number {
   return total === 0 ? 0 : (value / total) * 100;
 }
 
-function coverageGrade(score: number): CoverageGrade {
+function scoreGrade(score: number): CoverageGrade {
   if (score >= 90) return "S";
   if (score >= 80) return "A";
   if (score >= 70) return "B";
@@ -159,7 +174,7 @@ export function analyzeSavedTeamMatrix(
 
   return {
     coverage: {
-      grade: coverageGrade(coveredTargetPercentage),
+      grade: scoreGrade(coveredTargetPercentage),
       score: coveredTargetPercentage,
       coveredTargets,
       totalTargets: threats.length,
@@ -171,6 +186,71 @@ export function analyzeSavedTeamMatrix(
         totalMatchups,
       ),
     },
+    bulk: (() => {
+      const targetBulk = run.evidence.targets.map(
+        (target) => target.stats.defense * target.stats.hp,
+      );
+      const memberPercentiles = run.evidence.members.map((member) => {
+        const bulk = member.stats.defense * member.stats.hp;
+        return percentage(
+          targetBulk.filter((target) => target <= bulk).length,
+          targetBulk.length,
+        );
+      });
+      const score =
+        memberPercentiles.reduce((sum, value) => sum + value, 0) /
+        Math.max(memberPercentiles.length, 1);
+
+      return {
+        grade: scoreGrade(score),
+        score,
+        evidenceSource: "exact-effective-stats",
+        method:
+          "Average member Defense × HP percentile within selected meta targets",
+        evidenceCount: memberPercentiles.length,
+        evidenceTotal: targetBulk.length,
+      };
+    })(),
+    safety: (() => {
+      const redundantAnswers = threats.filter(
+        (threat) => threat.targetLosses >= 2,
+      ).length;
+      const redundancyPercentage = percentage(
+        redundantAnswers,
+        threats.length,
+      );
+      const switchCoverage =
+        members.find((member) => member.position === "switch")
+          ?.positiveMatchupPercentage ?? 0;
+      const score = redundancyPercentage * 0.6 + switchCoverage * 0.4;
+
+      return {
+        grade: scoreGrade(score),
+        score,
+        evidenceSource: "simulated-matchup-distribution",
+        method:
+          "60% targets with two or more answers + 40% safe-switch positive matchups",
+        evidenceCount: redundantAnswers,
+        evidenceTotal: threats.length,
+      };
+    })(),
+    consistency: (() => {
+      const scores = run.evidence.members.flatMap((member) =>
+        member.roleScores ? [member.roleScores.consistency] : [],
+      );
+      const score =
+        scores.reduce((sum, value) => sum + value, 0) /
+        Math.max(scores.length, 1);
+
+      return {
+        grade: scoreGrade(score),
+        score,
+        evidenceSource: "pvpoke-static-role-scores",
+        method: "Average published PvPoke consistency score for ranked members",
+        evidenceCount: scores.length,
+        evidenceTotal: run.evidence.members.length,
+      };
+    })(),
     members,
     threats,
     majorThreats: threats.filter(
@@ -189,6 +269,9 @@ export function analyzeSavedTeamMatrix(
       "Ratings above 500 favor the meta target; ratings below 500 favor the team member",
       "A target is covered when at least one team member has a rating advantage",
       "Coverage grade is a TeamLab heuristic over the selected unweighted target scope",
+      "Bulk grade compares exact Defense × HP with the selected target builds",
+      "Safety grade weights answer redundancy at 60% and safe-switch coverage at 40%",
+      "Consistency grade averages available static PvPoke consistency scores",
     ],
     generatedAt: now().toISOString(),
   };

@@ -61,6 +61,63 @@ function run(): SavedTeamRankerRun {
       engine: "pvpoke-team-ranker",
       assumptions: ["Exact targets"],
     },
+    evidence: {
+      members: [
+        {
+          position: "lead",
+          speciesId: "lead",
+          stats: { attack: 100, defense: 3, hp: 100, statProduct: 30_000 },
+          roleScores: {
+            lead: 90,
+            closer: 80,
+            switch: 70,
+            charger: 80,
+            attacker: 85,
+            consistency: 90,
+          },
+        },
+        {
+          position: "switch",
+          speciesId: "switch",
+          stats: { attack: 100, defense: 2, hp: 100, statProduct: 20_000 },
+          roleScores: {
+            lead: 70,
+            closer: 70,
+            switch: 90,
+            charger: 70,
+            attacker: 70,
+            consistency: 80,
+          },
+        },
+        {
+          position: "closer",
+          speciesId: "closer",
+          stats: { attack: 100, defense: 1, hp: 100, statProduct: 10_000 },
+          roleScores: {
+            lead: 60,
+            closer: 90,
+            switch: 60,
+            charger: 60,
+            attacker: 60,
+            consistency: 70,
+          },
+        },
+      ],
+      targets: [
+        {
+          speciesId: "team_wall",
+          stats: { attack: 100, defense: 1, hp: 100, statProduct: 10_000 },
+        },
+        {
+          speciesId: "core_breaker",
+          stats: { attack: 100, defense: 2, hp: 100, statProduct: 20_000 },
+        },
+        {
+          speciesId: "covered",
+          stats: { attack: 100, defense: 3, hp: 100, statProduct: 30_000 },
+        },
+      ],
+    },
     durationMs: 100,
     performance: "within-interactive-budget",
   };
@@ -80,6 +137,27 @@ describe("saved-team matrix analysis", () => {
       totalTargets: 3,
       positiveMatchups: 3,
       totalMatchups: 9,
+    });
+    expect(analysis.bulk).toMatchObject({
+      grade: "C",
+      score: 66.66666666666667,
+      evidenceSource: "exact-effective-stats",
+      evidenceCount: 3,
+      evidenceTotal: 3,
+    });
+    expect(analysis.safety).toMatchObject({
+      grade: "D",
+      score: 33.33333333333333,
+      evidenceSource: "simulated-matchup-distribution",
+      evidenceCount: 1,
+      evidenceTotal: 3,
+    });
+    expect(analysis.consistency).toMatchObject({
+      grade: "A",
+      score: 80,
+      evidenceSource: "pvpoke-static-role-scores",
+      evidenceCount: 3,
+      evidenceTotal: 3,
     });
     expect(
       analysis.threats.map((threat) => [
