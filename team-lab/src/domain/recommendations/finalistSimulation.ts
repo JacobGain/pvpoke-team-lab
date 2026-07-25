@@ -41,6 +41,21 @@ export interface RecommendationFinalistSimulationOptions {
   readonly targetShields: ShieldCount;
 }
 
+export interface RecommendationFinalistProgress {
+  readonly completedFinalists: number;
+  readonly totalFinalists: number;
+  readonly currentTeamKey?: string;
+  readonly status: "starting" | "completed" | "failed" | "cancelled";
+}
+
+export interface RecommendationFinalistSimulationControls {
+  readonly signal?: AbortSignal;
+  readonly onProgress?: (
+    progress: RecommendationFinalistProgress,
+  ) => void;
+  readonly yieldBetweenFinalists?: () => Promise<void>;
+}
+
 export interface RecommendationFinalScore {
   readonly version: typeof RECOMMENDATION_FINAL_SCORE_VERSION;
   readonly score: number;
@@ -78,6 +93,8 @@ export interface RecommendationFinalistSimulation {
   readonly requestedResultCount: number;
   readonly selectionShortfall: number;
   readonly selectionDiversityRelaxed: boolean;
+  readonly attemptedFinalistCount: number;
+  readonly cancelled: boolean;
   readonly dataVersion: string;
   readonly assumptions: readonly string[];
 }
@@ -259,6 +276,7 @@ export class RecommendationFinalistSimulationService {
     inventory: readonly InventoryPokemon[],
     catalog: PokemonCatalog,
     options: RecommendationFinalistSimulationOptions,
+    controls: RecommendationFinalistSimulationControls = {},
   ): Promise<RecommendationFinalistSimulation> {
     if (staticGeneration.dataVersion !== catalog.dataVersion) {
       throw new RecommendationFinalistDataVersionError(
@@ -269,8 +287,27 @@ export class RecommendationFinalistSimulationService {
 
     const completed: SimulatedRecommendationFinalist[] = [];
     const failures: RecommendationFinalistFailure[] = [];
+    let attemptedFinalistCount = 0;
+    let cancelled = false;
 
     for (const staticTeam of staticGeneration.finalists) {
+      if (controls.signal?.aborted) {
+        cancelled = true;
+        controls.onProgress?.({
+          completedFinalists: attemptedFinalistCount,
+          totalFinalists: staticGeneration.finalists.length,
+          status: "cancelled",
+        });
+        break;
+      }
+
+      controls.onProgress?.({
+        completedFinalists: attemptedFinalistCount,
+        totalFinalists: staticGeneration.finalists.length,
+        currentTeamKey: staticTeam.teamKey,
+        status: "starting",
+      });
+
       try {
         const prepared = prepareTeamRankerRequest(
           exactTeamBuilds(staticTeam),
@@ -304,7 +341,15 @@ export class RecommendationFinalistSimulationService {
           ),
           finalScore: finalScore(staticTeam, analysis),
         });
+        attemptedFinalistCount += 1;
+        controls.onProgress?.({
+          completedFinalists: attemptedFinalistCount,
+          totalFinalists: staticGeneration.finalists.length,
+          currentTeamKey: staticTeam.teamKey,
+          status: "completed",
+        });
       } catch (error) {
+        attemptedFinalistCount += 1;
         failures.push({
           teamKey: staticTeam.teamKey,
           speciesKey: staticTeam.speciesKey,
@@ -313,7 +358,15 @@ export class RecommendationFinalistSimulationService {
               ? error.message
               : "Finalist simulation failed.",
         });
+        controls.onProgress?.({
+          completedFinalists: attemptedFinalistCount,
+          totalFinalists: staticGeneration.finalists.length,
+          currentTeamKey: staticTeam.teamKey,
+          status: "failed",
+        });
       }
+
+      await controls.yieldBetweenFinalists?.();
     }
 
     const anchorInventoryIds = new Set(
@@ -338,6 +391,8 @@ export class RecommendationFinalistSimulationService {
         0,
       ),
       selectionDiversityRelaxed: selection.diversityRelaxed,
+      attemptedFinalistCount,
+      cancelled,
       dataVersion: catalog.dataVersion,
       assumptions: [
         "Every finalist uses the same explicit meta target and shield scope",

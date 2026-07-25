@@ -11,6 +11,7 @@ import {
   RecommendationFinalistSimulationService,
   RECOMMENDATION_FINAL_SCORE_VERSION,
 } from "@/domain/recommendations/finalistSimulation";
+import { explainRecommendation } from "@/domain/recommendations/explanations";
 import { generateStaticRecommendationTeams } from "@/domain/recommendations/staticTeamGeneration";
 import type {
   TeamRankerAdapter,
@@ -170,11 +171,19 @@ describe("recommendation finalist simulation", () => {
       () => times.shift()!,
       () => new Date("2026-07-25T18:00:00.000Z"),
     );
+    const progress: string[] = [];
     const result = await service.simulate(
       generation,
       inventory,
       rankedCatalog,
       { targetLimit: 5, teamShields: 1, targetShields: 1 },
+      {
+        onProgress: (event) => {
+          progress.push(
+            `${event.status}:${event.completedFinalists}/${event.totalFinalists}`,
+          );
+        },
+      },
     );
 
     expect(adapter.requests).toHaveLength(1);
@@ -213,6 +222,15 @@ describe("recommendation finalist simulation", () => {
     expect(result.selected).toHaveLength(1);
     expect(result.requestedResultCount).toBe(3);
     expect(result.selectionShortfall).toBe(2);
+    expect(progress).toEqual(["starting:0/1", "completed:1/1"]);
+    const explanation = explainRecommendation(result.selected[0]!);
+    expect(explanation.headline).toContain("scores");
+    expect(
+      explanation.reasons.some((reason) =>
+        reason.includes("selected meta targets"),
+      ),
+    ).toBe(true);
+    expect(explanation.scope).toContain("1-1 shields");
   });
 
   it("rejects stale static data before invoking TeamRanker", async () => {
@@ -260,6 +278,63 @@ describe("recommendation finalist simulation", () => {
     ]);
     expect(result.selected).toHaveLength(0);
     expect(result.selectionShortfall).toBe(3);
+  });
+
+  it("cancels before starting the next synchronous finalist", async () => {
+    const altaria = rankedCatalog.entries.find(
+      (pokemon) => pokemon.speciesId === "altaria",
+    )!;
+    const catalog: PokemonCatalog = {
+      ...rankedCatalog,
+      entries: [
+        ...rankedCatalog.entries,
+        {
+          ...altaria,
+          speciesId: "noctowl",
+          speciesName: "Noctowl",
+          dex: 164,
+          isMeta: false,
+        },
+      ],
+    };
+    const noctowl = {
+      ...record("altaria", ids.noctowl, catalog),
+      speciesId: "noctowl",
+    };
+    const inventory = [
+      record("azumarill", ids.azumarill, catalog),
+      record("altaria", ids.altaria, catalog),
+      record("whiscash", ids.whiscash, catalog),
+      noctowl,
+    ];
+    const generation = staticGeneration(inventory, catalog, 2);
+    const adapter = new DeterministicAdapter();
+    const service = new RecommendationFinalistSimulationService(adapter);
+    const controller = new AbortController();
+    const result = await service.simulate(
+      generation,
+      inventory,
+      catalog,
+      { targetLimit: 5, teamShields: 1, targetShields: 1 },
+      {
+        signal: controller.signal,
+        onProgress: (progress) => {
+          if (
+            progress.status === "completed" &&
+            progress.completedFinalists === 1
+          ) {
+            controller.abort();
+          }
+        },
+      },
+    );
+
+    expect(generation.finalists.length).toBeGreaterThan(1);
+    expect(adapter.requests).toHaveLength(1);
+    expect(result.cancelled).toBe(true);
+    expect(result.attemptedFinalistCount).toBe(1);
+    expect(result.completed).toHaveLength(1);
+    expect(result.selectionShortfall).toBe(1);
   });
 
   it("ranks exact results and minimally relaxes core diversity to fill the request", async () => {
@@ -314,4 +389,3 @@ describe("recommendation finalist simulation", () => {
     expect(result.selectionShortfall).toBe(0);
   });
 });
-

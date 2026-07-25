@@ -1,5 +1,6 @@
-import { PvpokeDataStatusCard } from "@/features/meta/PvpokeDataStatusCard";
 import { Link } from "react-router-dom";
+
+import { PvpokeDataStatusCard } from "@/features/meta/PvpokeDataStatusCard";
 
 export function HomePage() {
   return (
@@ -21,6 +22,9 @@ export function HomePage() {
           </Link>
           <Link className="secondary-link" to="/teams">
             Build saved teams
+          </Link>
+          <Link className="secondary-link" to="/recommend">
+            Generate team recommendations
           </Link>
           <Link className="secondary-link" to="/diagnostics/simulation">
             Simulation diagnostics

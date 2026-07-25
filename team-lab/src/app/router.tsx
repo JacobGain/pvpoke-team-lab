@@ -7,10 +7,11 @@ import { InventoryFormPage } from "@/features/inventory/InventoryFormPage";
 import { InventoryBackupPage } from "@/features/inventory/InventoryBackupPage";
 import { InventoryPage } from "@/features/inventory/InventoryPage";
 import { PokemonCatalogPage } from "@/features/meta/PokemonCatalogPage";
+import { RecommendationPage } from "@/features/recommendations/RecommendationPage";
+import { SavedTeamSimulationPage } from "@/features/simulation/SavedTeamSimulationPage";
 import { SavedTeamFormPage } from "@/features/teams/SavedTeamFormPage";
 import { SavedTeamsPage } from "@/features/teams/SavedTeamsPage";
 import { SimulationDiagnosticsPage } from "@/features/simulation/SimulationDiagnosticsPage";
-import { SavedTeamSimulationPage } from "@/features/simulation/SavedTeamSimulationPage";
 
 export const router = createBrowserRouter(
   [
@@ -61,6 +62,10 @@ export const router = createBrowserRouter(
     {
       path: "/teams/:teamId/simulation",
       element: <SavedTeamSimulationPage />,
+    },
+    {
+      path: "/recommend",
+      element: <RecommendationPage />,
     },
     {
       path: "*",
