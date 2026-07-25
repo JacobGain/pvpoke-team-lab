@@ -1,6 +1,6 @@
 # Phase 4 — Saved Teams
 
-> **Status:** In progress — domain and persistence foundation complete
+> **Status:** Complete for MVP
 > **Project-plan phase:** Phase 4: saved teams
 > **Last reviewed:** 2026-07-25
 
@@ -35,21 +35,25 @@ simulation.
 - additive TeamLab IndexedDB version-two schema
 - characterized version-one inventory preservation during upgrade
 - real IndexedDB tests through `fake-indexeddb`
+- TanStack Query list/detail and CRUD mutations
+- live inventory/catalog team resolution
+- `/teams`, `/teams/new`, and `/teams/:teamId` routes
+- ordered create and edit workflow
+- positional swap controls
+- duplicate and confirmed-delete actions
+- visible missing-member recovery states
+- responsive saved-team list and editor
 
 ## Deferred scope
 
-- TanStack Query hooks
-- saved-team list and editor routes
-- member selection UI
-- drag/drop or button-based reordering
-- duplicate-team workflow
-- deleted-member recovery UI
 - team backup and restore
+- inventory “teams using this Pokémon” visibility
 - scorecards and simulation results
 
 ## Implementation records
 
 - [Saved-team domain and persistence](saved-team-domain-and-persistence.md)
+- [Saved-team query and editor workflow](saved-team-workflow.md)
 
 ## Exit criteria
 
@@ -58,15 +62,15 @@ simulation.
 - [x] Exactly three distinct inventory references are required.
 - [x] Missing references and species-clause conflicts are rejected.
 - [x] CRUD persistence is implemented behind a repository contract.
-- [ ] User can create and edit a team in the UI.
-- [ ] User can reopen, reorder, duplicate, and delete saved teams.
-- [ ] Missing/deleted members have a visible recovery state.
+- [x] User can create and edit a team in the UI.
+- [x] User can reopen, reorder, duplicate, and delete saved teams.
+- [x] Missing/deleted members have a visible recovery state.
 
-## Next slice
+## Next phase
 
-Add query integration and an ordered saved-team editor. The editor should
-resolve inventory references live, explain legality issues before saving, and
-retain explicit lead/switch/closer semantics on desktop and responsive layouts.
+Begin the Phase 5 PvPoke simulation adapter using these stable ordered-team
+contracts. Saved-team backup/restore and inventory usage visibility remain
+useful Phase 4 enhancements but are not required by the MVP exit criterion.
 
 ## Relevant commits
 

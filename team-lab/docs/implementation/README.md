@@ -146,10 +146,11 @@ Remaining beyond the initial phase:
 
 ### Phase 4 — Saved teams
 
-Status: **In progress — domain and persistence foundation complete**
+Status: **Complete for MVP**
 
 - [Phase overview](phase-04-saved-teams/README.md)
 - [Saved-team domain and persistence](phase-04-saved-teams/saved-team-domain-and-persistence.md)
+- [Saved-team query and editor workflow](phase-04-saved-teams/saved-team-workflow.md)
 
 Implemented:
 
@@ -161,12 +162,15 @@ Implemented:
 - repository contract and stable persistence errors
 - additive IndexedDB version-two saved-team table
 - validated Dexie CRUD
+- TanStack Query integration
+- live inventory/catalog team resolution
+- saved-team list and ordered editor
+- create, reopen, reorder, duplicate, repair, and delete workflows
 
-Remaining:
+Deferred enhancements:
 
-- query hooks and saved-team UI
-- reordering, duplication, and deleted-member recovery
 - team backup/restore
+- inventory usage counts
 
 ## Updating these records
 
