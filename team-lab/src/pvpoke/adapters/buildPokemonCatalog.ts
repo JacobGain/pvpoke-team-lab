@@ -90,6 +90,14 @@ function createRanking(
     score: ranking.score,
     rating: ranking.rating,
     recommendedMoveIds: Object.freeze([...ranking.moveset]),
+    roleScores: Object.freeze({
+      lead: ranking.scores[0] ?? 0,
+      closer: ranking.scores[1] ?? 0,
+      switch: ranking.scores[2] ?? 0,
+      charger: ranking.scores[3] ?? 0,
+      attacker: ranking.scores[4] ?? 0,
+      consistency: ranking.scores[5] ?? 0,
+    }),
   });
 }
 

@@ -112,7 +112,32 @@ Implemented:
 - atomic merge/replace restore and confirmed local clearing
 - Vitest and fake IndexedDB foundation
 
-The phase's MVP exit criteria are complete. IV/stat analysis begins in Phase 3.
+The phase's MVP exit criteria are complete. Phase 3 progress follows below.
+
+### Phase 3 — IV and build analysis
+
+Status: **In progress — foundational build profiles complete**
+
+- [Phase overview](phase-03-build-analysis/README.md)
+- [IV ranking and effective stats](phase-03-build-analysis/iv-ranking-and-effective-stats.md)
+- [Build profile, roles, moves, and UI](phase-03-build-analysis/build-profile-and-ui.md)
+
+Implemented:
+
+- exact effective stats and stat product
+- exhaustive Open Great League IV ranking
+- percentile, rank-one, and Attack/CMP context
+- separate current and planned read models
+- PvPoke overall and six-role ranking context
+- recommended-move comparison
+- qualitative build requirements
+- cached per-record analysis route
+
+Remaining:
+
+- opponent-specific CMP evidence
+- initial meta breakpoints and bulkpoints
+- simulated matchup impact
 
 ## Updating these records
 
@@ -158,11 +183,13 @@ Persist and retrieve it through a repository-backed IndexedDB database
 Maintain current/planned builds with exact level validation
     ↓
 Export or atomically restore a versioned local backup
+    ↓
+Derive exact stats, IV rank, roles, moves, and build requirements
 ```
 
 TeamLab cannot yet:
 
-- calculate an entered specimen’s IV rank, stat profile, or breakpoints;
+- calculate opponent-specific breakpoints or matchup impact;
 - create or save teams;
 - run the upstream battle engine;
 - generate team recommendations.

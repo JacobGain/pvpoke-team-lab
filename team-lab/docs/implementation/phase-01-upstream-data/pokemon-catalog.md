@@ -60,6 +60,7 @@ Each `PokemonCatalogEntry` contains:
 - legacy/Elite move flags;
 - default Great League IV spread, where published;
 - overall ranking, score, rating, and recommended move IDs;
+- six PvPoke role scores from the overall ranking artifact;
 - current Great League meta membership.
 
 The model intentionally does not contain:

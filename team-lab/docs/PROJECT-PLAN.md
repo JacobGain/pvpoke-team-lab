@@ -1989,6 +1989,8 @@ Established decisions:
 | Catalog identity | Persist exact variant `speciesId`; derive form/Shadow metadata |
 | Backup | JSON import/export in MVP |
 | Inventory restore | Validate completely; atomic merge or replace |
+| Initial IV rank | General 0–15 spread, Open Great League, level-50 cap |
+| IV percentile | Rank one = 100%; final valid ordinal rank = 0% |
 | Local backend | None in MVP |
 | Future backend | Firebase Authentication and Firestore |
 | Frontend | React, TypeScript, Vite |
