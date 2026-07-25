@@ -54,7 +54,13 @@ The first post-overhaul review also delivered:
 - sprite-backed priority-threat cards with per-member result labels;
 - the full technical battle matrix collapsed behind an explicit disclosure;
 - new browser regressions for recommended moves, compact radio sizing,
-  Rankings tags/navigation, saved-team role labels, and 320 px overflow.
+  Rankings tags/navigation, saved-team role labels, and 320 px overflow;
+- an ordered set of feature-owned stylesheet modules replacing the 4,248-line
+  global stylesheet while preserving the exact cascade;
+- four checked-in desktop, tablet, and mobile screenshot baselines with
+  actionable image diffs; and
+- compact “Home” and “Find” mobile labels after the 320 px visual baseline
+  exposed otherwise-valid but awkward wrapping.
 
 ## Navigation and progressive flow
 
@@ -123,10 +129,15 @@ The authoritative fallback list and source terms live in
 - `src/components/PokemonSprite.tsx` — local sprite resolution and fallback
 - `src/features/inventory/InventoryFormPage.tsx` — guided exact-build entry
 - `src/features/recommendations/RecommendationPage.tsx` — staged request flow
-- `src/styles/global.css` — design tokens and responsive component styling
+- `src/styles/global.css` — ordered stylesheet entry point
+- `src/styles/modules/*.css` — foundation, shell, primitive, and feature styles
 - `scripts/sync-pokemon-sprites.ts` — revision-pinned sprite synchronization
 - `src/generated/pokemonSprites.ts` — generated sprite manifest
 - `scripts/browser-workflows.ts` — full progressive-flow browser coverage
+- `tests/visual/` — checked-in presentation baselines and review instructions
+
+See [Style architecture and visual regression](style-architecture.md) for the
+stylesheet ownership, cascade, and screenshot review contracts.
 
 ## Validation
 
@@ -136,6 +147,7 @@ Observed after the overhaul:
 npm test          27 files, 78 tests passed
 npm run test:scale passed
 npm run test:browser passed; complete create/edit/team/recommend/backup flow
+npm run test:visual passed; four baselines matched at 0 changed pixels
 npm run typecheck passed
 npm run lint      passed
 npm run build     passed; entry chunk approximately 402 kB
@@ -152,9 +164,8 @@ data, and restored 12 records plus two teams.
   theme, but no theme control is exposed.
 - Some Pokémon GO costumes and special forms use clearly recorded National Dex
   base artwork because PokeAPI has no exact HOME asset mapping.
-- The global stylesheet retains earlier feature rules underneath the new token
-  and component layer. A later maintenance pass may split it by component
-  without changing the visual contract.
+- `modern-feature-overrides.css` remains a documented transition layer. Rules
+  can move into their owning feature modules incrementally as touched.
 - The current application remains Open Great League-specific.
 
 ## Relevant commits

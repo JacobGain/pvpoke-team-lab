@@ -25,10 +25,10 @@ interface NavigationItem {
 }
 
 const mobilePrimaryNavigation = [
-  { to: "/", label: "Dashboard", icon: Home, end: true },
+  { to: "/", label: "Home", icon: Home, end: true },
   { to: "/inventory", label: "Inventory", icon: Boxes, end: false },
   { to: "/teams", label: "Teams", icon: Users, end: false },
-  { to: "/recommend", label: "Recommend", icon: Sparkles, end: false },
+  { to: "/recommend", label: "Find", icon: Sparkles, end: false },
 ] as const satisfies readonly NavigationItem[];
 
 const desktopPrimaryNavigation = [

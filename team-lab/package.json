@@ -14,9 +14,11 @@
     "sync:sprites": "node --experimental-strip-types scripts/sync-pokemon-sprites.ts",
     "test": "vitest run",
     "test:browser": "node --experimental-strip-types scripts/browser-workflows.ts",
+    "test:visual": "node --experimental-strip-types scripts/browser-workflows.ts --visual=verify",
     "test:scale": "vitest run src/performance/mvpScale.characterization.test.ts --reporter=verbose",
     "test:watch": "vitest",
     "typecheck": "tsc -b --pretty false",
+    "update:visual": "node --experimental-strip-types scripts/browser-workflows.ts --visual=update",
     "validate:data": "node --experimental-strip-types scripts/validate-pvpoke-data.ts"
   },
   "dependencies": {

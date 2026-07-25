@@ -1,0 +1,250 @@
+/* TeamLab application shell and battle-lab foundation */
+
+html {
+  scroll-behavior: smooth;
+}
+
+:focus-visible {
+  outline: 3px solid rgb(10 162 184 / 38%);
+  outline-offset: 3px;
+}
+
+::selection {
+  color: var(--ink-950);
+  background: var(--signal-100);
+}
+
+.skip-link {
+  position: fixed;
+  z-index: 100;
+  top: 0.75rem;
+  left: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  color: white;
+  background: var(--ink-950);
+  transform: translateY(-150%);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+.app-frame {
+  min-height: 100vh;
+}
+
+.app-topbar {
+  position: sticky;
+  z-index: 40;
+  top: 0;
+  border-bottom: 1px solid rgb(255 255 255 / 8%);
+  color: white;
+  background:
+    linear-gradient(90deg, rgb(10 162 184 / 9%), transparent 32rem),
+    rgb(16 24 39 / 97%);
+  box-shadow: 0 8px 32px rgb(12 25 42 / 12%);
+  backdrop-filter: blur(18px);
+}
+
+.app-topbar__inner {
+  display: flex;
+  width: min(100% - 2rem, var(--content-wide));
+  min-height: 4.65rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  margin: 0 auto;
+}
+
+.brand-mark {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.7rem;
+  color: white;
+  text-decoration: none;
+}
+
+.brand-mark__icon {
+  display: grid;
+  width: 2.65rem;
+  height: 2.65rem;
+  place-items: center;
+  border: 1px solid rgb(53 197 209 / 32%);
+  border-radius: 0.85rem;
+  color: var(--lab-400);
+  background: rgb(10 162 184 / 11%);
+  box-shadow: inset 0 0 22px rgb(53 197 209 / 7%);
+}
+
+.brand-mark__copy {
+  display: grid;
+  gap: 0.08rem;
+}
+
+.brand-mark__copy strong {
+  font-size: 1.05rem;
+  letter-spacing: -0.025em;
+}
+
+.brand-mark__copy small {
+  color: #9ba9bd;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.app-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.app-nav__link {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.75rem;
+  color: #aeb9c9;
+  font-size: 0.87rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease;
+}
+
+.app-nav__link:hover {
+  color: white;
+  background: rgb(255 255 255 / 6%);
+}
+
+.app-nav__link--active {
+  color: white;
+  background: rgb(53 197 209 / 13%);
+  box-shadow: inset 0 0 0 1px rgb(53 197 209 / 13%);
+}
+
+.app-nav__link--active svg {
+  color: var(--lab-400);
+}
+
+.app-topbar__tools {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.data-health {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 999px;
+  color: #b5c0d0;
+  background: rgb(255 255 255 / 4%);
+  font-size: 0.72rem;
+  text-decoration: none;
+}
+
+.data-health > span {
+  width: 0.48rem;
+  height: 0.48rem;
+  border-radius: 50%;
+  background: var(--warning-500);
+  box-shadow: 0 0 0 4px rgb(216 135 24 / 10%);
+}
+
+.data-health--ready > span {
+  background: var(--signal-500);
+  box-shadow: 0 0 0 4px rgb(163 230 53 / 10%);
+}
+
+.data-health--error > span {
+  background: #ee6977;
+  box-shadow: 0 0 0 4px rgb(238 105 119 / 10%);
+}
+
+.icon-button {
+  display: inline-grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  color: var(--ink-700);
+  background: white;
+  cursor: pointer;
+}
+
+.app-menu-button {
+  display: none;
+  border-color: rgb(255 255 255 / 10%);
+  color: white;
+  background: rgb(255 255 255 / 5%);
+}
+
+.mobile-menu {
+  position: fixed;
+  z-index: 35;
+  top: 4.65rem;
+  right: max(1rem, calc((100vw - var(--content-wide)) / 2));
+  width: min(22rem, calc(100% - 2rem));
+  padding: 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: rgb(255 255 255 / 98%);
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-0.6rem) scale(0.98);
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+.mobile-menu--open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
+}
+
+.mobile-menu nav {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.mobile-menu .app-nav__link {
+  color: var(--ink-700);
+}
+
+.mobile-menu .app-nav__link:hover {
+  color: var(--ink-950);
+  background: var(--surface-muted);
+}
+
+.mobile-menu__label {
+  margin: 0;
+  padding: 0.6rem 0.85rem 0.4rem;
+  color: var(--ink-500);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.app-content {
+  min-height: calc(100vh - 4.65rem);
+}
+
+.mobile-tabbar {
+  display: none;
+}
+

@@ -68,14 +68,17 @@ for its mapping and review contract.
 npm test
 npm run test:scale
 npm run test:browser
+npm run test:visual
 npm run typecheck
 npm run lint
 npm run build
 npm run validate:data
 ```
 
-`npm run test:browser` requires a Chromium-compatible browser. Normal
-development and validation commands run from `team-lab/`.
+The browser and visual suites require a Chromium-compatible browser. After an
+intentional visual change, inspect the generated diff before running
+`npm run update:visual`. Normal development and validation commands run from
+`team-lab/`.
 
 ## Documentation
 
@@ -83,3 +86,4 @@ development and validation commands run from `team-lab/`.
 - [Product scope and project plan](docs/PROJECT-PLAN.md)
 - [Implementation records](docs/implementation/README.md)
 - [Modern battle lab UI/UX](docs/implementation/phase-09-ui-ux-overhaul/README.md)
+- [Style architecture and visual regression](docs/implementation/phase-09-ui-ux-overhaul/style-architecture.md)

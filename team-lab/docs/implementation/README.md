@@ -347,6 +347,7 @@ Status: **Complete for the current MVP**
 
 - [Phase overview](phase-09-ui-ux-overhaul/README.md)
 - [Local Pokémon sprite pipeline](phase-09-ui-ux-overhaul/sprite-pipeline.md)
+- [Style architecture and visual regression](phase-09-ui-ux-overhaul/style-architecture.md)
 
 Implemented:
 
@@ -361,6 +362,8 @@ Implemented:
 - staged anchor recommendation request and result flow
 - keyboard, focus, reduced-motion, and 320 px responsive hardening
 - updated full-browser coverage for progressive step transitions
+- feature-owned stylesheet modules with an explicit cascade contract
+- checked-in desktop, tablet, and mobile visual-regression baselines
 
 ## Updating these records
 

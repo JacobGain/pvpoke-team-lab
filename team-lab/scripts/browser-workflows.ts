@@ -8,6 +8,7 @@ import {
   readdir,
   rm,
   stat,
+  writeFile,
 } from "node:fs/promises";
 import { createServer, type Server } from "node:http";
 import { tmpdir } from "node:os";
@@ -17,12 +18,15 @@ import {
   createServer as createViteServer,
   type ViteDevServer,
 } from "vite";
+import sharp from "sharp";
 
 const HOST = "127.0.0.1";
 const GLOBAL_TIMEOUT_MS = 120_000;
 const STEP_TIMEOUT_MS = 20_000;
 const ENGINE_TIMEOUT_MS = 45_000;
 const MAX_MAIN_THREAD_GAP_MS = 500;
+const MAX_VISUAL_CHANGED_PIXEL_RATIO = 0.01;
+const VISUAL_CHANNEL_TOLERANCE = 20;
 const INVENTORY_SPECIES = [
   "azumarill",
   "altaria",
@@ -74,6 +78,8 @@ interface BrowserWorkflowReport {
   readonly restoredInventoryRecords: number;
   readonly restoredSavedTeams: number;
 }
+
+type VisualMode = "off" | "verify" | "update";
 
 function invariant(
   condition: unknown,
@@ -546,6 +552,72 @@ class BrowserWorkflow {
     });
   }
 
+  async captureViewport(
+    width: number,
+    height: number,
+    scrollSelector?: string,
+  ): Promise<Buffer> {
+    await this.setViewport(width, height);
+    await this.client.call("Emulation.setEmulatedMedia", {
+      features: [
+        { name: "prefers-reduced-motion", value: "reduce" },
+        { name: "prefers-color-scheme", value: "light" },
+      ],
+    });
+    await this.evaluate(`(async () => {
+      let style = document.querySelector("#teamlab-visual-regression-style");
+      if (!style) {
+        style = document.createElement("style");
+        style.id = "teamlab-visual-regression-style";
+        style.textContent = \`
+          *, *::before, *::after {
+            animation: none !important;
+            caret-color: transparent !important;
+            scroll-behavior: auto !important;
+            transition: none !important;
+          }
+        \`;
+        document.head.append(style);
+      }
+      await document.fonts.ready;
+      await Promise.race([
+        Promise.all(
+          [...document.images].map((image) =>
+            image.decode().catch(() => undefined)
+          )
+        ),
+        new Promise((resolveImages) => window.setTimeout(resolveImages, 3_000))
+      ]);
+      const selector = ${JSON.stringify(scrollSelector)};
+      if (selector) {
+        document.querySelector(selector)?.scrollIntoView({
+          block: "start",
+          behavior: "instant"
+        });
+        window.scrollBy(0, -80);
+      } else {
+        window.scrollTo({ left: 0, top: 0, behavior: "instant" });
+      }
+      await new Promise((resolveFrame) =>
+        requestAnimationFrame(() => requestAnimationFrame(resolveFrame))
+      );
+      return true;
+    })()`);
+    const screenshot = (await this.client.call("Page.captureScreenshot", {
+      captureBeyondViewport: false,
+      format: "png",
+      fromSurface: true,
+    })) as { readonly data?: string };
+    invariant(screenshot.data, "Chrome did not return screenshot data.");
+    const image = Buffer.from(screenshot.data, "base64");
+    await this.client.call("Emulation.setEmulatedMedia", {
+      features: [],
+      media: "",
+    });
+    await this.client.call("Emulation.clearDeviceMetricsOverride");
+    return image;
+  }
+
   async assertNoHorizontalOverflow(state: string): Promise<void> {
     const metrics = await this.evaluate<{
       readonly clientWidth: number;
@@ -606,6 +678,172 @@ class BrowserWorkflow {
       };
     })()`);
   }
+}
+
+class VisualRegression {
+  private readonly baselineDirectory: string;
+  private readonly artifactDirectory: string;
+  private readonly mode: VisualMode;
+
+  constructor(
+    mode: VisualMode,
+    projectRoot: string,
+  ) {
+    this.mode = mode;
+    this.baselineDirectory = resolve(
+      projectRoot,
+      "tests/visual/baselines",
+    );
+    this.artifactDirectory = resolve(projectRoot, "artifacts/visual");
+  }
+
+  async capture(
+    browser: BrowserWorkflow,
+    name: string,
+    width: number,
+    height: number,
+    scrollSelector?: string,
+  ): Promise<void> {
+    if (this.mode === "off") return;
+
+    const actual = await browser.captureViewport(
+      width,
+      height,
+      scrollSelector,
+    );
+    const baselinePath = resolve(
+      this.baselineDirectory,
+      `${name}.png`,
+    );
+
+    if (this.mode === "update") {
+      await mkdir(this.baselineDirectory, { recursive: true });
+      await writeFile(baselinePath, actual);
+      console.log(`[visual-regression] updated ${name}`);
+      return;
+    }
+
+    let expected: Buffer;
+    try {
+      expected = await readFile(baselinePath);
+    } catch {
+      throw new Error(
+        `Visual baseline ${name} is missing. Run npm run update:visual.`,
+      );
+    }
+
+    const [actualImage, expectedImage] = await Promise.all([
+      sharp(actual).ensureAlpha().raw().toBuffer({ resolveWithObject: true }),
+      sharp(expected)
+        .ensureAlpha()
+        .raw()
+        .toBuffer({ resolveWithObject: true }),
+    ]);
+    const actualInfo = actualImage.info;
+    const expectedInfo = expectedImage.info;
+
+    if (
+      actualInfo.width !== expectedInfo.width ||
+      actualInfo.height !== expectedInfo.height ||
+      actualInfo.channels !== expectedInfo.channels
+    ) {
+      await this.writeFailureArtifacts(name, actual);
+      throw new Error(
+        `Visual snapshot ${name} changed dimensions from ` +
+          `${expectedInfo.width}×${expectedInfo.height} to ` +
+          `${actualInfo.width}×${actualInfo.height}.`,
+      );
+    }
+
+    const diff = Buffer.alloc(actualImage.data.length);
+    let changedPixels = 0;
+    for (
+      let offset = 0;
+      offset < actualImage.data.length;
+      offset += actualInfo.channels
+    ) {
+      let changed = false;
+      for (let channel = 0; channel < actualInfo.channels; channel += 1) {
+        if (
+          Math.abs(
+            actualImage.data[offset + channel] -
+              expectedImage.data[offset + channel],
+          ) > VISUAL_CHANNEL_TOLERANCE
+        ) {
+          changed = true;
+          break;
+        }
+      }
+
+      if (changed) changedPixels += 1;
+      diff[offset] = changed ? 239 : actualImage.data[offset] * 0.35;
+      diff[offset + 1] = changed ? 68 : actualImage.data[offset + 1] * 0.35;
+      diff[offset + 2] = changed ? 68 : actualImage.data[offset + 2] * 0.35;
+      diff[offset + 3] = 255;
+    }
+
+    const totalPixels = actualInfo.width * actualInfo.height;
+    const changedPixelRatio = changedPixels / totalPixels;
+    if (changedPixelRatio > MAX_VISUAL_CHANGED_PIXEL_RATIO) {
+      await mkdir(this.artifactDirectory, { recursive: true });
+      const diffPng = await sharp(diff, {
+        raw: {
+          width: actualInfo.width,
+          height: actualInfo.height,
+          channels: actualInfo.channels,
+        },
+      })
+        .png()
+        .toBuffer();
+      await Promise.all([
+        writeFile(
+          resolve(this.artifactDirectory, `${name}.actual.png`),
+          actual,
+        ),
+        writeFile(
+          resolve(this.artifactDirectory, `${name}.diff.png`),
+          diffPng,
+        ),
+      ]);
+      throw new Error(
+        `Visual snapshot ${name} changed ` +
+          `${(changedPixelRatio * 100).toFixed(2)}% of pixels; ` +
+          `the limit is ${(MAX_VISUAL_CHANGED_PIXEL_RATIO * 100).toFixed(2)}%. ` +
+          "Review artifacts/visual.",
+      );
+    }
+
+    console.log(
+      `[visual-regression] ${name} passed ` +
+        `(${(changedPixelRatio * 100).toFixed(3)}% changed pixels)`,
+    );
+  }
+
+  private async writeFailureArtifacts(
+    name: string,
+    actual: Buffer,
+  ): Promise<void> {
+    await mkdir(this.artifactDirectory, { recursive: true });
+    await writeFile(
+      resolve(this.artifactDirectory, `${name}.actual.png`),
+      actual,
+    );
+  }
+}
+
+function resolveVisualMode(): VisualMode {
+  const argument = process.argv.find((value) =>
+    value.startsWith("--visual="),
+  );
+  const value = argument?.slice("--visual=".length) ?? "off";
+
+  if (value === "off" || value === "verify" || value === "update") {
+    return value;
+  }
+
+  throw new Error(
+    `Unsupported visual mode “${value}”. Use off, verify, or update.`,
+  );
 }
 
 async function waitForDownload(downloadDirectory: string): Promise<string> {
@@ -729,6 +967,7 @@ async function runCriticalWorkflows(
   browser: BrowserWorkflow,
   client: DevToolsClient,
   downloadDirectory: string,
+  visual: VisualRegression,
 ): Promise<BrowserWorkflowReport> {
   const responsiveStates: string[] = [];
 
@@ -754,6 +993,12 @@ async function runCriticalWorkflows(
     `document.querySelectorAll(".pokemon-card").length > 0`,
     "rankings cards",
   );
+  await visual.capture(
+    browser,
+    "rankings-desktop",
+    1440,
+    1_000,
+  );
   const invalidRankingTags = await browser.evaluate<number>(
     `[...document.querySelectorAll(".pokemon-card .type-pill")].filter(
       (pill) => ["shadow", "meta", "none"].includes(
@@ -768,6 +1013,16 @@ async function runCriticalWorkflows(
   await browser.setViewport(320);
   await browser.assertNoHorizontalOverflow("rankings");
   responsiveStates.push("rankings");
+  await browser.setViewport(1440, 1_000);
+
+  await browser.navigate("/inventory/new", "Add Pokémon");
+  await visual.capture(
+    browser,
+    "inventory-form-tablet",
+    768,
+    1_000,
+    ".selected-pokemon-preview",
+  );
   await browser.setViewport(1440, 1_000);
 
   await createInventory(browser);
@@ -929,6 +1184,20 @@ async function runCriticalWorkflows(
   );
   console.log(
     `[browser-workflows] Top-20 saved-team matrix ${JSON.stringify(savedTeamSimulation)}`,
+  );
+  await visual.capture(
+    browser,
+    "simulation-evidence-desktop",
+    1440,
+    1_000,
+    ".team-scorecard",
+  );
+  await visual.capture(
+    browser,
+    "simulation-evidence-mobile",
+    320,
+    900,
+    ".team-scorecard",
   );
   await browser.setViewport(320);
   await browser.assertNoHorizontalOverflow("populated saved-team simulation");
@@ -1116,6 +1385,8 @@ async function runCriticalWorkflows(
 
 async function main(): Promise<void> {
   const projectRoot = process.cwd();
+  const visualMode = resolveVisualMode();
+  const visual = new VisualRegression(visualMode, projectRoot);
   const upstreamRoot = resolve(projectRoot, "..");
   const temporaryRoot = await mkdtemp(
     resolve(tmpdir(), "teamlab-browser-workflows-"),
@@ -1180,6 +1451,7 @@ async function main(): Promise<void> {
       browser,
       client,
       downloadDirectory,
+      visual,
     );
 
     console.log(
