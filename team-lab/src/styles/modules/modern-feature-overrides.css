@@ -80,39 +80,6 @@
   outline: 3px solid rgb(10 162 184 / 12%);
 }
 
-.catalog-grid {
-  grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
-}
-
-.pokemon-card {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-content: start;
-  gap: 0 1rem;
-  border-color: var(--line);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  transition:
-    border-color 160ms ease,
-    box-shadow 160ms ease,
-    transform 160ms ease;
-}
-
-.pokemon-card:hover {
-  border-color: #a7dce2;
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
-}
-
-.pokemon-card__heading {
-  grid-column: 2;
-}
-
-.pokemon-card > .type-list,
-.pokemon-card > .pokemon-card__details {
-  grid-column: 1 / -1;
-}
-
 .rank-badge {
   color: white;
   background: var(--lab-700);
@@ -728,4 +695,3 @@
     flex-direction: column;
   }
 }
-

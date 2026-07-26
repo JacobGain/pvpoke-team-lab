@@ -92,58 +92,11 @@
   background: #fff8d8;
 }
 
-.catalog-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
-  gap: 1rem;
-}
-
-.pokemon-card {
-  padding: 1.25rem;
-  border: 1px solid #dce4f1;
-  border-radius: 1rem;
-  background: #ffffff;
-  box-shadow: 0 0.6rem 2rem rgb(34 52 94 / 6%);
-}
-
-.pokemon-card__heading {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.pokemon-card__heading h2 {
-  margin: 0.1rem 0 0;
-  font-size: 1.25rem;
-}
-
-.pokemon-card__dex {
-  color: #7d879b;
-  font-size: 0.72rem;
-  font-weight: 750;
-}
-
-.rank-badge {
-  flex: none;
-  padding: 0.4rem 0.55rem;
-  border-radius: 0.6rem;
-  color: #ffffff;
-  background: #3157c8;
-  font-size: 0.8rem;
-  font-weight: 800;
-}
-
-.rank-badge--muted {
-  color: #5e687c;
-  background: #edf1f7;
-}
-
 .type-list {
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem;
-  margin: 1rem 0;
+  margin: 0;
 }
 
 .type-pill {
@@ -167,30 +120,527 @@
   background: #57406f;
 }
 
-.pokemon-card__details {
-  display: grid;
-  gap: 0.8rem;
-  margin: 0;
+.type-pill--normal {
+  color: #4f565e;
+  background: #e8eaec;
 }
 
-.pokemon-card__details div {
-  display: grid;
-  gap: 0.2rem;
+.type-pill--fighting {
+  color: #811f38;
+  background: #f8dce4;
 }
 
-.pokemon-card__details dt {
-  color: #7d879b;
-  font-size: 0.68rem;
+.type-pill--flying {
+  color: #385781;
+  background: #e0e9f7;
+}
+
+.type-pill--poison {
+  color: #6a277b;
+  background: #f0def5;
+}
+
+.type-pill--ground {
+  color: #704027;
+  background: #f4e1d6;
+}
+
+.type-pill--rock {
+  color: #65582d;
+  background: #eee9cf;
+}
+
+.type-pill--bug {
+  color: #4e6617;
+  background: #e7f0cc;
+}
+
+.type-pill--ghost {
+  color: #4d4278;
+  background: #e7e2f5;
+}
+
+.type-pill--steel {
+  color: #405c6b;
+  background: #dee9ee;
+}
+
+.type-pill--fire {
+  color: #8b331d;
+  background: #fbe0d7;
+}
+
+.type-pill--water {
+  color: #27528a;
+  background: #dce9fb;
+}
+
+.type-pill--grass {
+  color: #256331;
+  background: #dcf0df;
+}
+
+.type-pill--electric {
+  color: #6d5900;
+  background: #fff1b8;
+}
+
+.type-pill--psychic {
+  color: #8a294d;
+  background: #f8dce7;
+}
+
+.type-pill--ice {
+  color: #17636b;
+  background: #d9f1f2;
+}
+
+.type-pill--dragon {
+  color: #343f91;
+  background: #dfe2fa;
+}
+
+.type-pill--dark {
+  color: #47424a;
+  background: #e5e1e7;
+}
+
+.type-pill--fairy {
+  color: #812d70;
+  background: #f6dff0;
+}
+
+.ranking-list {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.ranking-row {
+  overflow: clip;
+  border: 1px solid var(--line, #dce4f1);
+  border-radius: var(--radius-lg, 1rem);
+  background: #ffffff;
+  box-shadow: var(--shadow-sm, 0 0.4rem 1.5rem rgb(34 52 94 / 5%));
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.ranking-row:hover,
+.ranking-row[open] {
+  border-color: #9bcfd7;
+  box-shadow: var(--shadow-md, 0 0.7rem 2rem rgb(34 52 94 / 9%));
+}
+
+.ranking-row__summary {
+  display: grid;
+  grid-template-columns:
+    5.25rem minmax(13rem, 1.25fr) minmax(8rem, 0.7fr)
+    minmax(16rem, 1.4fr) minmax(8rem, 0.65fr) 4.5rem;
+  align-items: center;
+  gap: 1rem;
+  min-height: 7.25rem;
+  padding: 0.85rem 1rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.ranking-row__summary::-webkit-details-marker {
+  display: none;
+}
+
+.ranking-row__summary:focus-visible {
+  border-radius: inherit;
+  outline: 3px solid rgb(10 162 184 / 22%);
+  outline-offset: -3px;
+}
+
+.ranking-row__rank,
+.ranking-row__ivs {
+  display: grid;
+  gap: 0.05rem;
+}
+
+.ranking-row__rank {
+  align-content: center;
+  align-self: stretch;
+  margin: -0.85rem 0 -0.85rem -1rem;
+  padding: 0.9rem 0.8rem;
+  color: #ffffff;
+  background: linear-gradient(155deg, var(--lab-700, #18566a), #123d59);
+  text-align: center;
+}
+
+.ranking-row__rank span,
+.ranking-row__rank small {
+  color: rgb(255 255 255 / 72%);
+  font-size: 0.67rem;
   font-weight: 750;
-  letter-spacing: 0.06em;
+}
+
+.ranking-row__rank strong {
+  font-size: 1.4rem;
+  line-height: 1.1;
+}
+
+.ranking-row__identity {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  min-width: 0;
+}
+
+.ranking-row__identity > div {
+  min-width: 0;
+}
+
+.ranking-row__identity span:not(.pokemon-sprite) {
+  color: #7d879b;
+  font-size: 0.67rem;
+  font-weight: 750;
+}
+
+.ranking-row__identity h2 {
+  margin: 0.1rem 0 0;
+  overflow-wrap: anywhere;
+  font-size: 1.05rem;
+  line-height: 1.2;
+}
+
+.ranking-row__types,
+.ranking-row__moves,
+.ranking-row__ivs {
+  min-width: 0;
+}
+
+.ranking-row__label {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: #7d879b;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.055em;
   text-transform: uppercase;
 }
 
-.pokemon-card__details dd {
-  margin: 0;
+.ranking-row__moves strong,
+.ranking-row__ivs strong {
+  display: block;
   overflow-wrap: anywhere;
-  font-size: 0.86rem;
+  color: var(--ink-900, #17213a);
+  font-size: 0.82rem;
   line-height: 1.45;
+}
+
+.ranking-row__ivs small {
+  color: #69758d;
+  font-size: 0.72rem;
+}
+
+.ranking-row__expand {
+  display: grid;
+  justify-items: center;
+  gap: 0.2rem;
+  color: var(--lab-700, #18566a);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.ranking-row__expand svg {
+  transition: transform 160ms ease;
+}
+
+.ranking-row[open] .ranking-row__expand svg {
+  transform: rotate(180deg);
+}
+
+.ranking-detail {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+  padding: 1rem;
+  border-top: 1px solid var(--line, #dce4f1);
+  background: #f5f8fb;
+}
+
+.ranking-detail__panel {
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--line, #dce4f1);
+  border-radius: 0.9rem;
+  background: #ffffff;
+}
+
+.ranking-detail__performance {
+  grid-row: span 2;
+}
+
+.ranking-detail__movepool {
+  grid-column: span 2;
+}
+
+.ranking-detail__title {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-bottom: 0.9rem;
+}
+
+.ranking-detail__title > svg {
+  flex: none;
+  margin-top: 0.05rem;
+  color: var(--lab-600, #0a8da3);
+}
+
+.ranking-detail__title h3,
+.ranking-detail__title p {
+  margin: 0;
+}
+
+.ranking-detail__title h3 {
+  color: var(--ink-900, #17213a);
+  font-size: 0.95rem;
+}
+
+.ranking-detail__title p,
+.ranking-detail__empty,
+.ranking-detail__notes {
+  color: #69758d;
+  font-size: 0.73rem;
+  line-height: 1.45;
+}
+
+.ranking-detail__empty {
+  margin: 0;
+}
+
+.ranking-detail__notes {
+  margin: 1rem 0 0;
+  padding: 0.75rem;
+  border-radius: 0.65rem;
+  background: #eff7f8;
+}
+
+.performance-graph__chart {
+  display: block;
+  width: min(100%, 15rem);
+  margin: -0.5rem auto 0;
+}
+
+.performance-graph__grid,
+.performance-graph__axis {
+  fill: none;
+  stroke: #d9e4ea;
+  stroke-width: 1;
+}
+
+.performance-graph__value {
+  fill: rgb(10 162 184 / 23%);
+  stroke: var(--lab-600, #0a8da3);
+  stroke-linejoin: round;
+  stroke-width: 2.5;
+}
+
+.performance-graph__legend {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem 0.75rem;
+  margin: -0.3rem 0 1rem;
+}
+
+.performance-graph__legend div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+}
+
+.performance-graph__legend dt {
+  color: #69758d;
+}
+
+.performance-graph__legend dd {
+  margin: 0;
+  color: var(--ink-900, #17213a);
+  font-weight: 800;
+}
+
+.ranking-stats {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+}
+
+.ranking-stats dt {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  color: #69758d;
+  font-size: 0.7rem;
+}
+
+.ranking-stats dt strong {
+  color: var(--ink-900, #17213a);
+}
+
+.ranking-stats dd {
+  height: 0.3rem;
+  margin: 0.2rem 0 0;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e8eef3;
+}
+
+.ranking-stats dd span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--lab-500, #0aa2b8), #4ac8ae);
+}
+
+.ranking-matchups,
+.ranking-movepool {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ranking-matchups {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ranking-matchups li {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+  padding: 0.4rem;
+  border-radius: 0.6rem;
+  background: #f5f8fb;
+}
+
+.ranking-matchups li > span:not(.pokemon-sprite) {
+  display: grid;
+  min-width: 0;
+}
+
+.ranking-matchups strong {
+  overflow: hidden;
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ranking-matchups small {
+  color: #69758d;
+  font-size: 0.62rem;
+}
+
+.ranking-typing {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.ranking-typing h4,
+.ranking-move-groups h4 {
+  margin: 0 0 0.45rem;
+  color: #52607a;
+  font-size: 0.72rem;
+}
+
+.ranking-typing__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.ranking-typing .type-pill {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.3rem;
+}
+
+.ranking-typing .type-pill small {
+  opacity: 0.72;
+  font-size: 0.56rem;
+}
+
+.ranking-move-groups {
+  display: grid;
+  grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
+  gap: 1rem;
+}
+
+.ranking-movepool li {
+  padding: 0.65rem;
+  border-radius: 0.65rem;
+  background: #f5f8fb;
+}
+
+.ranking-movepool__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.ranking-movepool__heading strong {
+  font-size: 0.76rem;
+}
+
+.ranking-movepool__heading > div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.25rem;
+}
+
+.move-badge {
+  padding: 0.16rem 0.35rem;
+  border-radius: 999px;
+  color: #5f536c;
+  background: #eee8f4;
+  font-size: 0.55rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.move-badge--recommended {
+  color: #11663b;
+  background: #ddf4e7;
+}
+
+.ranking-movepool__facts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 0.55rem;
+  margin-top: 0.45rem;
+  color: #69758d;
+  font-size: 0.62rem;
+}
+
+.ranking-movepool__facts .type-pill {
+  font-size: 0.55rem;
+}
+
+@media (max-width: 1120px) {
+  .ranking-row__summary {
+    grid-template-columns:
+      5rem minmax(12rem, 1.2fr) minmax(7rem, 0.8fr)
+      minmax(13rem, 1fr) minmax(7rem, 0.6fr) 3.5rem;
+    gap: 0.75rem;
+  }
+
+  .ranking-detail {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ranking-detail__performance {
+    grid-row: span 2;
+  }
 }
 
 @media (max-width: 760px) {
@@ -207,8 +657,88 @@
     grid-template-columns: 1fr;
   }
 
-  .catalog-grid {
+  .ranking-row__summary {
+    grid-template-columns: 4.3rem minmax(0, 1fr) auto;
+    gap: 0.7rem;
+    padding: 0.75rem;
+  }
+
+  .ranking-row__rank {
+    grid-row: 1 / span 2;
+    margin: -0.75rem 0 -0.75rem -0.75rem;
+    padding-inline: 0.45rem;
+  }
+
+  .ranking-row__identity {
+    grid-column: 2;
+  }
+
+  .ranking-row__identity .pokemon-sprite--large {
+    width: 3.2rem;
+    height: 3.2rem;
+  }
+
+  .ranking-row__types {
+    grid-column: 2;
+  }
+
+  .ranking-row__moves,
+  .ranking-row__ivs {
+    grid-column: 1 / -1;
+    padding-top: 0.7rem;
+    border-top: 1px solid var(--line, #dce4f1);
+  }
+
+  .ranking-row__expand {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+  }
+
+  .ranking-detail {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 0.7rem;
+  }
+
+  .ranking-detail__performance,
+  .ranking-detail__movepool {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .ranking-move-groups {
     grid-template-columns: minmax(0, 1fr);
   }
 }
 
+@media (max-width: 420px) {
+  .catalog-page {
+    width: min(100% - 1rem, 90rem);
+  }
+
+  .ranking-row__summary {
+    grid-template-columns: 3.65rem minmax(0, 1fr) 2.25rem;
+    column-gap: 0.5rem;
+  }
+
+  .ranking-row__identity {
+    gap: 0.5rem;
+  }
+
+  .ranking-row__identity .pokemon-sprite--large {
+    width: 2.8rem;
+    height: 2.8rem;
+  }
+
+  .ranking-row__expand span {
+    position: absolute;
+    overflow: hidden;
+    width: 1px;
+    height: 1px;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .ranking-matchups {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

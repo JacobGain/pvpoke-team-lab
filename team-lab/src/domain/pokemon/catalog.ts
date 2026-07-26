@@ -18,9 +18,30 @@ export interface CatalogRanking {
   readonly score: number;
   readonly rating: number;
   readonly recommendedMoveIds: readonly string[];
+  readonly moveUsage?: CatalogRankingMoveUsage;
+  readonly editorScore?: number;
+  readonly editorNotes?: string;
+  readonly stats?: CatalogRankingStats;
   readonly roleScores: CatalogRoleScores;
   readonly matchups: readonly CatalogRankedOpponent[];
   readonly counters: readonly CatalogRankedOpponent[];
+}
+
+export interface CatalogMoveUsage {
+  readonly moveId: string;
+  readonly uses?: number;
+}
+
+export interface CatalogRankingMoveUsage {
+  readonly fastMoves: readonly CatalogMoveUsage[];
+  readonly chargedMoves: readonly CatalogMoveUsage[];
+}
+
+export interface CatalogRankingStats {
+  readonly statProduct: number;
+  readonly attack: number;
+  readonly defense: number;
+  readonly hp: number;
 }
 
 export interface CatalogRankedOpponent {

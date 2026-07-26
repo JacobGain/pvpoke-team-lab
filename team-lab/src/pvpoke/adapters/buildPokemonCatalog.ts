@@ -94,6 +94,36 @@ function createRanking(
     score: ranking.score,
     rating: ranking.rating,
     recommendedMoveIds: Object.freeze([...ranking.moveset]),
+    moveUsage: ranking.moves
+      ? Object.freeze({
+          fastMoves: Object.freeze(
+            ranking.moves.fastMoves.map((move) =>
+              Object.freeze({
+                moveId: move.moveId,
+                uses: move.uses ?? undefined,
+              }),
+            ),
+          ),
+          chargedMoves: Object.freeze(
+            ranking.moves.chargedMoves.map((move) =>
+              Object.freeze({
+                moveId: move.moveId,
+                uses: move.uses ?? undefined,
+              }),
+            ),
+          ),
+        })
+      : undefined,
+    editorScore: ranking.editorScore,
+    editorNotes: ranking.editorNotes,
+    stats: ranking.stats
+      ? Object.freeze({
+          statProduct: ranking.stats.product,
+          attack: ranking.stats.atk,
+          defense: ranking.stats.def,
+          hp: ranking.stats.hp,
+        })
+      : undefined,
     matchups: Object.freeze(
       ranking.matchups.map((matchup) =>
         Object.freeze({

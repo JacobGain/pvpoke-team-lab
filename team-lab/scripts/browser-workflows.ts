@@ -990,8 +990,50 @@ async function runCriticalWorkflows(
   );
   await browser.navigate("/catalog", "Rankings");
   await browser.waitFor(
-    `document.querySelectorAll(".pokemon-card").length > 0`,
-    "rankings cards",
+    `document.querySelectorAll(".ranking-row").length > 0`,
+    "ranking rows",
+  );
+  const rankingRowSummary = await browser.evaluate<boolean>(`(() => {
+    const row = document.querySelector(".ranking-row");
+    const text = row?.querySelector(".ranking-row__summary")
+      ?.textContent ?? "";
+    return Boolean(
+      row?.querySelector(".pokemon-sprite img") &&
+      row?.querySelector(".ranking-row__identity h2") &&
+      row?.querySelector(".ranking-row__rank strong") &&
+      text.includes("Typing") &&
+      text.includes("Recommended moves") &&
+      text.includes("Optimal IVs")
+    );
+  })()`);
+  invariant(
+    rankingRowSummary,
+    "A ranking row did not expose its critical summary information.",
+  );
+  await browser.evaluate(`(() => {
+    const summary = document.querySelector(".ranking-row summary");
+    if (summary instanceof HTMLElement) summary.click();
+  })()`);
+  await browser.waitFor(
+    `Boolean(document.querySelector(".ranking-row[open] .ranking-detail"))`,
+    "expanded ranking details",
+  );
+  const rankingDetails = await browser.evaluate<boolean>(`(() => {
+    const detail = document.querySelector(".ranking-row[open] .ranking-detail");
+    const text = detail?.textContent ?? "";
+    return Boolean(
+      detail?.querySelector(".performance-graph__chart") &&
+      detail?.querySelector(".ranking-stats") &&
+      detail?.querySelector(".ranking-matchups .pokemon-sprite") &&
+      text.includes("Key wins") &&
+      text.includes("Key losses") &&
+      text.includes("Defensive typing") &&
+      text.includes("Full movepool")
+    );
+  })()`);
+  invariant(
+    rankingDetails,
+    "Expanded ranking details were missing an upstream ranking section.",
   );
   await visual.capture(
     browser,
@@ -1000,7 +1042,7 @@ async function runCriticalWorkflows(
     1_000,
   );
   const invalidRankingTags = await browser.evaluate<number>(
-    `[...document.querySelectorAll(".pokemon-card .type-pill")].filter(
+    `[...document.querySelectorAll(".ranking-row .type-pill")].filter(
       (pill) => ["shadow", "meta", "none"].includes(
         pill.textContent?.trim().toLocaleLowerCase() ?? ""
       )
@@ -1011,6 +1053,19 @@ async function runCriticalWorkflows(
     "Rankings rendered Shadow, Meta, or None as a type tag.",
   );
   await browser.setViewport(320);
+  await visual.capture(
+    browser,
+    "rankings-mobile",
+    320,
+    900,
+  );
+  await visual.capture(
+    browser,
+    "rankings-mobile-expanded",
+    320,
+    900,
+    ".ranking-detail",
+  );
   await browser.assertNoHorizontalOverflow("rankings");
   responsiveStates.push("rankings");
   await browser.setViewport(1440, 1_000);

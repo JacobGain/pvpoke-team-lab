@@ -4,13 +4,12 @@ import { Link } from "react-router-dom";
 
 import { EmptyState } from "@/components/EmptyState";
 import { PageHeader } from "@/components/PageHeader";
-import { PokemonSprite } from "@/components/PokemonSprite";
 import {
   countCatalogDiagnostics,
   type PokemonCatalogEntry,
 } from "@/domain/pokemon/catalog";
+import { RankingRow } from "@/features/meta/RankingRow";
 import { usePokemonCatalog } from "@/features/meta/usePokemonCatalog";
-import { formatMoveList } from "@/utils/formatters";
 
 const DISPLAY_LIMIT = 120;
 
@@ -84,6 +83,9 @@ export function PokemonCatalogPage() {
 
   const displayedPokemon = filteredPokemon.slice(0, DISPLAY_LIMIT);
   const diagnosticCount = countCatalogDiagnostics(catalog.diagnostics);
+  const catalogById = new Map(
+    catalog.entries.map((pokemon) => [pokemon.speciesId, pokemon]),
+  );
 
   return (
     <main className="catalog-page">
@@ -137,68 +139,13 @@ export function PokemonCatalogPage() {
         </aside>
       ) : null}
 
-      <section className="catalog-grid" aria-label="Pokémon catalog results">
+      <section className="ranking-list" aria-label="Pokémon ranking results">
         {displayedPokemon.map((pokemon) => (
-          <article className="pokemon-card" key={pokemon.speciesId}>
-            <PokemonSprite
-              size="large"
-              speciesId={pokemon.speciesId}
-              speciesName={pokemon.speciesName}
-            />
-            <div className="pokemon-card__heading">
-              <div>
-                <span className="pokemon-card__dex">
-                  #{String(pokemon.dex).padStart(4, "0")}
-                </span>
-                <h2>{pokemon.speciesName}</h2>
-              </div>
-              {pokemon.ranking ? (
-                <span className="rank-badge">#{pokemon.ranking.rank}</span>
-              ) : (
-                <span className="rank-badge rank-badge--muted">
-                  Unranked
-                </span>
-              )}
-            </div>
-
-            <div className="type-list">
-              {pokemon.types.filter((type) => type !== "none").map((type) => (
-                <span className={`type-pill type-pill--${type}`} key={type}>
-                  {type}
-                </span>
-              ))}
-            </div>
-
-            <dl className="pokemon-card__details">
-              <div>
-                <dt>Recommended</dt>
-                <dd>
-                  {pokemon.ranking
-                    ? formatMoveList(
-                        pokemon.ranking.recommendedMoveIds,
-                        " · ",
-                      )
-                    :
-                    "No published moveset"}
-                </dd>
-              </div>
-              <div>
-                <dt>Movepool</dt>
-                <dd>
-                  {pokemon.fastMoves.length} fast ·{" "}
-                  {pokemon.chargedMoves.length} charged
-                </dd>
-              </div>
-              <div>
-                <dt>Default IVs</dt>
-                <dd>
-                  {pokemon.defaultGreatLeagueIvs
-                    ? `${pokemon.defaultGreatLeagueIvs.attack}/${pokemon.defaultGreatLeagueIvs.defense}/${pokemon.defaultGreatLeagueIvs.hp} · L${pokemon.defaultGreatLeagueIvs.level}`
-                    : "Not provided"}
-                </dd>
-              </div>
-            </dl>
-          </article>
+          <RankingRow
+            catalogById={catalogById}
+            key={pokemon.speciesId}
+            pokemon={pokemon}
+          />
         ))}
       </section>
 
