@@ -135,7 +135,7 @@ function createCandidate(
       record.buildStatus === "current" ? "ready-now" : "planned",
     favorite: record.favorite,
     exactBuild: serializeAnalyzedBuildForSimulation(selectedBuild, pokemon),
-    buildRequirements: analysis.requirements,
+    buildRequirements: analysis.transitionRequirements,
     staticEvidence: createStaticEvidence(pokemon),
   };
 }

@@ -83,6 +83,8 @@ export interface InventoryBuildAnalysis {
   readonly inventoryId: string;
   readonly current: AnalyzedPokemonBuild;
   readonly planned?: AnalyzedPokemonBuild;
+  readonly transitionRequirements: readonly BuildRequirement[];
+  readonly recommendedRequirements: readonly BuildRequirement[];
   readonly requirements: readonly BuildRequirement[];
 }
 
@@ -216,29 +218,37 @@ function analyzeBuild(
   };
 }
 
-function buildRequirements(
-  catalog: PokemonCatalog,
+function uniqueRequirements(
+  requirements: readonly BuildRequirement[],
+): readonly BuildRequirement[] {
+  return requirements.filter(
+    (requirement, index) =>
+      requirements.findIndex(
+        (candidate) =>
+          candidate.code === requirement.code &&
+          candidate.message === requirement.message,
+      ) === index,
+  );
+}
+
+function buildTransitionRequirements(
   current: AnalyzedPokemonBuild,
   planned: AnalyzedPokemonBuild | undefined,
 ): readonly BuildRequirement[] {
-  const target = planned ?? current;
-  const targetPokemon = catalog.entries.find(
-    (pokemon) => pokemon.speciesId === target.speciesId,
-  );
   const requirements: BuildRequirement[] = [];
 
-  if (!targetPokemon) {
+  if (!planned) {
     return requirements;
   }
 
-  if (planned && planned.speciesId !== current.speciesId) {
+  if (planned.speciesId !== current.speciesId) {
     requirements.push({
       code: "evolve",
       message: `Evolve ${current.speciesName} into ${planned.speciesName}.`,
     });
   }
 
-  if (planned && planned.cp > current.cp) {
+  if (planned.cp > current.cp) {
     requirements.push({
       code: "power-up",
       message: `Power up from CP ${current.cp} to CP ${planned.cp}.`,
@@ -246,7 +256,6 @@ function buildRequirements(
   }
 
   if (
-    planned &&
     planned.moves.enteredFastMoveId !== current.moves.enteredFastMoveId
   ) {
     requirements.push({
@@ -255,21 +264,42 @@ function buildRequirements(
     });
   }
 
-  if (planned) {
-    for (const moveId of planned.moves.enteredChargedMoveIds) {
-      if (!current.moves.enteredChargedMoveIds.includes(moveId)) {
-        requirements.push({
-          code:
-            current.moves.enteredChargedMoveIds.length < 2
-              ? "unlock-second-charged-move"
-              : "change-charged-move",
-          message:
-            current.moves.enteredChargedMoveIds.length < 2
-              ? `Unlock a second charged move for ${moveId}.`
-              : `Change a charged move to ${moveId}.`,
-        });
+  let replaceableMoveCount = current.moves.enteredChargedMoveIds.filter(
+    (moveId) => !planned.moves.enteredChargedMoveIds.includes(moveId),
+  ).length;
+
+  for (const moveId of planned.moves.enteredChargedMoveIds) {
+    if (!current.moves.enteredChargedMoveIds.includes(moveId)) {
+      const replacesExistingMove = replaceableMoveCount > 0;
+
+      requirements.push({
+        code: replacesExistingMove
+          ? "change-charged-move"
+          : "unlock-second-charged-move",
+        message: replacesExistingMove
+          ? `Change a charged move to ${moveId}.`
+          : `Unlock a second charged move for ${moveId}.`,
+      });
+      if (replacesExistingMove) {
+        replaceableMoveCount -= 1;
       }
     }
+  }
+
+  return uniqueRequirements(requirements);
+}
+
+function buildRecommendedRequirements(
+  catalog: PokemonCatalog,
+  target: AnalyzedPokemonBuild,
+): readonly BuildRequirement[] {
+  const targetPokemon = catalog.entries.find(
+    (pokemon) => pokemon.speciesId === target.speciesId,
+  );
+  const requirements: BuildRequirement[] = [];
+
+  if (!targetPokemon) {
+    return requirements;
   }
 
   if (!target.moves.fastMoveMatches && target.moves.recommendedFastMoveId) {
@@ -317,14 +347,7 @@ function buildRequirements(
     }
   }
 
-  return requirements.filter(
-    (requirement, index) =>
-      requirements.findIndex(
-        (candidate) =>
-          candidate.code === requirement.code &&
-          candidate.message === requirement.message,
-      ) === index,
-  );
+  return uniqueRequirements(requirements);
 }
 
 export function analyzeInventoryBuild(
@@ -378,10 +401,24 @@ export function analyzeInventoryBuild(
     );
   }
 
+  const transitionRequirements = buildTransitionRequirements(
+    current,
+    planned,
+  );
+  const recommendedRequirements = buildRecommendedRequirements(
+    catalog,
+    planned ?? current,
+  );
+
   return {
     inventoryId: record.inventoryId,
     current,
     planned,
-    requirements: buildRequirements(catalog, current, planned),
+    transitionRequirements,
+    recommendedRequirements,
+    requirements: uniqueRequirements([
+      ...transitionRequirements,
+      ...recommendedRequirements,
+    ]),
   };
 }

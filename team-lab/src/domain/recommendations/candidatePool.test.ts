@@ -165,6 +165,41 @@ describe("recommendation request contract", () => {
 });
 
 describe("recommendation candidate pool", () => {
+  it("does not treat recommended-moveset improvements as required team changes", () => {
+    const incompleteMoveset = createInventoryPokemon(
+      {
+        buildStatus: "current",
+        speciesId: "azumarill",
+        currentBuild: {
+          cp: 1499,
+          ivProfile: { source: "assumed-rank-1" },
+          moveset: {
+            fastMoveId: "BUBBLE",
+            chargedMoveIds: ["ICE_BEAM"],
+          },
+        },
+      },
+      {
+        catalog: inventoryTestCatalog,
+        createId: () => ids.azumarill,
+      },
+    );
+    const pool = buildRecommendationCandidatePool(
+      request(),
+      [
+        incompleteMoveset,
+        currentRecord("altaria", ids.altaria),
+        currentRecord("whiscash", ids.whiscash),
+      ],
+      inventoryTestCatalog,
+    );
+
+    expect(pool.anchors[0]?.candidate.exactBuild.chargedMoveIds).toEqual([
+      "ICE_BEAM",
+    ]);
+    expect(pool.anchors[0]?.candidate.buildRequirements).toEqual([]);
+  });
+
   it("produces exact pre-score evidence and prioritizes ready-now partners", () => {
     const inventory = [
       currentRecord("azumarill", ids.azumarill),

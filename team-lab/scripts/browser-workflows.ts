@@ -960,6 +960,20 @@ async function createInventory(
       `location.pathname === "/inventory" && document.querySelectorAll(".inventory-card").length === ${index + 1}`,
       `${speciesId} to persist`,
     );
+    if (index === 0) {
+      const inventoryBadges = await browser.evaluate<boolean>(`(() => {
+        const card = document.querySelector(".inventory-card");
+        return (
+          card?.querySelector(".context-badge")?.textContent?.trim() ===
+            "CP 1499" &&
+          card?.querySelector(".xl-badge")?.textContent?.trim() === "XL"
+        );
+      })()`);
+      invariant(
+        inventoryBadges,
+        "Inventory did not render the subtle CP badge and Candy XL marker.",
+      );
+    }
   }
 }
 
@@ -1114,6 +1128,13 @@ async function runCriticalWorkflows(
     `document.querySelectorAll(".inventory-card").length === 1 && document.querySelector(".inventory-card h2")?.textContent === "Azumarill"`,
     "inventory search result",
   );
+  await visual.capture(
+    browser,
+    "inventory-card-desktop",
+    1440,
+    800,
+    ".inventory-card",
+  );
   await browser.setLabeledControl(
     "Search species or notes",
     "",
@@ -1198,6 +1219,21 @@ async function runCriticalWorkflows(
     JSON.stringify(renderedTeamRoles) ===
       JSON.stringify(["Lead", "Safe switch", "Closer"]),
     `Saved-team roles were not separated and humanized: ${renderedTeamRoles.join(", ")}.`,
+  );
+  const savedTeamLeagueBadge = await browser.evaluate<boolean>(
+    `document.querySelector(".team-card .context-badge")
+      ?.textContent?.trim() === "Great League"`,
+  );
+  invariant(
+    savedTeamLeagueBadge,
+    "Saved teams did not render the subtle Great League badge.",
+  );
+  await visual.capture(
+    browser,
+    "saved-team-card-desktop",
+    1440,
+    800,
+    ".team-card",
   );
 
   const teamLinks = await browser.evaluate<{

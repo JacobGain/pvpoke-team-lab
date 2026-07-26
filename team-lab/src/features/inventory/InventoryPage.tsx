@@ -225,7 +225,7 @@ export function InventoryPage() {
                     </p>
                     <h2>{pokemon?.speciesName ?? record.speciesId}</h2>
                   </div>
-                  <span className="rank-badge">
+                  <span className="context-badge">
                     CP {record.currentBuild.cp}
                   </span>
                 </div>

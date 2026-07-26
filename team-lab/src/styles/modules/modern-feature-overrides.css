@@ -81,8 +81,9 @@
 }
 
 .rank-badge {
-  color: white;
-  background: var(--lab-700);
+  border-color: #b9dfe4;
+  color: var(--lab-700);
+  background: var(--lab-100);
 }
 
 .rank-badge--muted {

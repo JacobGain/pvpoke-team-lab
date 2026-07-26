@@ -107,7 +107,7 @@ export function SavedTeamsPage() {
                 </p>
                 <h2>{team.name}</h2>
               </div>
-              <span className="rank-badge">Great League</span>
+              <span className="context-badge">Great League</span>
             </div>
             <ol className="team-members">
               {members.map((member) => (

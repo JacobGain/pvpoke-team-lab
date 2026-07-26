@@ -63,6 +63,11 @@ describe("inventory build analysis", () => {
       code: "unlock-second-charged-move",
       message: "Unlock a second charged move for PLAY_ROUGH.",
     });
+    expect(analysis.transitionRequirements).toEqual([]);
+    expect(analysis.recommendedRequirements).toContainEqual({
+      code: "unlock-second-charged-move",
+      message: "Unlock a second charged move for PLAY_ROUGH.",
+    });
   });
 
   it("keeps current and planned analysis separate", () => {
@@ -90,5 +95,44 @@ describe("inventory build analysis", () => {
       code: "unlock-second-charged-move",
       message: "Unlock a second charged move for PLAY_ROUGH.",
     });
+    expect(analysis.transitionRequirements).toContainEqual({
+      code: "unlock-second-charged-move",
+      message: "Unlock a second charged move for PLAY_ROUGH.",
+    });
+    expect(analysis.recommendedRequirements).toEqual([]);
+  });
+
+  it("keeps a planned non-recommended moveset separate from recommendations", () => {
+    const current = createRecord(["ICE_BEAM"]);
+    const planned = {
+      ...current,
+      buildStatus: "planned" as const,
+      plannedBuild: {
+        targetSpeciesId: "azumarill",
+        targetCp: 1499,
+        desiredMoveset: {
+          fastMoveId: "BUBBLE",
+          chargedMoveIds: ["HYDRO_PUMP"],
+        },
+      },
+    };
+    const analysis = analyzeInventoryBuild(planned, inventoryTestCatalog);
+
+    expect(analysis.transitionRequirements).toEqual([
+      {
+        code: "change-charged-move",
+        message: "Change a charged move to HYDRO_PUMP.",
+      },
+    ]);
+    expect(analysis.recommendedRequirements).toEqual([
+      {
+        code: "unlock-second-charged-move",
+        message: "Unlock a second charged move for ICE_BEAM.",
+      },
+      {
+        code: "unlock-second-charged-move",
+        message: "Unlock a second charged move for PLAY_ROUGH.",
+      },
+    ]);
   });
 });
