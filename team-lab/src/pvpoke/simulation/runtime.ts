@@ -13,6 +13,8 @@ export interface PvpokePokemon {
     index?: number,
   ): boolean | void;
   setShields(amount: number): void;
+  getEffectiveStat(index: 0 | 1): number;
+  calculateConsistency(): number;
 }
 
 export interface PvpokeWinner {

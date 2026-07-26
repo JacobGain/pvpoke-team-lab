@@ -95,6 +95,8 @@ class MeasuredAdapter implements TeamRankerAdapter {
     return Promise.resolve({
       rankings: [],
       teamRatings: [[], [], []],
+      teamBulkValues: [22_000, 22_000, 22_000],
+      teamConsistencyScores: [90, 90, 90],
       battleCount: request.team.length * request.targets.length,
       dataVersion: request.dataVersion,
       engine: "pvpoke-team-ranker",

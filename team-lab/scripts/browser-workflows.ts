@@ -1316,6 +1316,23 @@ async function runCriticalWorkflows(
   console.log(
     `[browser-workflows] Top-20 saved-team matrix ${JSON.stringify(savedTeamSimulation)}`,
   );
+  const pvpokeGradeEvidence = await browser.evaluate<boolean>(`(() => {
+    const scorecard = document.querySelector(".team-scorecard");
+    const grades = [...(scorecard?.querySelectorAll("article > strong") ?? [])]
+      .map((grade) => grade.textContent?.trim() ?? "");
+    const text = document.body.textContent ?? "";
+    return (
+      grades.length === 4 &&
+      grades.every((grade) => /^[A-F]$/.test(grade)) &&
+      !grades.includes("S") &&
+      text.includes("PvPoke threat-score goal") &&
+      text.includes("exact-moveset score")
+    );
+  })()`);
+  invariant(
+    pvpokeGradeEvidence,
+    "Team grades did not use PvPoke A–F goals and exact-moveset evidence.",
+  );
   await visual.capture(
     browser,
     "simulation-evidence-desktop",

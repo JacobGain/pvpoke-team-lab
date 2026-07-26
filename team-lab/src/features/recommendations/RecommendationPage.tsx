@@ -332,7 +332,7 @@ export function RecommendationPage() {
   const [buildStatusScope, setBuildStatusScope] =
     useState<RecommendationBuildStatusScope>("all");
   const [includeRankedPartners, setIncludeRankedPartners] = useState(false);
-  const [targetLimit, setTargetLimit] = useState<MetaTargetLimit>(5);
+  const [targetLimit, setTargetLimit] = useState<MetaTargetLimit>(48);
   const [teamShields, setTeamShields] = useState<ShieldCount>(1);
   const [targetShields, setTargetShields] = useState<ShieldCount>(1);
   const [running, setRunning] = useState(false);
@@ -733,7 +733,9 @@ export function RecommendationPage() {
                 >
                   {META_TARGET_LIMITS.map((limit) => (
                     <option key={limit} value={limit}>
-                      Top {limit}
+                      {limit === 48
+                        ? "Greater Meta (48) · best grade accuracy"
+                        : `Top ${limit} · faster`}
                     </option>
                   ))}
                 </select>

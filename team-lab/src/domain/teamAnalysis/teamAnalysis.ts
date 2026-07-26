@@ -6,7 +6,7 @@ import type {
 export const TARGET_FAVORED_RATING = 501;
 export const TEAM_MEMBER_FAVORED_RATING = 499;
 
-export type CoverageGrade = "S" | "A" | "B" | "C" | "D";
+export type CoverageGrade = "A" | "B" | "C" | "D" | "F";
 export type ThreatLevel = "team-wall" | "core-breaker" | "threat" | "covered";
 
 export interface TeamMemberCoverage {
@@ -38,6 +38,9 @@ export interface TeamThreatEvidence {
 export interface TeamCoverageScore {
   readonly grade: CoverageGrade;
   readonly score: number;
+  readonly pvpokeValue: number;
+  readonly pvpokeGoal: number;
+  readonly method: string;
   readonly coveredTargets: number;
   readonly totalTargets: number;
   readonly coveredTargetPercentage: number;
@@ -49,10 +52,13 @@ export interface TeamCoverageScore {
 export interface TeamScoreDimension {
   readonly grade: CoverageGrade;
   readonly score: number;
+  readonly pvpokeValue: number;
+  readonly pvpokeGoal: number;
   readonly evidenceSource:
     | "exact-effective-stats"
     | "simulated-matchup-distribution"
-    | "pvpoke-static-role-scores";
+    | "pvpoke-static-role-scores"
+    | "pvpoke-exact-moveset";
   readonly method: string;
   readonly evidenceCount: number;
   readonly evidenceTotal: number;
@@ -81,12 +87,25 @@ function percentage(value: number, total: number): number {
   return total === 0 ? 0 : (value / total) * 100;
 }
 
-function scoreGrade(score: number): CoverageGrade {
-  if (score >= 90) return "S";
-  if (score >= 80) return "A";
-  if (score >= 70) return "B";
-  if (score >= 60) return "C";
-  return "D";
+const PVPOKE_GREAT_LEAGUE_GOALS = Object.freeze({
+  coverage: 680,
+  bulk: 22_000,
+  safety: 98,
+  consistency: 98,
+});
+
+function pvpokeGrade(value: number, goal: number): CoverageGrade {
+  const percentageOfGoal = value / goal;
+
+  if (percentageOfGoal >= 0.9) return "A";
+  if (percentageOfGoal >= 0.8) return "B";
+  if (percentageOfGoal >= 0.7) return "C";
+  if (percentageOfGoal >= 0.6) return "D";
+  return "F";
+}
+
+function goalPercentage(value: number, goal: number): number {
+  return Math.min(Math.max((value / goal) * 100, 0), 100);
 }
 
 function classifyThreat(
@@ -173,11 +192,48 @@ export function analyzeTeamRankerMatrix(
     0,
   );
   const coveredTargetPercentage = percentage(coveredTargets, threats.length);
+  const gradeThreats = [...run.result.rankings]
+    .sort(
+      (left, right) =>
+        right.score - left.score ||
+        right.averageRating - left.averageRating,
+    )
+    .slice(0, 6);
+  const averageThreatScore =
+    gradeThreats.reduce(
+      (sum, threat) => sum + threat.averageRating,
+      0,
+    ) / Math.max(gradeThreats.length, 1);
+  const coverageValue = 1_200 - averageThreatScore;
+  const bulkValue =
+    run.result.teamBulkValues.reduce((sum, value) => sum + value, 0) /
+    Math.max(run.result.teamBulkValues.length, 1);
+  const safetyScores = run.evidence.members.map(
+    (member) => member.roleScores?.switch ?? 60,
+  );
+  const safetyValue =
+    safetyScores.reduce((sum, value) => sum + value, 0) /
+    Math.max(safetyScores.length, 1);
+  const consistencyValue =
+    run.result.teamConsistencyScores.reduce(
+      (sum, value) => sum + value,
+      0,
+    ) / Math.max(run.result.teamConsistencyScores.length, 1);
 
   return {
     coverage: {
-      grade: scoreGrade(coveredTargetPercentage),
-      score: coveredTargetPercentage,
+      grade: pvpokeGrade(
+        coverageValue,
+        PVPOKE_GREAT_LEAGUE_GOALS.coverage,
+      ),
+      score: goalPercentage(
+        coverageValue,
+        PVPOKE_GREAT_LEAGUE_GOALS.coverage,
+      ),
+      pvpokeValue: coverageValue,
+      pvpokeGoal: PVPOKE_GREAT_LEAGUE_GOALS.coverage,
+      method:
+        "PvPoke threat-score formula over the six most difficult selected targets",
       coveredTargets,
       totalTargets: threats.length,
       coveredTargetPercentage,
@@ -188,71 +244,57 @@ export function analyzeTeamRankerMatrix(
         totalMatchups,
       ),
     },
-    bulk: (() => {
-      const targetBulk = run.evidence.targets.map(
-        (target) => target.stats.defense * target.stats.hp,
-      );
-      const memberPercentiles = run.evidence.members.map((member) => {
-        const bulk = member.stats.defense * member.stats.hp;
-        return percentage(
-          targetBulk.filter((target) => target <= bulk).length,
-          targetBulk.length,
-        );
-      });
-      const score =
-        memberPercentiles.reduce((sum, value) => sum + value, 0) /
-        Math.max(memberPercentiles.length, 1);
-
-      return {
-        grade: scoreGrade(score),
-        score,
-        evidenceSource: "exact-effective-stats",
-        method:
-          "Average member Defense × HP percentile within selected meta targets",
-        evidenceCount: memberPercentiles.length,
-        evidenceTotal: targetBulk.length,
-      };
-    })(),
-    safety: (() => {
-      const redundantAnswers = threats.filter(
-        (threat) => threat.targetLosses >= 2,
-      ).length;
-      const redundancyPercentage = percentage(
-        redundantAnswers,
-        threats.length,
-      );
-      const switchCoverage =
-        members.find((member) => member.position === "switch")
-          ?.positiveMatchupPercentage ?? 0;
-      const score = redundancyPercentage * 0.6 + switchCoverage * 0.4;
-
-      return {
-        grade: scoreGrade(score),
-        score,
-        evidenceSource: "simulated-matchup-distribution",
-        method:
-          "60% targets with two or more answers + 40% safe-switch positive matchups",
-        evidenceCount: redundantAnswers,
-        evidenceTotal: threats.length,
-      };
-    })(),
-    consistency: (() => {
-      const scores = run.evidence.members.flatMap((member) =>
-        member.roleScores ? [member.roleScores.consistency] : [],
-      );
-      const score =
-        scores.reduce((sum, value) => sum + value, 0) /
-        Math.max(scores.length, 1);
-
-      return {
-        grade: scoreGrade(score),
-        score,
-        evidenceSource: "pvpoke-static-role-scores",
-        method: "Average published PvPoke consistency score for ranked members",
-        evidenceCount: scores.length,
-        evidenceTotal: run.evidence.members.length,
-      };
-    })(),
+    bulk: {
+      grade: pvpokeGrade(
+        bulkValue,
+        PVPOKE_GREAT_LEAGUE_GOALS.bulk,
+      ),
+      score: goalPercentage(
+        bulkValue,
+        PVPOKE_GREAT_LEAGUE_GOALS.bulk,
+      ),
+      pvpokeValue: bulkValue,
+      pvpokeGoal: PVPOKE_GREAT_LEAGUE_GOALS.bulk,
+      evidenceSource: "exact-effective-stats",
+      method:
+        "PvPoke average effective Defense × HP against the Great League 22,000 goal",
+      evidenceCount: run.result.teamBulkValues.length,
+      evidenceTotal: run.evidence.members.length,
+    },
+    safety: {
+      grade: pvpokeGrade(
+        safetyValue,
+        PVPOKE_GREAT_LEAGUE_GOALS.safety,
+      ),
+      score: goalPercentage(
+        safetyValue,
+        PVPOKE_GREAT_LEAGUE_GOALS.safety,
+      ),
+      pvpokeValue: safetyValue,
+      pvpokeGoal: PVPOKE_GREAT_LEAGUE_GOALS.safety,
+      evidenceSource: "pvpoke-static-role-scores",
+      method:
+        "PvPoke average published switch score against the 98-point goal",
+      evidenceCount: safetyScores.length,
+      evidenceTotal: run.evidence.members.length,
+    },
+    consistency: {
+      grade: pvpokeGrade(
+        consistencyValue,
+        PVPOKE_GREAT_LEAGUE_GOALS.consistency,
+      ),
+      score: goalPercentage(
+        consistencyValue,
+        PVPOKE_GREAT_LEAGUE_GOALS.consistency,
+      ),
+      pvpokeValue: consistencyValue,
+      pvpokeGoal: PVPOKE_GREAT_LEAGUE_GOALS.consistency,
+      evidenceSource: "pvpoke-exact-moveset",
+      method:
+        "PvPoke exact-moveset consistency average against the 98-point goal",
+      evidenceCount: run.result.teamConsistencyScores.length,
+      evidenceTotal: run.evidence.members.length,
+    },
     members,
     threats,
     majorThreats: threats.filter(
@@ -270,10 +312,11 @@ export function analyzeTeamRankerMatrix(
       ...run.result.assumptions,
       "Ratings above 500 favor the meta target; ratings below 500 favor the team member",
       "A target is covered when at least one team member has a rating advantage",
-      "Coverage grade is a TeamLab heuristic over the selected unweighted target scope",
-      "Bulk grade compares exact Defense × HP with the selected target builds",
-      "Safety grade weights answer redundancy at 60% and safe-switch coverage at 40%",
-      "Consistency grade averages available static PvPoke consistency scores",
+      "Letter grades use PvPoke's A–F thresholds and Open Great League goals",
+      "Coverage uses PvPoke's threat-score formula over the selected simulation scope; select Greater Meta for the closest Team Builder comparison",
+      "Bulk uses PvPoke's exact average Defense × HP formula, including Shadow modifiers",
+      "Safety uses PvPoke's published switch-score average",
+      "Consistency is calculated by the upstream engine from the exact entered movesets",
     ],
     generatedAt: now().toISOString(),
   };

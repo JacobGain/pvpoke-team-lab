@@ -97,6 +97,9 @@ export class PvpokeTeamRankerAdapter implements TeamRankerAdapter {
     ranker.setRecommendMoveUsage(false);
     ranker.setPrioritizeMeta(false);
     ranker.setTargets(targets);
+    const teamBulkValues = team.map(
+      (pokemon) => pokemon.getEffectiveStat(1) * pokemon.stats.hp,
+    );
 
     try {
       const result = ranker.rank(
@@ -105,6 +108,9 @@ export class PvpokeTeamRankerAdapter implements TeamRankerAdapter {
         { name: "all", include: [], exclude: [] },
         [],
         "matrix",
+      );
+      const teamConsistencyScores = team.map((pokemon) =>
+        pokemon.calculateConsistency(),
       );
 
       return {
@@ -124,6 +130,8 @@ export class PvpokeTeamRankerAdapter implements TeamRankerAdapter {
           })),
         })),
         teamRatings: result.teamRatings.map((ratings) => [...ratings]),
+        teamBulkValues,
+        teamConsistencyScores,
         battleCount: request.team.length * request.targets.length,
         dataVersion: request.dataVersion,
         engine: "pvpoke-team-ranker",

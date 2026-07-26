@@ -21,14 +21,14 @@ or partial meta subset as universal truth.
 - core-breaker detection
 - full-team-wall detection
 - major-threat ordering
-- provisional coverage score and S–D grade
+- PvPoke-compatible Coverage value and A–F grade
 - shield, target, assumption, and data-version provenance
 - scorecard summary on the saved-team simulation route
 - threat and member evidence cards
 - raw matrix retained below derived analysis
-- exact Defense × HP bulk percentile evidence
-- answer-redundancy and safe-switch safety heuristic
-- published PvPoke consistency aggregation
+- PvPoke exact Defense × HP Bulk formula
+- published PvPoke Switch-score Safety formula
+- upstream exact-moveset Consistency calculation
 - complete initial Coverage/Bulk/Safety/Consistency scorecard
 - evidence-source and formula disclosure
 - normalized PvPoke matchup and counter evidence

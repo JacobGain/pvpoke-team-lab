@@ -135,6 +135,8 @@ class DeterministicTeamRankerAdapter implements TeamRankerAdapter {
         },
       ],
       teamRatings: request.team.map(() => [475]),
+      teamBulkValues: request.team.map(() => 22_000),
+      teamConsistencyScores: request.team.map(() => 90),
       battleCount: request.team.length * request.targets.length,
       dataVersion: request.dataVersion,
       engine: "pvpoke-team-ranker",

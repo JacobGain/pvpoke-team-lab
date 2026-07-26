@@ -122,9 +122,9 @@ function. `analyzeSavedTeamMatrix` remains an alias for existing consumers.
 Every successful recommendation finalist therefore receives the same:
 
 - target coverage and positive matchup evidence;
-- exact-stat bulk heuristic;
-- answer-redundancy and safe-switch safety heuristic;
-- published consistency score;
+- PvPoke-formula exact-stat bulk;
+- PvPoke published Switch-score safety;
+- exact-moveset upstream consistency;
 - major threats, core breakers, and team walls;
 - shield, target, engine, and data-version assumptions.
 
@@ -136,7 +136,7 @@ records and unowned PvPoke-default alternatives.
 Score version:
 
 ```text
-recommendation-final-score-v1
+recommendation-final-score-v2
 ```
 
 Formula:
@@ -149,9 +149,10 @@ Formula:
 30% versioned static pre-score
 ```
 
-Coverage and Safety come from exact TeamRanker matchup distributions. Bulk
-uses exact effective Defense and HP. Consistency remains published PvPoke
-default-build evidence. The static component retains role, published
+Coverage applies PvPoke's threat-score formula to the selected TeamRanker
+scope. Bulk uses PvPoke's effective Defense × HP formula, Safety uses
+published Switch scores, and Consistency is calculated by the upstream engine
+from each exact entered moveset. The static component retains role, published
 strength, complementarity, and readiness evidence.
 
 The final score is TeamLab selection policy, not an upstream PvPoke grade.

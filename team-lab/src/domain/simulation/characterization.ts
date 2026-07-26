@@ -231,6 +231,8 @@ function stableRankerResult(result: TeamRankerResult): string {
   return JSON.stringify({
     rankings: result.rankings,
     teamRatings: result.teamRatings,
+    teamBulkValues: result.teamBulkValues,
+    teamConsistencyScores: result.teamConsistencyScores,
     battleCount: result.battleCount,
     dataVersion: result.dataVersion,
     engine: result.engine,

@@ -138,7 +138,7 @@ Its tradeoffs disclose available evidence such as:
 - the highest-priority exact threat;
 - low safety;
 - planned-member build requirements;
-- incomplete published consistency evidence.
+- exact-moveset consistency limitations.
 
 Every explanation includes selected target count, shield scenario, and data
 version. The headline labels the score as the current TeamLab formula rather

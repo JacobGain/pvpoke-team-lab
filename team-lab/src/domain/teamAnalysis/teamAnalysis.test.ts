@@ -59,6 +59,8 @@ function run(): SavedTeamRankerRun {
         })),
       })),
       teamRatings: [[], [], []],
+      teamBulkValues: [24_000, 22_000, 18_000],
+      teamConsistencyScores: [90, 80, 70],
       battleCount: 9,
       dataVersion: "test-data-v1",
       engine: "pvpoke-team-ranker",
@@ -134,31 +136,39 @@ describe("saved-team matrix analysis", () => {
     );
 
     expect(analysis.coverage).toMatchObject({
-      grade: "C",
-      score: 66.66666666666666,
+      grade: "A",
+      score: 98.0392156862745,
+      pvpokeValue: 666.6666666666666,
+      pvpokeGoal: 680,
       coveredTargets: 2,
       totalTargets: 3,
       positiveMatchups: 3,
       totalMatchups: 9,
     });
     expect(analysis.bulk).toMatchObject({
-      grade: "C",
-      score: 66.66666666666667,
+      grade: "A",
+      score: 96.96969696969695,
+      pvpokeValue: 21_333.333333333332,
+      pvpokeGoal: 22_000,
       evidenceSource: "exact-effective-stats",
       evidenceCount: 3,
       evidenceTotal: 3,
     });
     expect(analysis.safety).toMatchObject({
-      grade: "D",
-      score: 33.33333333333333,
-      evidenceSource: "simulated-matchup-distribution",
-      evidenceCount: 1,
+      grade: "C",
+      score: 74.82993197278911,
+      pvpokeValue: 73.33333333333333,
+      pvpokeGoal: 98,
+      evidenceSource: "pvpoke-static-role-scores",
+      evidenceCount: 3,
       evidenceTotal: 3,
     });
     expect(analysis.consistency).toMatchObject({
-      grade: "A",
-      score: 80,
-      evidenceSource: "pvpoke-static-role-scores",
+      grade: "B",
+      score: 81.63265306122449,
+      pvpokeValue: 80,
+      pvpokeGoal: 98,
+      evidenceSource: "pvpoke-exact-moveset",
       evidenceCount: 3,
       evidenceTotal: 3,
     });

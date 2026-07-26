@@ -229,11 +229,11 @@ Implemented:
 - per-member win/loss/tie evidence
 - major-threat ordering
 - core-breaker and full-team-wall classification
-- provisional scope-aware coverage grade
+- scope-aware PvPoke Coverage formula and A–F grade
 - scorecard and threat evidence UI
-- exact-stat bulk score
-- simulated-distribution safety score
-- static PvPoke consistency score
+- PvPoke exact-stat Bulk score
+- published Switch-score Safety score
+- upstream exact-moveset Consistency score
 - evidence-source and formula disclosure
 - normalized PvPoke matchup and counter evidence
 - owned exact-record counter candidates

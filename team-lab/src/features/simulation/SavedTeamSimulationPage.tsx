@@ -52,7 +52,7 @@ export function SavedTeamSimulationPage() {
   const teamResult = useSavedTeam(teamId);
   const inventoryResult = useInventoryList();
   const catalogResult = usePokemonCatalog();
-  const [targetLimit, setTargetLimit] = useState<MetaTargetLimit>(5);
+  const [targetLimit, setTargetLimit] = useState<MetaTargetLimit>(48);
   const [teamShields, setTeamShields] = useState<ShieldCount>(1);
   const [targetShields, setTargetShields] = useState<ShieldCount>(1);
   const [run, setRun] = useState<SavedTeamRankerRun>();
@@ -215,7 +215,9 @@ export function SavedTeamSimulationPage() {
           >
             {META_TARGET_LIMITS.map((limit) => (
               <option value={limit} key={limit}>
-                Top {limit}
+                {limit === 48
+                  ? "Greater Meta (48) · closest PvPoke grade comparison"
+                  : `Top ${limit} · faster`}
               </option>
             ))}
           </select>
@@ -312,9 +314,8 @@ export function SavedTeamSimulationPage() {
                   </div>
                   <strong>{analysis.coverage.grade}</strong>
                   <small>
-                    {analysis.coverage.coveredTargetPercentage.toFixed(1)}% ·
-                    answers {analysis.coverage.coveredTargets} of{" "}
-                    {analysis.coverage.totalTargets} targets
+                    {analysis.coverage.score.toFixed(1)} / 100 · PvPoke
+                    threat-score goal
                   </small>
                 </article>
                 <article>
@@ -326,8 +327,8 @@ export function SavedTeamSimulationPage() {
                   </div>
                   <strong>{analysis.bulk.grade}</strong>
                   <small>
-                    {analysis.bulk.score.toFixed(1)} points · relative
-                    durability
+                    {Math.round(analysis.bulk.pvpokeValue).toLocaleString()} /{" "}
+                    {analysis.bulk.pvpokeGoal.toLocaleString()} bulk
                   </small>
                 </article>
                 <article>
@@ -339,8 +340,8 @@ export function SavedTeamSimulationPage() {
                   </div>
                   <strong>{analysis.safety.grade}</strong>
                   <small>
-                    {analysis.safety.score.toFixed(1)} points · fallback
-                    options
+                    {analysis.safety.pvpokeValue.toFixed(1)} /{" "}
+                    {analysis.safety.pvpokeGoal} switch score
                   </small>
                 </article>
                 <article>
@@ -352,9 +353,8 @@ export function SavedTeamSimulationPage() {
                   </div>
                   <strong>{analysis.consistency.grade}</strong>
                   <small>
-                    {analysis.consistency.score.toFixed(1)} points · ranking
-                    data for {analysis.consistency.evidenceCount} of{" "}
-                    {analysis.consistency.evidenceTotal} members
+                    {analysis.consistency.pvpokeValue.toFixed(1)} /{" "}
+                    {analysis.consistency.pvpokeGoal} exact-moveset score
                   </small>
                 </article>
               </section>
@@ -374,11 +374,15 @@ export function SavedTeamSimulationPage() {
                     <div>
                       <h3>Coverage</h3>
                       <p>
-                      {analysis.coverage.coveredTargets} of{" "}
-                      {analysis.coverage.totalTargets} selected targets have at
-                      least one favorable team member.
+                        {analysis.coverage.method}.{" "}
+                        {analysis.coverage.coveredTargets} of{" "}
+                        {analysis.coverage.totalTargets} selected targets still
+                        have at least one favorable team member.
                       </p>
-                      <small>Evidence: exact simulated matchups</small>
+                      <small>
+                        Evidence: exact simulated matchups · use Greater Meta
+                        for the closest PvPoke Team Builder comparison
+                      </small>
                     </div>
                   </article>
                   {[

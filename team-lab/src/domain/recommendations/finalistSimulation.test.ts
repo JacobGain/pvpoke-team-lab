@@ -126,7 +126,7 @@ class DeterministicAdapter implements TeamRankerAdapter {
     const hasNoctowl = request.team.some(
       (member) => member.speciesId === "noctowl",
     );
-    const ratings = hasNoctowl ? [300, 350, 400] : [600, 650, 700];
+    const ratings = hasNoctowl ? [300, 350, 400] : [800, 850, 900];
 
     return Promise.resolve({
       rankings: request.targets.map((target) => ({
@@ -148,6 +148,8 @@ class DeterministicAdapter implements TeamRankerAdapter {
       teamRatings: request.team.map(() =>
         request.targets.map(() => 500),
       ),
+      teamBulkValues: request.team.map(() => 22_000),
+      teamConsistencyScores: request.team.map(() => 90),
       battleCount: request.team.length * request.targets.length,
       dataVersion: request.dataVersion,
       engine: "pvpoke-team-ranker",

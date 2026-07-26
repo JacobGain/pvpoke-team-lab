@@ -29,6 +29,12 @@ class RankerPokemon implements PvpokePokemon {
   setShields(amount: number): void {
     this.shields = amount;
   }
+  getEffectiveStat(): number {
+    return 120;
+  }
+  calculateConsistency(): number {
+    return 84;
+  }
 }
 
 class StagingBattle implements PvpokeBattle {
@@ -180,6 +186,8 @@ describe("PvPoke TeamRanker adapter", () => {
         [390, 390],
         [390, 390],
       ],
+      teamBulkValues: [12000, 12000],
+      teamConsistencyScores: [84, 84],
       rankings: [
         {
           speciesId: "whiscash",

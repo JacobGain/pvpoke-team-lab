@@ -48,6 +48,14 @@ class CharacterizationPokemon implements PvpokePokemon {
     this.shields = amount;
     this.calls.push(`shields:${amount}`);
   }
+
+  getEffectiveStat(): number {
+    return 100;
+  }
+
+  calculateConsistency(): number {
+    return 100;
+  }
 }
 
 class CharacterizationBattle implements PvpokeBattle {

@@ -93,6 +93,8 @@ export interface TeamRankerTargetResult {
 export interface TeamRankerResult {
   readonly rankings: readonly TeamRankerTargetResult[];
   readonly teamRatings: readonly (readonly number[])[];
+  readonly teamBulkValues: readonly number[];
+  readonly teamConsistencyScores: readonly number[];
   readonly battleCount: number;
   readonly dataVersion: string;
   readonly engine: "pvpoke-team-ranker";

@@ -45,7 +45,7 @@ export function explainRecommendation(
 
   if (analysis.safety.score < 60) {
     tradeoffs.push(
-      `Safety scores ${rounded(analysis.safety.score)} because answer redundancy or safe-switch coverage is limited in this scope.`,
+      `Safety scores ${rounded(analysis.safety.score)} against PvPoke’s Great League goal because the team’s published switch scores are low.`,
     );
   }
 
@@ -58,15 +58,6 @@ export function explainRecommendation(
   if (rankedDefaultCount > 0) {
     tradeoffs.push(
       `${rankedDefaultCount} ranked ${rankedDefaultCount === 1 ? "teammate is" : "teammates are"} simulated with PvPoke defaults and must be added to inventory before this team can be saved.`,
-    );
-  }
-
-  if (
-    analysis.consistency.evidenceCount <
-    analysis.consistency.evidenceTotal
-  ) {
-    tradeoffs.push(
-      `Published consistency evidence covers ${analysis.consistency.evidenceCount} of ${analysis.consistency.evidenceTotal} members.`,
     );
   }
 
