@@ -1056,6 +1056,7 @@ async function runCriticalWorkflows(
       detail?.querySelector(".performance-graph__chart") &&
       detail?.querySelector(".ranking-stats") &&
       detail?.querySelector(".ranking-matchups .pokemon-sprite") &&
+      detail?.querySelector(".ranking-detail__collapse") &&
       text.includes("Key wins") &&
       text.includes("Key losses") &&
       text.includes("Defensive typing") &&
@@ -1100,6 +1101,24 @@ async function runCriticalWorkflows(
   await browser.assertNoHorizontalOverflow("rankings");
   responsiveStates.push("rankings");
   await browser.setViewport(1440, 1_000);
+  await browser.evaluate(`(() => {
+    const button = document.querySelector(
+      ".ranking-row[open] .ranking-detail__collapse"
+    );
+    if (button instanceof HTMLButtonElement) button.click();
+  })()`);
+  await browser.waitFor(
+    `!document.querySelector(".ranking-row[open]")`,
+    "collapsed ranking details",
+  );
+  const rankingCollapseFocus = await browser.evaluate<boolean>(`(() => {
+    const summary = document.querySelector(".ranking-row__summary");
+    return document.activeElement === summary;
+  })()`);
+  invariant(
+    rankingCollapseFocus,
+    "Collapsing ranking details did not return focus to the row summary.",
+  );
   await browser.evaluate(`(() => {
     const pageTwo = [...document.querySelectorAll(
       ".catalog-pagination__pages button"

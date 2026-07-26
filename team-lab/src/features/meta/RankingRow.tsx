@@ -1,7 +1,8 @@
-import { useState, type SyntheticEvent } from "react";
+import { useRef, useState, type SyntheticEvent } from "react";
 import {
   BarChart3,
   ChevronDown,
+  ChevronUp,
   HeartPulse,
   Shield,
   Swords,
@@ -27,6 +28,10 @@ import { formatIdentifier } from "@/utils/formatters";
 interface RankingRowProps {
   readonly pokemon: PokemonCatalogEntry;
   readonly catalogById: ReadonlyMap<string, PokemonCatalogEntry>;
+}
+
+interface RankingDetailProps extends RankingRowProps {
+  readonly onCollapse: () => void;
 }
 
 const PERFORMANCE_ROLES: readonly {
@@ -237,8 +242,9 @@ function MoveList({
 
 function RankingDetail({
   catalogById,
+  onCollapse,
   pokemon,
-}: RankingRowProps) {
+}: RankingDetailProps) {
   const ranking = pokemon.ranking;
   const defensiveProfile = buildDefensiveProfile(
     pokemon.types.filter((type) => type !== "none"),
@@ -396,6 +402,17 @@ function RankingDetail({
           </div>
         </div>
       </section>
+
+      <div className="ranking-detail__footer">
+        <button
+          className="secondary-button ranking-detail__collapse"
+          onClick={onCollapse}
+          type="button"
+        >
+          Collapse details
+          <ChevronUp aria-hidden="true" size={18} />
+        </button>
+      </div>
     </div>
   );
 }
@@ -405,15 +422,30 @@ export function RankingRow({
   pokemon,
 }: RankingRowProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const detailsRef = useRef<HTMLDetailsElement>(null);
+  const summaryRef = useRef<HTMLElement>(null);
   const optimalIvs = pokemon.defaultGreatLeagueIvs;
 
   function handleToggle(event: SyntheticEvent<HTMLDetailsElement>) {
     setIsOpen(event.currentTarget.open);
   }
 
+  function handleCollapse() {
+    if (detailsRef.current) {
+      detailsRef.current.open = false;
+    }
+    setIsOpen(false);
+    summaryRef.current?.focus({ preventScroll: true });
+    summaryRef.current?.scrollIntoView({ block: "center" });
+  }
+
   return (
-    <details className="ranking-row" onToggle={handleToggle}>
-      <summary className="ranking-row__summary">
+    <details
+      className="ranking-row"
+      onToggle={handleToggle}
+      ref={detailsRef}
+    >
+      <summary className="ranking-row__summary" ref={summaryRef}>
         <div className="ranking-row__rank">
           <span>Rank</span>
           <strong>
@@ -479,7 +511,11 @@ export function RankingRow({
         </span>
       </summary>
       {isOpen ? (
-        <RankingDetail catalogById={catalogById} pokemon={pokemon} />
+        <RankingDetail
+          catalogById={catalogById}
+          onCollapse={handleCollapse}
+          pokemon={pokemon}
+        />
       ) : null}
     </details>
   );
