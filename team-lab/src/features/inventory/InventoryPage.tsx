@@ -11,7 +11,9 @@ import { Link } from "react-router-dom";
 import { EmptyState } from "@/components/EmptyState";
 import { PageHeader } from "@/components/PageHeader";
 import { PokemonSprite } from "@/components/PokemonSprite";
+import { findHighestLegalLevel } from "@/domain/analysis/ivRankings";
 import { inferCombatPowerLevel } from "@/domain/pokemon/combatPower";
+import { requiresCandyXl } from "@/domain/pokemon/xl";
 import {
   useDeleteInventoryPokemon,
   useInventoryList,
@@ -191,6 +193,21 @@ export function InventoryPage() {
                 record.currentBuild.cp,
               )
             : undefined;
+          const plannedLevels =
+            plan && target
+              ? plan.targetCp
+                ? inferCombatPowerLevel(
+                    target,
+                    record.currentBuild.ivProfile.ivs,
+                    plan.targetCp,
+                  ).matches.map((match) => match.level)
+                : [
+                    findHighestLegalLevel(
+                      target,
+                      record.currentBuild.ivProfile.ivs,
+                    )?.level,
+                  ].filter((level): level is number => level !== undefined)
+              : [];
 
           return (
             <article className="inventory-card" key={record.inventoryId}>
@@ -240,6 +257,16 @@ export function InventoryPage() {
                   {levelInference?.matches
                     .map((match) => match.level)
                     .join(" or ") ?? "unresolved"}
+                  {levelInference?.matches.some((match) =>
+                    requiresCandyXl(match.level),
+                  ) ? (
+                    <span
+                      className="xl-badge"
+                      title="This build requires Candy XL"
+                    >
+                      XL
+                    </span>
+                  ) : null}
                   {" · "}
                   {formatMoveName(record.currentBuild.moveset.fastMoveId)} ·{" "}
                   {formatMoveList(
@@ -252,6 +279,17 @@ export function InventoryPage() {
                     {plan.targetCp
                       ? ` at CP ${plan.targetCp}`
                       : ""}
+                    {plannedLevels.length > 0
+                      ? ` · Level ${plannedLevels.join(" or ")}`
+                      : ""}
+                    {plannedLevels.some(requiresCandyXl) ? (
+                      <span
+                        className="xl-badge"
+                        title="This planned build requires Candy XL"
+                      >
+                        XL
+                      </span>
+                    ) : null}
                     {" · "}
                     {formatMoveName(plan.desiredMoveset.fastMoveId)} ·{" "}
                     {formatMoveList(plan.desiredMoveset.chargedMoveIds)}

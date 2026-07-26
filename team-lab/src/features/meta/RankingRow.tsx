@@ -15,6 +15,7 @@ import type {
   CatalogRoleScores,
   PokemonCatalogEntry,
 } from "@/domain/pokemon/catalog";
+import { requiresCandyXl } from "@/domain/pokemon/xl";
 import {
   buildDefensiveProfile,
   formatEffectiveness,
@@ -458,7 +459,19 @@ export function RankingRow({
               ? `${optimalIvs.attack}/${optimalIvs.defense}/${optimalIvs.hp}`
               : "Not provided"}
           </strong>
-          {optimalIvs ? <small>Level {optimalIvs.level}</small> : null}
+          {optimalIvs ? (
+            <small>
+              Level {optimalIvs.level}
+              {requiresCandyXl(optimalIvs.level) ? (
+                <span
+                  className="xl-badge"
+                  title="This optimal build requires Candy XL"
+                >
+                  XL
+                </span>
+              ) : null}
+            </small>
+          ) : null}
         </div>
         <span className="ranking-row__expand" aria-hidden="true">
           <span>Details</span>
