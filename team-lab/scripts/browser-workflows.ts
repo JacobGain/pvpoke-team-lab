@@ -1090,16 +1090,29 @@ async function runCriticalWorkflows(
     `document.querySelector("#pvpoke-data-title")?.textContent?.trim() === "Connected"`,
     "real PvPoke data connection",
   );
+  await visual.capture(
+    browser,
+    "dashboard-desktop",
+    1440,
+    1_000,
+  );
+  await visual.capture(
+    browser,
+    "dashboard-mobile",
+    320,
+    900,
+  );
+  await browser.setViewport(1440, 1_000);
   const rankingsInDesktopNavigation = await browser.evaluate<boolean>(
-    `[...document.querySelectorAll(".app-nav--desktop a")].some(
+    `[...document.querySelectorAll(".app-nav--rail a")].some(
       (link) =>
         link.getAttribute("href") === "/catalog" &&
         link.textContent?.trim() === "Rankings"
-    )`,
+    ) && Boolean(document.querySelector(".app-rail .app-rail__format"))`,
   );
   invariant(
     rankingsInDesktopNavigation,
-    "Rankings was not present in desktop primary navigation.",
+    "The desktop command rail did not expose Rankings and format context.",
   );
   await browser.navigate("/catalog", "Rankings");
   await browser.waitFor(
@@ -1587,6 +1600,20 @@ async function runCriticalWorkflows(
   invariant(
     selectedRecommendations > 0,
     "Recommendation workflow returned no selectable teams.",
+  );
+  await visual.capture(
+    browser,
+    "recommendation-result-desktop",
+    1440,
+    1_000,
+    ".recommendation-result",
+  );
+  await visual.capture(
+    browser,
+    "recommendation-result-mobile",
+    320,
+    900,
+    ".recommendation-result",
   );
   await browser.setViewport(320);
   await browser.assertNoHorizontalOverflow("populated recommendation result");

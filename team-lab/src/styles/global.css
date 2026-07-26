@@ -6,6 +6,7 @@
  * See docs/implementation/phase-09-ui-ux-overhaul/style-architecture.md.
  */
 
+@import "./fonts.css";
 @import "./modules/foundation.css";
 @import "./modules/maintenance-overrides.css";
 @import "./modules/shell.css";
@@ -18,3 +19,4 @@
 @import "./modules/analysis.css";
 @import "./modules/teams-simulation.css";
 @import "./modules/recommendations.css";
+@import "./modules/battle-dossier.css";

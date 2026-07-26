@@ -1,22 +1,24 @@
-# Phase 9 — Modern Battle Lab UI and UX
+# Phase 9 — Battle Dossier UI and UX
 
 > **Status:** Complete for the current MVP
-> **Last reviewed:** 2026-07-25
+> **Last reviewed:** 2026-07-26
 
 ## Objective
 
 Turn the feature-complete MVP into one coherent, mobile-first product without
 changing its local-first data model or simulation behavior.
 
-The design direction is a light-first “modern battle lab”: deep navy
-application chrome, cyan analytical accents, lime primary actions, generous
-white work surfaces, and Pokémon artwork used as functional identity rather
-than decoration.
+The design direction is a light-first “Battle Dossier”: a competitive field
+guide, tournament scorecard, and technical battle workstation. It uses a dark
+desktop command rail, warm gridded work surfaces, condensed record typography,
+structural rules, restrained angular controls, and Pokémon artwork as
+functional identity rather than decoration.
 
 ## Implemented scope
 
 - shared application shell for every route
-- persistent desktop navigation for Dashboard, Inventory, Teams, and Recommend
+- persistent desktop command rail for Dashboard, Inventory, Rankings, Teams,
+  Recommend, local data, and diagnostics
 - compact mobile header and five-destination bottom navigation
 - secondary mobile menu for Catalog, Local Data, and Diagnostics
 - live PvPoke data-health indicator in the global shell
@@ -34,6 +36,10 @@ than decoration.
 - keyboard focus treatment, skip navigation, and reduced-motion support
 - local, revision-pinned PokeAPI sprite sync and WebP optimization pipeline
 - updated real-browser automation for the progressive workflows
+- locally bundled IBM Plex Sans and Barlow Condensed files with no runtime font
+  service dependency
+- deployment-replaceable typography and palette custom properties
+- a multi-route mobile layout audit at 320, 430, 540, and 680 CSS pixels
 
 ## UX hardening follow-up
 
@@ -69,6 +75,25 @@ The first post-overhaul review also delivered:
 - sprites on owned and unowned threat-alternative cards; and
 - an opt-in ranked-teammate scope for anchored recommendations, with clear
   theoretical-build provenance and a safe inventory-before-save boundary.
+
+## Battle Dossier follow-up
+
+The final art-direction pass replaced the generic soft-card presentation
+without changing domain behavior:
+
+- desktop navigation moved from a conventional top bar into a persistent
+  command rail with active format and data-health context;
+- mobile retained the familiar bottom navigation and compact top identity;
+- oversized marketing headers became structured field-record headers;
+- rounded cards, pill buttons, broad shadows, and floating bubbles were
+  replaced by rules, square metadata, cyan registration marks, and warm paper
+  surfaces;
+- the dashboard became a battle desk with a three-phase roster, formation, and
+  test protocol;
+- saved teams became three-position formation records with larger sprites;
+- ranking expansions, recommendation results, and simulation evidence use one
+  shared dossier hierarchy; and
+- purposeful entry motion is disabled automatically for reduced-motion users.
 
 ## Navigation and progressive flow
 
@@ -152,10 +177,11 @@ stylesheet ownership, cascade, and screenshot review contracts.
 Observed after the overhaul:
 
 ```text
-npm test          27 files, 78 tests passed
+npm test          29 files, 87 tests passed
 npm run test:scale passed
 npm run test:browser passed; complete create/edit/team/recommend/backup flow
-npm run test:visual passed; four baselines matched at 0 changed pixels
+npm run test:visual passed; dashboard, ranking, inventory, team, simulation,
+and recommendation baselines matched
 npm run typecheck passed
 npm run lint      passed
 npm run build     passed; entry chunk approximately 402 kB
@@ -168,8 +194,9 @@ data, and restored 12 records plus two teams.
 
 ## Known limitations
 
-- Light mode is the delivered theme. Tokens are structured for a later dark
-  theme, but no theme control is exposed.
+- Light work surfaces with dark application chrome are delivered. Tokens are
+  structured for later deployment branding or a dark workspace, but no
+  end-user theme control is exposed.
 - Some Pokémon GO costumes and special forms use clearly recorded National Dex
   base artwork because PokeAPI has no exact HOME asset mapping.
 - `modern-feature-overrides.css` remains a documented transition layer. Rules

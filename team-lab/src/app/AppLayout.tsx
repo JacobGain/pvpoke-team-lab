@@ -105,7 +105,66 @@ export function AppLayout() {
         Skip to content
       </a>
 
-      <header className="app-topbar">
+      <aside className="app-rail">
+        <NavLink
+          aria-label="TeamLab dashboard"
+          className="brand-mark brand-mark--rail"
+          to="/"
+        >
+          <span className="brand-mark__icon" aria-hidden="true">
+            <FlaskConical size={25} strokeWidth={2.2} />
+          </span>
+          <span className="brand-mark__copy">
+            <strong>TeamLab</strong>
+            <small>Battle dossier</small>
+          </span>
+        </NavLink>
+
+        <div className="app-rail__format">
+          <span>Active format</span>
+          <strong>Open Great League</strong>
+          <small>CP limit 1,500</small>
+        </div>
+
+        <nav className="app-nav app-nav--rail" aria-label="Primary">
+          <p className="app-rail__label">Workspace</p>
+          {desktopPrimaryNavigation.map((item) => (
+            <NavigationLink key={item.to} {...item} />
+          ))}
+        </nav>
+
+        <nav className="app-nav app-nav--rail app-nav--utility" aria-label="Tools">
+          <p className="app-rail__label">System</p>
+          {utilityNavigation.slice(1).map((item) => (
+            <NavigationLink key={item.to} {...item} />
+          ))}
+        </nav>
+
+        <div className="app-rail__footer">
+          <NavLink
+            className={`data-health data-health--${dataState}`}
+            to="/diagnostics/simulation"
+            title={
+              dataState === "ready"
+                ? `PvPoke connected · ${data?.gameMasterTitle}`
+                : "Check PvPoke data connection"
+            }
+          >
+            <span aria-hidden="true" />
+            <ShieldCheck size={16} />
+            <strong>
+              {dataState === "loading"
+                ? "Connecting"
+                : dataState === "ready"
+                  ? "PvPoke data ready"
+                  : "Data connection issue"}
+            </strong>
+          </NavLink>
+          <small>Local-first workspace · no account required</small>
+        </div>
+      </aside>
+
+      <header className="app-topbar app-topbar--mobile">
         <div className="app-topbar__inner">
           <NavLink className="brand-mark" to="/" aria-label="TeamLab dashboard">
             <span className="brand-mark__icon" aria-hidden="true">
@@ -116,12 +175,6 @@ export function AppLayout() {
               <small>Open Great League</small>
             </span>
           </NavLink>
-
-          <nav className="app-nav app-nav--desktop" aria-label="Primary">
-            {desktopPrimaryNavigation.map((item) => (
-              <NavigationLink key={item.to} {...item} />
-            ))}
-          </nav>
 
           <div className="app-topbar__tools">
             <NavLink

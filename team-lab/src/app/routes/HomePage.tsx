@@ -2,9 +2,9 @@ import {
   ArrowRight,
   Boxes,
   CircleCheckBig,
-  FlaskConical,
   Plus,
   Sparkles,
+  Swords,
   Target,
   Users,
 } from "lucide-react";
@@ -97,7 +97,11 @@ export function HomePage() {
     <main className="dashboard-page">
       <section className="dashboard-hero">
         <div className="dashboard-hero__copy">
-          <p className="eyebrow">Great League command center</p>
+          <div className="dashboard-hero__serial">
+            <span>TL–GL / 001</span>
+            <span>Open Great League</span>
+          </div>
+          <p className="eyebrow">Competitive battle workspace</p>
           <h1>
             Build with what
             <span> you actually own.</span>
@@ -117,15 +121,37 @@ export function HomePage() {
             </Link>
           </div>
         </div>
-        <div className="dashboard-hero__visual" aria-hidden="true">
-          <span className="orbital orbital--one" />
-          <span className="orbital orbital--two" />
-          <div className="lab-emblem">
-            <FlaskConical size={58} strokeWidth={1.5} />
+        <div className="dashboard-protocol">
+          <div className="dashboard-protocol__heading">
+            <span>Battle protocol</span>
+            <strong>03 phases</strong>
           </div>
-          <span className="lab-signal lab-signal--one">IV</span>
-          <span className="lab-signal lab-signal--two">1500</span>
-          <span className="lab-signal lab-signal--three">GL</span>
+          <ol>
+            <li>
+              <span>01</span>
+              <Boxes aria-hidden="true" size={20} />
+              <div>
+                <strong>Record the roster</strong>
+                <small>Exact CP, IVs, moves, and build state</small>
+              </div>
+            </li>
+            <li>
+              <span>02</span>
+              <Users aria-hidden="true" size={20} />
+              <div>
+                <strong>Set the formation</strong>
+                <small>Lead, safe switch, and closer</small>
+              </div>
+            </li>
+            <li>
+              <span>03</span>
+              <Swords aria-hidden="true" size={20} />
+              <div>
+                <strong>Test the field</strong>
+                <small>Exact battles against the current meta</small>
+              </div>
+            </li>
+          </ol>
         </div>
       </section>
 
