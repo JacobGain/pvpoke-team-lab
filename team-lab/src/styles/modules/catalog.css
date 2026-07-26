@@ -113,8 +113,8 @@
 
 .catalog-pagination button {
   display: inline-grid;
-  min-width: 2.35rem;
-  min-height: 2.35rem;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
   padding: 0.45rem 0.7rem;
   place-items: center;
   border: 1px solid var(--line-strong);

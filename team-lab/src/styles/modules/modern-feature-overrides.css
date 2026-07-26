@@ -132,7 +132,7 @@
 }
 
 .inventory-card__actions > * {
-  min-height: 2.6rem;
+  min-height: 2.75rem;
 }
 
 .inventory-card .danger-button,

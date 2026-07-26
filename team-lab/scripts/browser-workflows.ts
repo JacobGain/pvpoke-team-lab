@@ -447,12 +447,16 @@ class BrowserWorkflow {
     throw new Error(`Timed out waiting for ${description}.`);
   }
 
-  async navigate(pathname: string, heading: string): Promise<void> {
+  async navigate(
+    pathname: string,
+    heading: string,
+    headingSelector = "h1",
+  ): Promise<void> {
     await this.client.call("Page.navigate", {
       url: `${this.appUrl}${pathname}`,
     });
     await this.waitFor(
-      `location.pathname === ${JSON.stringify(pathname)} && document.querySelector("h1")?.textContent?.trim() === ${JSON.stringify(heading)}`,
+      `location.pathname === ${JSON.stringify(pathname)} && document.querySelector(${JSON.stringify(headingSelector)})?.textContent?.trim() === ${JSON.stringify(heading)}`,
       `${pathname} to render “${heading}”`,
     );
   }
@@ -975,6 +979,101 @@ async function createInventory(
       );
     }
   }
+}
+
+interface MobileAuditResult {
+  readonly clippedElements: readonly string[];
+  readonly undersizedControls: readonly string[];
+  readonly uncontainedOverflow: readonly string[];
+}
+
+async function auditMobilePage(
+  browser: BrowserWorkflow,
+  pathname: string,
+  heading: string,
+  viewportWidth: number,
+  headingSelector = "h1",
+): Promise<MobileAuditResult> {
+  await browser.navigate(pathname, heading, headingSelector);
+  await browser.setViewport(viewportWidth, 900);
+  await browser.assertNoHorizontalOverflow(`${pathname} at ${viewportWidth}px`);
+
+  return browser.evaluate<MobileAuditResult>(`(() => {
+    const descriptor = (element) => {
+      const tag = element.tagName.toLocaleLowerCase();
+      const name =
+        element.getAttribute("aria-label") ??
+        element.textContent?.replace(/\\s+/g, " ").trim().slice(0, 45) ??
+        "";
+      const bounds = element.getBoundingClientRect();
+      const size =
+        \`\${Math.round(bounds.width)}x\${Math.round(bounds.height)}\` +
+        \` client:\${element.clientWidth} scroll:\${element.scrollWidth}\`;
+      return name ? \`\${tag} "\${name}" (\${size})\` : \`\${tag} (\${size})\`;
+    };
+    const isRendered = (element) => {
+      const style = getComputedStyle(element);
+      const bounds = element.getBoundingClientRect();
+      return (
+        style.display !== "none" &&
+        style.visibility !== "hidden" &&
+        Number(style.opacity) > 0 &&
+        bounds.width > 0 &&
+        bounds.height > 0
+      );
+    };
+    const clippedElements = [...document.querySelectorAll(
+      "main *, .app-content > *, .mobile-tabbar *, .app-topbar *"
+    )]
+      .filter((element) => {
+        if (!(element instanceof HTMLElement) || !isRendered(element)) {
+          return false;
+        }
+        const bounds = element.getBoundingClientRect();
+        return bounds.left < -1 || bounds.right > window.innerWidth + 1;
+      })
+      .slice(0, 12)
+      .map(descriptor);
+    const undersizedControls = [...document.querySelectorAll(
+      "button, summary, input:not([type=radio]):not([type=checkbox]):not([type=hidden]), select, textarea, .primary-link, .secondary-link, .mobile-tabbar__link"
+    )]
+      .filter((element) => {
+        if (!(element instanceof HTMLElement) || !isRendered(element)) {
+          return false;
+        }
+        const bounds = element.getBoundingClientRect();
+        return bounds.width < 44 || bounds.height < 44;
+      })
+      .slice(0, 12)
+      .map(descriptor);
+    const uncontainedOverflow = [...document.querySelectorAll(
+      "main *, .app-content *"
+    )]
+      .filter((element) => {
+        if (!(element instanceof HTMLElement) || !isRendered(element)) {
+          return false;
+        }
+        if (
+          element instanceof HTMLInputElement ||
+          element instanceof HTMLSelectElement ||
+          element instanceof HTMLTextAreaElement
+        ) {
+          return false;
+        }
+        const style = getComputedStyle(element);
+        return (
+          element.scrollWidth > element.clientWidth + 1 &&
+          !["auto", "scroll", "hidden", "clip"].includes(style.overflowX)
+        );
+      })
+      .slice(0, 12)
+      .map(descriptor);
+    return {
+      clippedElements,
+      undersizedControls,
+      uncontainedOverflow
+    };
+  })()`);
 }
 
 async function runCriticalWorkflows(
@@ -1590,6 +1689,84 @@ async function runCriticalWorkflows(
   await browser.waitFor(
     `document.querySelectorAll(".inventory-card").length === ${INVENTORY_SPECIES.length}`,
     "restored inventory dashboard",
+  );
+
+  const mobileRoutes = [
+    ["/", "Build with what you actually own."],
+    ["/catalog", "Rankings"],
+    ["/inventory", "Your inventory"],
+    ["/inventory/new", "Add Pokémon"],
+    ["/inventory/backup", "Backup and restore"],
+    [firstRecord.analyzeHref, firstRecord.speciesName],
+    [firstRecord.editHref, "Edit Pokémon"],
+    ["/teams", "Saved teams"],
+    ["/teams/new", "Create saved team"],
+    [teamLinks.editHref, "Edit saved team"],
+    ["/diagnostics/simulation", "PvPoke engine diagnostics"],
+    [teamLinks.simulationHref, "Browser Coverage Team"],
+    ["/recommend", "Build around your anchors"],
+    ["/route-that-does-not-exist", "Page not found", "h2"],
+  ] as const;
+  const mobileAuditWidths = [320, 430, 540, 680] as const;
+  const mobileAuditIssues: string[] = [];
+
+  for (const [pathname, heading, headingSelector = "h1"] of mobileRoutes) {
+    for (const width of mobileAuditWidths) {
+      const audit = await auditMobilePage(
+        browser,
+        pathname,
+        heading,
+        width,
+        headingSelector,
+      );
+      const issues = [
+        ...audit.clippedElements.map((item) => `clipped: ${item}`),
+        ...audit.undersizedControls.map((item) => `undersized: ${item}`),
+        ...audit.uncontainedOverflow.map((item) => `overflow: ${item}`),
+      ];
+      if (issues.length > 0) {
+        mobileAuditIssues.push(
+          `${pathname} at ${width}px: ${issues.join("; ")}`,
+        );
+      }
+    }
+  }
+
+  await browser.navigate("/", "Build with what you actually own.");
+  await browser.setViewport(320, 900);
+  await browser.clickButton("More", ".mobile-tabbar button");
+  const mobileMenuAudit = await browser.evaluate<{
+    readonly bottom: number;
+    readonly left: number;
+    readonly right: number;
+    readonly top: number;
+    readonly viewportHeight: number;
+    readonly viewportWidth: number;
+  }>(`(() => {
+    const menu = document.querySelector(".mobile-menu--open");
+    const bounds = menu?.getBoundingClientRect();
+    return {
+      bottom: bounds?.bottom ?? -1,
+      left: bounds?.left ?? -1,
+      right: bounds?.right ?? -1,
+      top: bounds?.top ?? -1,
+      viewportHeight: window.innerHeight,
+      viewportWidth: window.innerWidth
+    };
+  })()`);
+  if (
+    mobileMenuAudit.left < 0 ||
+    mobileMenuAudit.right > mobileMenuAudit.viewportWidth ||
+    mobileMenuAudit.top < 0 ||
+    mobileMenuAudit.bottom > mobileMenuAudit.viewportHeight
+  ) {
+    mobileAuditIssues.push(
+      `mobile More menu escaped the viewport: ${JSON.stringify(mobileMenuAudit)}`,
+    );
+  }
+  invariant(
+    mobileAuditIssues.length === 0,
+    `Mobile route audit found issues:\n${mobileAuditIssues.join("\n")}`,
   );
 
   return {
