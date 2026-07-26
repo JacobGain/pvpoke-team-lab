@@ -1007,6 +1007,23 @@ async function runCriticalWorkflows(
     `document.querySelectorAll(".ranking-row").length > 0`,
     "ranking rows",
   );
+  const rankingPagination = await browser.evaluate<{
+    readonly count: number;
+    readonly hasRefineCopy: boolean;
+    readonly hasXlBuild: boolean;
+  }>(`({
+    count: document.querySelectorAll(".ranking-row").length,
+    hasRefineCopy:
+      document.querySelector(".catalog-pagination")?.textContent
+        ?.includes("Refine the search to narrow the catalog") === true,
+    hasXlBuild: Boolean(document.querySelector(".ranking-row .xl-badge"))
+  })`);
+  invariant(
+    rankingPagination.count === 100 &&
+      rankingPagination.hasRefineCopy &&
+      rankingPagination.hasXlBuild,
+    `Rankings pagination or XL labeling was incomplete: ${JSON.stringify(rankingPagination)}.`,
+  );
   const rankingRowSummary = await browser.evaluate<boolean>(`(() => {
     const row = document.querySelector(".ranking-row");
     const text = row?.querySelector(".ranking-row__summary")
@@ -1083,6 +1100,16 @@ async function runCriticalWorkflows(
   await browser.assertNoHorizontalOverflow("rankings");
   responsiveStates.push("rankings");
   await browser.setViewport(1440, 1_000);
+  await browser.evaluate(`(() => {
+    const pageTwo = [...document.querySelectorAll(
+      ".catalog-pagination__pages button"
+    )].find((button) => button.textContent?.trim() === "2");
+    if (pageTwo instanceof HTMLButtonElement) pageTwo.click();
+  })()`);
+  await browser.waitFor(
+    `document.querySelector(".ranking-row__rank strong")?.textContent?.trim() === "#101"`,
+    "rankings page two",
+  );
 
   await browser.navigate("/inventory/new", "Add Pokémon");
   const blankPokemonSelection = await browser.evaluate<boolean>(`(() => {

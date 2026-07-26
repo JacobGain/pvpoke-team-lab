@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { SearchX } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -11,7 +11,7 @@ import {
 import { RankingRow } from "@/features/meta/RankingRow";
 import { usePokemonCatalog } from "@/features/meta/usePokemonCatalog";
 
-const DISPLAY_LIMIT = 120;
+const PAGE_SIZE = 100;
 
 function formatError(error: unknown): string {
   return error instanceof Error
@@ -44,6 +44,8 @@ export function PokemonCatalogPage() {
   const { data: catalog, error, isLoading } = usePokemonCatalog();
   const [search, setSearch] = useState("");
   const [showUnranked, setShowUnranked] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const rankingListRef = useRef<HTMLElement>(null);
 
   const filteredPokemon = useMemo(() => {
     if (!catalog) {
@@ -81,11 +83,30 @@ export function PokemonCatalogPage() {
     );
   }
 
-  const displayedPokemon = filteredPokemon.slice(0, DISPLAY_LIMIT);
+  const totalPages = Math.max(
+    Math.ceil(filteredPokemon.length / PAGE_SIZE),
+    1,
+  );
+  const activePage = Math.min(currentPage, totalPages);
+  const pageStart = (activePage - 1) * PAGE_SIZE;
+  const displayedPokemon = filteredPokemon.slice(
+    pageStart,
+    pageStart + PAGE_SIZE,
+  );
   const diagnosticCount = countCatalogDiagnostics(catalog.diagnostics);
   const catalogById = new Map(
     catalog.entries.map((pokemon) => [pokemon.speciesId, pokemon]),
   );
+
+  function goToPage(page: number) {
+    setCurrentPage(Math.min(Math.max(page, 1), totalPages));
+    requestAnimationFrame(() => {
+      rankingListRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+  }
 
   return (
     <main className="catalog-page">
@@ -115,6 +136,7 @@ export function PokemonCatalogPage() {
             value={search}
             onChange={(event) => {
               setSearch(event.target.value);
+              setCurrentPage(1);
             }}
             placeholder="Try Azumarill, water, or Ice Beam"
           />
@@ -125,6 +147,7 @@ export function PokemonCatalogPage() {
             checked={showUnranked}
             onChange={(event) => {
               setShowUnranked(event.target.checked);
+              setCurrentPage(1);
             }}
           />
           Include released Pokémon without published rankings
@@ -139,7 +162,11 @@ export function PokemonCatalogPage() {
         </aside>
       ) : null}
 
-      <section className="ranking-list" aria-label="Pokémon ranking results">
+      <section
+        className="ranking-list"
+        aria-label="Pokémon ranking results"
+        ref={rankingListRef}
+      >
         {displayedPokemon.map((pokemon) => (
           <RankingRow
             catalogById={catalogById}
@@ -160,11 +187,49 @@ export function PokemonCatalogPage() {
         />
       ) : null}
 
-      {filteredPokemon.length > DISPLAY_LIMIT ? (
-        <p className="catalog-limit">
-          Showing the first {DISPLAY_LIMIT} results. Refine the search to
-          narrow the catalog.
-        </p>
+      {filteredPokemon.length > 0 ? (
+        <footer className="catalog-pagination">
+          {totalPages > 1 ? (
+            <nav aria-label="Rankings pages">
+              <button
+                disabled={activePage === 1}
+                onClick={() => goToPage(activePage - 1)}
+                type="button"
+              >
+                Previous
+              </button>
+              <div className="catalog-pagination__pages">
+                {Array.from({ length: totalPages }, (_, index) => {
+                  const page = index + 1;
+
+                  return (
+                    <button
+                      aria-current={page === activePage ? "page" : undefined}
+                      key={page}
+                      onClick={() => goToPage(page)}
+                      type="button"
+                    >
+                      {page}
+                    </button>
+                  );
+                })}
+              </div>
+              <button
+                disabled={activePage === totalPages}
+                onClick={() => goToPage(activePage + 1)}
+                type="button"
+              >
+                Next
+              </button>
+            </nav>
+          ) : null}
+          <p>
+            Showing {pageStart + 1}–
+            {Math.min(pageStart + PAGE_SIZE, filteredPokemon.length)} of{" "}
+            {filteredPokemon.length.toLocaleString()} results. Refine the
+            search to narrow the catalog.
+          </p>
+        </footer>
       ) : null}
     </main>
   );
