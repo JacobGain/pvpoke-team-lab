@@ -2,12 +2,13 @@
 
 > **Status:** Complete for MVP
 > **Project-plan phase:** Phase 7: anchor recommendations  
-> **Last reviewed:** 2026-07-25
+> **Last reviewed:** 2026-07-26
 
 ## Objective
 
-Generate useful, distinct, inventory-constrained Open Great League teams around
-one or two owned anchors without exhaustively simulating every possible team.
+Generate useful, distinct Open Great League teams around one or two owned
+anchors without exhaustively simulating every possible team. Teammates may be
+restricted to inventory or optionally include ranked PvPoke-default builds.
 
 The phase must preserve the distinction between:
 
@@ -22,11 +23,13 @@ The phase must preserve the distinction between:
 - flexible or fixed lead/switch/closer anchor positions
 - configurable one-to-five result count
 - all, ready-now-only, and planned-only build scopes
+- owned-only or owned-plus-ranked teammate scope
 - current/planned selected-build resolution
 - current-catalog inventory validation
 - exact simulation-ready build serialization
 - anchor legality and Pokédex-identity species-clause validation
 - individually anchor-safe owned partner pool
+- exact, explicitly theoretical ranked-default partner builds
 - deterministic ready-now, favorite, and overall-rank prioritization
 - static overall, role, matchup, and counter evidence boundary
 - explicit non-anchor exclusion diagnostics
@@ -52,6 +55,7 @@ The phase must preserve the distinction between:
 - ordered exact-build results with scorecards, threats, alternatives,
   requirements, provenance, and PvPoke Team Builder links
 - explicit conversion of a selected recommendation into a persisted saved team
+- save guard for teams containing ranked teammates not yet in inventory
 - responsive recommendation result presentation
 
 ## Out of scope
@@ -63,7 +67,7 @@ The phase must preserve the distinction between:
 
 ## Implementation records
 
-- [Anchor request and owned candidate pool](anchor-request-and-candidate-pool.md)
+- [Anchor request and candidate pool](anchor-request-and-candidate-pool.md)
 - [Static candidate generation and pre-score](static-candidate-generation-and-pre-score.md)
 - [Exact finalist simulation and selection](exact-finalist-simulation-and-selection.md)
 - [Recommendation workflow and result presentation](recommendation-workflow-and-result-presentation.md)
@@ -77,6 +81,8 @@ The phase must preserve the distinction between:
   unless the request narrows the build-status scope.
 - Every candidate is validated against the current catalog and serialized into
   an exact Phase 5 build before entering the pool.
+- Opt-in ranked partners use a complete `meta-default` build and rank-first
+  discovery order, while owned-only discovery retains ready-now prioritization.
 - Invalid anchors fail the complete request. Invalid non-anchor records are
   excluded with stable diagnostic codes.
 - The pool retains unranked builds, while the static partner policy requires
@@ -98,6 +104,8 @@ The phase must preserve the distinction between:
   but cannot interrupt the upstream synchronous engine mid-finalist.
 - Recommendation results remain ephemeral until the user explicitly saves one
   through the existing saved-team factory and repository.
+- A theoretical result can be simulated and opened in PvPoke, but cannot be
+  saved until every ranked-default member has an inventory record.
 
 ## Validation
 

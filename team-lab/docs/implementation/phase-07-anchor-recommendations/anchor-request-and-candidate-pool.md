@@ -1,15 +1,15 @@
-# Anchor Request and Owned Candidate Pool
+# Anchor Request and Candidate Pool
 
 > **Phase:** Phase 7 — Anchor Recommendations  
 > **Status:** Implemented  
-> **Last reviewed:** 2026-07-25
+> **Last reviewed:** 2026-07-26
 
 ## Summary
 
 TeamLab now has a stable input and discovery boundary for anchor-based
 recommendations. A validated request resolves one or two owned anchors and
-produces exact, current-catalog-valid partner candidates for a later static
-pre-scorer.
+produces exact, current-catalog-valid partner candidates from inventory alone
+or from inventory plus ranked PvPoke-default builds.
 
 This slice does not generate or score teams.
 
@@ -36,10 +36,13 @@ RecommendationRequest
 │   ├── inventoryId
 │   └── position: lead | switch | closer | flex
 ├── resultCount: 1–5
-└── buildStatusScope
+├── buildStatusScope
     ├── all
     ├── ready-now-only
     └── planned-only
+└── partnerScope
+    ├── owned-only (default)
+    └── owned-and-ranked
 ```
 
 The Zod contract rejects:
@@ -89,6 +92,11 @@ Every accepted anchor or partner carries:
 - optional six-role scores;
 - published matchup and counter evidence.
 
+Candidates also disclose whether they are an `owned-exact-build` or a
+`ranked-default-build`. Ranked defaults use PvPoke’s recommended moves and
+default Great League IV spread to produce a real `meta-default` simulation
+build; they never masquerade as inventory records.
+
 This is the input boundary for static pre-scoring. Static evidence remains
 separate from the exact build so the next slice can explain which values came
 from PvPoke defaults and which describe the owned specimen.
@@ -115,7 +123,10 @@ normal/Shadow variants, or alternate forms cannot bypass species clause.
 ## Partner behavior
 
 Non-anchor inventory records are filtered independently. Excluded records do
-not prevent valid candidates from being used.
+not prevent valid candidates from being used. When `owned-and-ranked` is
+selected, released ranked catalog entries with complete default builds are
+also eligible unless their Pokédex identity is already owned or conflicts with
+an anchor.
 
 Stable exclusion codes are:
 
@@ -130,7 +141,7 @@ generation because the pool does not yet choose partner pairs.
 
 ## Prioritization
 
-The deterministic discovery order is:
+The deterministic owned-only discovery order is:
 
 1. ready-now/current before planned;
 2. favorite before non-favorite within the same readiness;
@@ -140,6 +151,11 @@ The deterministic discovery order is:
 
 This order is not a team-quality score. It satisfies the product requirement
 to favor ready-now builds while providing stable input to the next slice.
+
+The combined scope orders by published overall rank first so highly ranked
+unowned options cannot be pushed beyond the bounded shortlist by a large
+inventory. Readiness remains part of the static score and the deterministic
+tie-break order.
 
 Unranked exact builds remain in the pool after ranked builds. The project plan
 calls for ranking/role thresholds as a separate candidate-pipeline step, so
@@ -181,8 +197,9 @@ considered.
 
 - Generating every inventory combination was rejected by the project plan’s
   performance constraints.
-- Species-only candidates were rejected because simulations require exact
-  inventory builds.
+- Unspecified species-only candidates were rejected because simulations
+  require complete builds. Ranked options are accepted only after resolving a
+  complete PvPoke-default simulation build.
 - Silently choosing one ambiguous level was rejected by the Phase 5 exact-build
   contract.
 - Applying an undocumented overall-rank cutoff in discovery was deferred to an
@@ -192,7 +209,8 @@ considered.
 
 ## Performance considerations
 
-The pool scans inventory once after building inventory and catalog maps.
+The pool scans inventory once after building inventory and catalog maps. The
+opt-in combined scope also scans the normalized catalog once.
 Analysis ranking tables are cached by the existing Phase 3 implementation.
 
 Exact build analysis is currently synchronous. Before inventories materially
@@ -218,6 +236,8 @@ Characterization covers:
 - static evidence retention;
 - ready-now ordering;
 - ready-now-only filtering;
+- owned-only default behavior;
+- ranked-default build creation and rank-first combined-scope ordering;
 - missing anchors;
 - species clause between anchors and between an anchor and partner.
 
@@ -238,6 +258,8 @@ npm run build     passed with the existing >500 kB chunk warning
   downstream team generation, not while records are pooled.
 - Exact simulations and scorecard comparisons are not invoked by this
   subsystem.
+- Ranked-default identities are internal recommendation identities, not saved
+  inventory UUIDs.
 - Exclusion diagnostics have no feature UI.
 - The pool retains all valid records; downstream static policy owns work
   limits.

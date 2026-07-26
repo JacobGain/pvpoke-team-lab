@@ -104,7 +104,7 @@ confirm PvPoke connection
         ↓
 explore the catalog
         ↓
-add at least three inventory records
+add at least one owned anchor
         ↓
 analyze individual builds
         ↓
@@ -181,6 +181,10 @@ The entry flow has three short steps:
 When PvPoke publishes a recommended moveset for the selected Pokémon, TeamLab
 preselects that fast move and both charged moves. Change any move when your
 actual build differs.
+
+A new record starts with no Pokémon selected. Type a species or form name and
+choose an autocomplete suggestion; CP, IV, and move controls load only after
+that choice.
 
 ### Current versus planned
 
@@ -266,6 +270,8 @@ The result includes:
 - the selected meta scope and data version;
 - major threats and core breakers;
 - owned and unowned alternatives;
+- plain-language per-member win/loss/tie results and battle scores;
+- separately labeled target and team fast-move damage;
 - links into the inherited PvPoke UI for further inspection.
 
 Larger target scopes perform more synchronous upstream battles and may
@@ -280,7 +286,8 @@ of battle outcomes.
 
 Open **Generate team recommendations**.
 
-At least three valid inventory records are required.
+At least one valid inventory record is required because every recommendation
+starts from an exact owned anchor.
 
 ### Choose constraints
 
@@ -291,6 +298,8 @@ At least three valid inventory records are required.
 - Request one to five result teams.
 - Choose ready-now and planned builds together, ready-now only, or planned
   only.
+- Optionally include highly ranked Pokémon outside your inventory. These use
+  PvPoke’s recommended moves and default Great League IVs.
 - Choose the meta-target and shield scope.
 
 ### Run and review
@@ -299,7 +308,7 @@ Choose **Generate recommendations**.
 
 TeamLab:
 
-1. resolves exact owned builds;
+1. resolves exact owned anchors and the selected teammate scope;
 2. applies species clause and anchor positions;
 3. prioritizes ready-now evidence;
 4. generates and statically pre-scores a bounded shortlist;
@@ -320,8 +329,10 @@ Each selected result explains:
 - owned and unowned alternatives;
 - methods and assumptions.
 
-Choose **Save this team** to persist a result in Saved Teams. Recommendations
-are not saved automatically.
+Choose **Save this team** to persist a fully owned result in Saved Teams.
+Recommendations are not saved automatically. A result containing a ranked
+Pokémon you do not own can still be simulated and opened in PvPoke, but it
+cannot be saved until those Pokémon are added to inventory.
 
 If fewer teams satisfy the request, TeamLab reports a shortfall instead of
 silently duplicating teams.

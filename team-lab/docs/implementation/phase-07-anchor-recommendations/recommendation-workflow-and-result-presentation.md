@@ -3,7 +3,7 @@
 > **Phase:** Phase 7 — Anchor Recommendations  
 > **Status:** Complete for MVP  
 > **Route:** `/recommend`  
-> **Last reviewed:** 2026-07-25
+> **Last reviewed:** 2026-07-26
 
 ## Summary
 
@@ -11,7 +11,8 @@ TeamLab now exposes the complete anchor-recommendation pipeline as a user
 workflow. A user can select one or two owned anchors, constrain their
 positions, choose discovery and exact-simulation scope, monitor the bounded
 finalist run, inspect evidence-rich ordered results, and explicitly save a
-selected result as an ordinary saved team.
+fully owned result as an ordinary saved team. An opt-in setting can also
+simulate highly ranked teammates the user does not yet own.
 
 The page distinguishes:
 
@@ -74,6 +75,7 @@ The page provides:
 - `flex`, Lead, Safe Switch, or Closer position per anchor;
 - one through five requested results;
 - combined, ready-now-only, or planned-only inventory scope;
+- owned-only teammates or owned plus ranked PvPoke-default teammates;
 - Top 5, 10, 20, or 48 current meta targets;
 - zero, one, or two team shields;
 - zero, one, or two target shields.
@@ -105,7 +107,7 @@ results remain available.
 Every selected result displays:
 
 - exact Lead, Safe Switch, and Closer order;
-- owned CP, level, IVs, moves, and readiness;
+- CP, level, IVs, moves, readiness, and owned/ranked-default provenance;
 - qualitative build requirements;
 - final TeamLab selection score;
 - Coverage, Bulk, Safety, and Consistency grades and scores;
@@ -159,6 +161,11 @@ the result to IndexedDB and invalidates saved-team queries.
 No recommendation result is persisted automatically. Once saved, the team
 uses the normal edit, list, and exact-analysis workflows.
 
+A result containing a ranked-default teammate remains fully simulatable and
+can open in PvPoke, but its save action is disabled. The result names how many
+ranked picks must first be added to inventory; TeamLab does not fabricate
+saved inventory UUIDs or silently create records.
+
 ## File ownership
 
 | File | Responsibility |
@@ -199,13 +206,14 @@ uses the normal edit, list, and exact-analysis workflows.
 ## Error handling
 
 - Inventory or catalog loading errors stop the workflow.
-- Fewer than three inventory records directs the user to add a Pokémon.
+- An empty inventory directs the user to add the first owned anchor.
 - Request, anchor, and candidate errors appear as workflow errors.
 - Zero static finalists produces an explicit no-eligible-team message.
 - One exact finalist failure does not hide successful results.
 - Save errors remain separate from recommendation-run errors.
 - Saved buttons disable after success to prevent duplicate clicks within the
   current result view.
+- Ranked-default results disable saving until every member exists in inventory.
 
 ## Performance considerations
 

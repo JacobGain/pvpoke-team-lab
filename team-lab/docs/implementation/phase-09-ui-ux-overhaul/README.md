@@ -60,7 +60,15 @@ The first post-overhaul review also delivered:
 - four checked-in desktop, tablet, and mobile screenshot baselines with
   actionable image diffs; and
 - compact “Home” and “Find” mobile labels after the 320 px visual baseline
-  exposed otherwise-valid but awkward wrapping.
+  exposed otherwise-valid but awkward wrapping;
+- a genuinely blank new-record autocomplete with a prompt instead of the first
+  alphabetical Pokémon appearing selected;
+- explicit win/loss/tie language and team-member battle scores in threat
+  evidence;
+- labeled icon metrics replacing ambiguous fast-damage slash notation;
+- sprites on owned and unowned threat-alternative cards; and
+- an opt-in ranked-teammate scope for anchored recommendations, with clear
+  theoretical-build provenance and a safe inventory-before-save boundary.
 
 ## Navigation and progressive flow
 

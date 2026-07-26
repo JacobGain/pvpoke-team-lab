@@ -254,7 +254,7 @@ Deferred enhancements:
 Status: **Complete for MVP**
 
 - [Phase overview](phase-07-anchor-recommendations/README.md)
-- [Anchor request and owned candidate pool](phase-07-anchor-recommendations/anchor-request-and-candidate-pool.md)
+- [Anchor request and candidate pool](phase-07-anchor-recommendations/anchor-request-and-candidate-pool.md)
 - [Static candidate generation and pre-score](phase-07-anchor-recommendations/static-candidate-generation-and-pre-score.md)
 - [Exact finalist simulation and selection](phase-07-anchor-recommendations/exact-finalist-simulation-and-selection.md)
 - [Recommendation workflow and result presentation](phase-07-anchor-recommendations/recommendation-workflow-and-result-presentation.md)
