@@ -83,7 +83,7 @@ export class TeamRankerPreparationError extends Error {
   }
 }
 
-function metaDefaultBuild(
+export function createMetaDefaultBuild(
   pokemon: PokemonCatalogEntry,
 ): ExactSimulationBuild | undefined {
   const ivs = pokemon.defaultGreatLeagueIvs;
@@ -159,7 +159,7 @@ export function prepareTeamRankerRequest(
 
   const availableTargets = catalog.entries.flatMap((pokemon) => {
     if (!pokemon.isMeta) return [];
-    const build = metaDefaultBuild(pokemon);
+    const build = createMetaDefaultBuild(pokemon);
     return build ? [build] : [];
   });
   const targets = availableTargets.slice(0, options.targetLimit);
@@ -236,4 +236,3 @@ export class TeamRankingService {
     };
   }
 }
-

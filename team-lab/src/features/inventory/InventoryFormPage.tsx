@@ -179,6 +179,9 @@ function InventoryFormFields({
   const [notes, setNotes] = useState(sourceRecord?.notes ?? "");
   const [formError, setFormError] = useState<unknown>();
   const [step, setStep] = useState(0);
+  const [hasSelectedPokemon, setHasSelectedPokemon] = useState(
+    sourceRecord !== undefined,
+  );
 
   const selectedPokemon =
     catalog.entries.find((pokemon) => pokemon.speciesId === speciesId) ??
@@ -204,6 +207,7 @@ function InventoryFormFields({
           hp: Number(hpIv),
         };
   const cpInference =
+    hasSelectedPokemon &&
     effectiveIvs &&
     Number.isInteger(Number(cp)) &&
     Number(cp) >= 10 &&
@@ -235,6 +239,9 @@ function InventoryFormFields({
     const saveIntent = submitter?.value ?? "finish";
 
     try {
+      if (!hasSelectedPokemon) {
+        throw new Error("Choose a Pokémon before continuing.");
+      }
       const chargedMoveIds = [chargedMoveOne, chargedMoveTwo].filter(
         (moveId) => moveId !== "",
       );
@@ -303,7 +310,9 @@ function InventoryFormFields({
   const mutationPending =
     createMutation.isPending || updateMutation.isPending;
   const exactBuildComplete =
-    cpInference !== undefined && cpInference.status !== "no-match";
+    hasSelectedPokemon &&
+    cpInference !== undefined &&
+    cpInference.status !== "no-match";
   const steps = [
     { label: "Exact build", hint: "Required" },
     { label: "Build intent", hint: "Required" },
@@ -360,24 +369,41 @@ function InventoryFormFields({
           </label>
         </div>
 
-        <div className="selected-pokemon-preview">
-          <PokemonSprite
-            eager
-            size="large"
-            speciesId={selectedPokemon.speciesId}
-            speciesName={selectedPokemon.speciesName}
-          />
-          <div>
-            <small>Selected specimen</small>
-            <strong>{selectedPokemon.speciesName}</strong>
-            <span>#{String(selectedPokemon.dex).padStart(4, "0")}</span>
-          </div>
+        <div
+          className={
+            hasSelectedPokemon
+              ? "selected-pokemon-preview"
+              : "selected-pokemon-preview selected-pokemon-preview--empty"
+          }
+        >
+          {hasSelectedPokemon ? (
+            <>
+              <PokemonSprite
+                eager
+                size="large"
+                speciesId={selectedPokemon.speciesId}
+                speciesName={selectedPokemon.speciesName}
+              />
+              <div>
+                <small>Selected specimen</small>
+                <strong>{selectedPokemon.speciesName}</strong>
+                <span>#{String(selectedPokemon.dex).padStart(4, "0")}</span>
+              </div>
+            </>
+          ) : (
+            <div>
+              <small>No Pokémon selected</small>
+              <strong>Start typing a name below</strong>
+              <span>Suggestions will appear as you type.</span>
+            </div>
+          )}
         </div>
 
         <div className="form-grid">
           <PokemonCombobox
             label="Species, form, and Shadow state"
             onSelect={(pokemon) => {
+              setHasSelectedPokemon(true);
               setSpeciesId(pokemon.speciesId);
               resetMoves(pokemon);
               resetTarget(pokemon);
@@ -400,9 +426,11 @@ function InventoryFormFields({
               }
             }}
             options={pokemonOptions}
-            selected={selectedPokemon}
+            selected={hasSelectedPokemon ? selectedPokemon : undefined}
           />
 
+          {hasSelectedPokemon ? (
+            <>
           <label className="form-field">
             <span>Current CP</span>
             <input
@@ -561,6 +589,13 @@ function InventoryFormFields({
                 ))}
             </select>
           </label>
+            </>
+          ) : (
+            <p className="form-helper form-field--wide">
+              Choose a suggestion to load its recommended Great League IVs and
+              moves.
+            </p>
+          )}
         </div>
       </section>
       ) : null}

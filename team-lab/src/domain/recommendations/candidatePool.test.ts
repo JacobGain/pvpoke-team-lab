@@ -101,6 +101,7 @@ function request(
     anchors: { inventoryId: string; position: "lead" | "switch" | "closer" | "flex" }[];
     resultCount: number;
     buildStatusScope: "all" | "ready-now-only" | "planned-only";
+    partnerScope: "owned-only" | "owned-and-ranked";
   }> = {},
 ) {
   return recommendationRequestSchema.parse({
@@ -242,6 +243,38 @@ describe("recommendation candidate pool", () => {
         code: "build-status-scope",
       }),
     );
+  });
+
+  it("can add ranked default builds without treating them as owned", () => {
+    const pool = buildRecommendationCandidatePool(
+      request({ partnerScope: "owned-and-ranked" }),
+      [
+        currentRecord("azumarill", ids.azumarill),
+        currentRecord("whiscash", ids.whiscash),
+      ],
+      inventoryTestCatalog,
+    );
+
+    const rankedAltaria = pool.partners.find(
+      (candidate) => candidate.speciesId === "altaria",
+    );
+
+    expect(rankedAltaria).toMatchObject({
+        inventoryId: "ranked-default:altaria",
+        source: "ranked-default-build",
+        speciesId: "altaria",
+        readiness: "ranked-default",
+        exactBuild: {
+          speciesId: "altaria",
+          source: "meta-default",
+        },
+      });
+    expect(pool.partners[0]?.speciesId).toBe("altaria");
+    expect(
+      pool.partners.some(
+        (candidate) => candidate.speciesId === "azumarill",
+      ),
+    ).toBe(false);
   });
 
   it("resolves two legal anchors and requests only one partner", () => {

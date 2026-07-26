@@ -18,12 +18,12 @@ export function PokemonCombobox({
 }: {
   readonly label: string;
   readonly options: readonly PokemonCatalogEntry[];
-  readonly selected: PokemonCatalogEntry;
+  readonly selected?: PokemonCatalogEntry;
   readonly onSelect: (pokemon: PokemonCatalogEntry) => void;
 }) {
   const inputId = useId();
   const listboxId = useId();
-  const [query, setQuery] = useState(selected.speciesName);
+  const [query, setQuery] = useState(selected?.speciesName ?? "");
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -61,7 +61,7 @@ export function PokemonCombobox({
       choose(matches[activeIndex]);
     } else if (event.key === "Escape") {
       setOpen(false);
-      setQuery(selected.speciesName);
+      setQuery(selected?.speciesName ?? "");
     }
   }
 
@@ -71,7 +71,7 @@ export function PokemonCombobox({
       onBlur={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget)) {
           setOpen(false);
-          setQuery(selected.speciesName);
+          setQuery(selected?.speciesName ?? "");
         }
       }}
     >
@@ -90,7 +90,7 @@ export function PokemonCombobox({
           aria-controls={listboxId}
           aria-expanded={open}
           autoComplete="off"
-          data-selected-species-id={selected.speciesId}
+          data-selected-species-id={selected?.speciesId}
           id={inputId}
           onChange={(event) => {
             const nextQuery = event.target.value;
@@ -114,7 +114,7 @@ export function PokemonCombobox({
             setOpen(true);
           }}
           onKeyDown={handleKeyDown}
-          placeholder="Search by Pokémon name or form"
+          placeholder="Enter a Pokémon name or form"
           role="combobox"
           type="search"
           value={query}
@@ -130,7 +130,7 @@ export function PokemonCombobox({
           {matches.length > 0 ? (
             matches.map((pokemon, index) => (
               <button
-                aria-selected={pokemon.speciesId === selected.speciesId}
+                aria-selected={pokemon.speciesId === selected?.speciesId}
                 className={
                   index === activeIndex
                     ? "pokemon-combobox__option pokemon-combobox__option--active"
@@ -148,7 +148,7 @@ export function PokemonCombobox({
                   <strong>{pokemon.speciesName}</strong>
                   <small>#{String(pokemon.dex).padStart(4, "0")}</small>
                 </span>
-                {pokemon.speciesId === selected.speciesId ? (
+                {pokemon.speciesId === selected?.speciesId ? (
                   <Check aria-hidden="true" size={17} />
                 ) : null}
               </button>

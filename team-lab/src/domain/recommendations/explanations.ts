@@ -26,6 +26,9 @@ export function explainRecommendation(
   const plannedRequirements = members.flatMap((member) =>
     member.readiness === "planned" ? member.buildRequirements : [],
   );
+  const rankedDefaultCount = members.filter(
+    (member) => member.source === "ranked-default-build",
+  ).length;
   const topThreat = analysis.majorThreats[0];
   const reasons = [
     `${analysis.coverage.coveredTargets} of ${analysis.coverage.totalTargets} selected meta targets have at least one exact favorable matchup.`,
@@ -52,6 +55,12 @@ export function explainRecommendation(
     );
   }
 
+  if (rankedDefaultCount > 0) {
+    tradeoffs.push(
+      `${rankedDefaultCount} ranked ${rankedDefaultCount === 1 ? "teammate is" : "teammates are"} simulated with PvPoke defaults and must be added to inventory before this team can be saved.`,
+    );
+  }
+
   if (
     analysis.consistency.evidenceCount <
     analysis.consistency.evidenceTotal
@@ -74,4 +83,3 @@ export function explainRecommendation(
     scope: `${analysis.scope.selectedTargetCount} targets · ${analysis.shieldScenario} shields · data ${analysis.dataVersion}`,
   };
 }
-

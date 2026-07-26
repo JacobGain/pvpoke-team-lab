@@ -305,6 +305,77 @@
   text-decoration: none;
 }
 
+.alternative-card__identity {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.alternative-card__identity > span {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.alternative-card__identity strong {
+  color: var(--ink-950);
+}
+
+.battle-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  font-weight: 500;
+}
+
+.battle-metric {
+  display: inline-grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 0.65rem;
+  color: var(--ink-700);
+  background: var(--surface-subtle);
+}
+
+.battle-metric > span {
+  display: grid;
+  gap: 0.05rem;
+}
+
+.battle-metric small {
+  color: var(--ink-500);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.battle-metric strong {
+  color: var(--ink-950);
+  font-size: 0.78rem;
+}
+
+.battle-metric--success {
+  border-color: #bce4d3;
+  color: var(--success-600);
+  background: var(--success-100);
+}
+
+.battle-metric--danger {
+  border-color: #f0caca;
+  color: var(--danger-600);
+  background: var(--danger-100);
+}
+
+.battle-metric__link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.55rem 0.7rem;
+}
+
 .alternative-card--owned {
   border-left: 0.3rem solid #3157c8;
 }
@@ -345,4 +416,3 @@
 .inline-upstream-link {
   font-weight: 700;
 }
-

@@ -23,6 +23,11 @@ export const recommendationBuildStatusScopeSchema = z.enum([
   "planned-only",
 ]);
 
+export const recommendationPartnerScopeSchema = z.enum([
+  "owned-only",
+  "owned-and-ranked",
+]);
+
 export const recommendationRequestSchema = z
   .object({
     formatId: z.literal(GREAT_LEAGUE_FORMAT_ID),
@@ -33,6 +38,7 @@ export const recommendationRequestSchema = z
       .min(RECOMMENDATION_RESULT_COUNT_MIN)
       .max(RECOMMENDATION_RESULT_COUNT_MAX),
     buildStatusScope: recommendationBuildStatusScopeSchema,
+    partnerScope: recommendationPartnerScopeSchema.default("owned-only"),
   })
   .superRefine((request, context) => {
     const inventoryIds = request.anchors.map((anchor) => anchor.inventoryId);
@@ -67,7 +73,9 @@ export type RecommendationAnchor = z.infer<
 export type RecommendationBuildStatusScope = z.infer<
   typeof recommendationBuildStatusScopeSchema
 >;
+export type RecommendationPartnerScope = z.infer<
+  typeof recommendationPartnerScopeSchema
+>;
 export type RecommendationRequest = z.infer<
   typeof recommendationRequestSchema
 >;
-

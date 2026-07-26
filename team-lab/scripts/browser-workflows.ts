@@ -1016,6 +1016,19 @@ async function runCriticalWorkflows(
   await browser.setViewport(1440, 1_000);
 
   await browser.navigate("/inventory/new", "Add Pokémon");
+  const blankPokemonSelection = await browser.evaluate<boolean>(`(() => {
+    const input = document.querySelector('[role="combobox"]');
+    return input instanceof HTMLInputElement &&
+      input.value === "" &&
+      input.placeholder === "Enter a Pokémon name or form" &&
+      !input.dataset.selectedSpeciesId &&
+      document.querySelector(".selected-pokemon-preview--empty")
+        ?.textContent?.includes("No Pokémon selected") === true;
+  })()`);
+  invariant(
+    blankPokemonSelection,
+    "A new inventory form did not start with a blank Pokémon autocomplete.",
+  );
   await visual.capture(
     browser,
     "inventory-form-tablet",
@@ -1203,9 +1216,64 @@ async function runCriticalWorkflows(
   await browser.assertNoHorizontalOverflow("populated saved-team simulation");
   responsiveStates.push("saved-team simulation result");
   await browser.setViewport(1440, 1_000);
+  const readableThreatEvidence = await browser.evaluate<boolean>(`(() => {
+    const threatSection = [...document.querySelectorAll(".analysis-panel")]
+      .find((panel) => panel.textContent?.includes("Threat evidence"));
+    if (!threatSection) return false;
+    const text = threatSection.textContent ?? "";
+    const results = [...threatSection.querySelectorAll(".matchup-result")];
+    return !text.includes("At risk") &&
+      !text.includes("Team rating") &&
+      results.length > 0 &&
+      results.every((result) =>
+        /Wins this matchup|Loses this matchup|Ties this matchup/.test(
+          result.parentElement?.textContent ?? ""
+        ) &&
+        result.textContent?.includes("battle score")
+      );
+  })()`);
+  invariant(
+    readableThreatEvidence,
+    "Threat evidence did not expose plain-language outcomes and battle scores.",
+  );
+  const alternativeSpritesComplete = await browser.evaluate<boolean>(`(() => {
+    const cards = [...document.querySelectorAll(".alternative-card")];
+    return cards.length === 0 ||
+      cards.every((card) => Boolean(card.querySelector(".pokemon-sprite")));
+  })()`);
+  invariant(
+    alternativeSpritesComplete,
+    "A threat-alternative card rendered without a Pokémon sprite.",
+  );
+  await browser.evaluate(`(() => {
+    const details = document.querySelector(".simulation-matrix");
+    if (details instanceof HTMLDetailsElement) details.open = true;
+    return true;
+  })()`);
+  await browser.waitFor(
+    `document.querySelectorAll(".battle-metric").length > 0`,
+    "labeled exact-battle metrics",
+  );
+  const legacyFastDamageNotation = await browser.evaluate<boolean>(
+    `document.querySelector(".simulation-matrix")?.textContent?.includes("fast damage") ?? false`,
+  );
+  invariant(
+    !legacyFastDamageNotation,
+    "Exact battle details retained the ambiguous fast-damage slash notation.",
+  );
 
   await browser.navigate("/recommend", "Build around your anchors");
   await browser.clickButton("Continue to experiment");
+  const rankedPartnerSetting = await browser.evaluate<boolean>(`(() => {
+    const label = [...document.querySelectorAll("label")].find((candidate) =>
+      candidate.textContent?.includes("Include ranked Pokémon not in my inventory")
+    );
+    return label?.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+  })()`);
+  invariant(
+    rankedPartnerSetting,
+    "Recommendation settings did not expose the ranked teammate scope.",
+  );
   await browser.setLabeledControl("Results", "5", "select");
   await browser.setLabeledControl("Meta targets", "48", "select");
   await browser.startPulseAndClick("Generate recommendations");

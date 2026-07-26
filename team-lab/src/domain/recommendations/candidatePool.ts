@@ -14,6 +14,7 @@ import {
   serializeAnalyzedBuildForSimulation,
 } from "@/domain/simulation/buildSerialization";
 import type { ExactSimulationBuild } from "@/domain/simulation/contracts";
+import { createMetaDefaultBuild } from "@/domain/simulation/teamRanker";
 import {
   recommendationRequestSchema,
   type RecommendationAnchorPosition,
@@ -32,11 +33,12 @@ export interface RecommendationStaticEvidence {
 
 export interface RecommendationCandidate {
   readonly inventoryId: string;
+  readonly source: "owned-exact-build" | "ranked-default-build";
   readonly speciesId: string;
   readonly speciesName: string;
   readonly dex: number;
   readonly buildStatus: "current" | "planned";
-  readonly readiness: "ready-now" | "planned";
+  readonly readiness: "ready-now" | "planned" | "ranked-default";
   readonly favorite: boolean;
   readonly exactBuild: ExactSimulationBuild;
   readonly buildRequirements: readonly BuildRequirement[];
@@ -124,6 +126,7 @@ function createCandidate(
 
   return {
     inventoryId: record.inventoryId,
+    source: "owned-exact-build",
     speciesId: pokemon.speciesId,
     speciesName: pokemon.speciesName,
     dex: pokemon.dex,
@@ -133,14 +136,44 @@ function createCandidate(
     favorite: record.favorite,
     exactBuild: serializeAnalyzedBuildForSimulation(selectedBuild, pokemon),
     buildRequirements: analysis.requirements,
-    staticEvidence: {
-      overallRank: pokemon.ranking?.rank,
-      overallScore: pokemon.ranking?.score,
-      overallRating: pokemon.ranking?.rating,
-      roleScores: pokemon.ranking?.roleScores,
-      matchups: pokemon.ranking?.matchups ?? [],
-      counters: pokemon.ranking?.counters ?? [],
-    },
+    staticEvidence: createStaticEvidence(pokemon),
+  };
+}
+
+function createStaticEvidence(
+  pokemon: PokemonCatalogEntry,
+): RecommendationStaticEvidence {
+  return {
+    overallRank: pokemon.ranking?.rank,
+    overallScore: pokemon.ranking?.score,
+    overallRating: pokemon.ranking?.rating,
+    roleScores: pokemon.ranking?.roleScores,
+    matchups: pokemon.ranking?.matchups ?? [],
+    counters: pokemon.ranking?.counters ?? [],
+  };
+}
+
+function createRankedDefaultCandidate(
+  pokemon: PokemonCatalogEntry,
+): RecommendationCandidate | undefined {
+  const exactBuild = createMetaDefaultBuild(pokemon);
+
+  if (!pokemon.ranking || !exactBuild) {
+    return undefined;
+  }
+
+  return {
+    inventoryId: `ranked-default:${pokemon.speciesId}`,
+    source: "ranked-default-build",
+    speciesId: pokemon.speciesId,
+    speciesName: pokemon.speciesName,
+    dex: pokemon.dex,
+    buildStatus: "planned",
+    readiness: "ranked-default",
+    favorite: false,
+    exactBuild,
+    buildRequirements: [],
+    staticEvidence: createStaticEvidence(pokemon),
   };
 }
 
@@ -149,7 +182,12 @@ function compareCandidates(
   right: RecommendationCandidate,
 ): number {
   if (left.readiness !== right.readiness) {
-    return left.readiness === "ready-now" ? -1 : 1;
+    const readinessOrder = {
+      "ready-now": 0,
+      planned: 1,
+      "ranked-default": 2,
+    } as const;
+    return readinessOrder[left.readiness] - readinessOrder[right.readiness];
   }
   if (left.favorite !== right.favorite) {
     return left.favorite ? -1 : 1;
@@ -172,6 +210,17 @@ function compareCandidates(
         : 0;
 
   return leftRank - rightRank || nameOrder || identityOrder;
+}
+
+function compareRankedCandidateScope(
+  left: RecommendationCandidate,
+  right: RecommendationCandidate,
+): number {
+  const leftRank = left.staticEvidence.overallRank ?? Number.POSITIVE_INFINITY;
+  const rightRank =
+    right.staticEvidence.overallRank ?? Number.POSITIVE_INFINITY;
+
+  return leftRank - rightRank || compareCandidates(left, right);
 }
 
 function catalogValidationMessage(
@@ -347,11 +396,39 @@ export function buildRecommendationCandidatePool(
     }
   }
 
+  if (validatedRequest.partnerScope === "owned-and-ranked") {
+    const ownedDex = new Set(
+      inventory.flatMap((record) => {
+        const pokemon = catalogById.get(selectedSpeciesId(record));
+        return pokemon ? [pokemon.dex] : [];
+      }),
+    );
+
+    for (const pokemon of catalog.entries) {
+      if (
+        !pokemon.isReleased ||
+        anchorDex.has(pokemon.dex) ||
+        ownedDex.has(pokemon.dex)
+      ) {
+        continue;
+      }
+
+      const candidate = createRankedDefaultCandidate(pokemon);
+      if (candidate) {
+        partners.push(candidate);
+      }
+    }
+  }
+
   return {
     request: validatedRequest,
     anchors,
     requiredPartnerCount: anchors.length === 1 ? 2 : 1,
-    partners: partners.sort(compareCandidates),
+    partners: partners.sort(
+      validatedRequest.partnerScope === "owned-and-ranked"
+        ? compareRankedCandidateScope
+        : compareCandidates,
+    ),
     exclusions,
     dataVersion: catalog.dataVersion,
   };

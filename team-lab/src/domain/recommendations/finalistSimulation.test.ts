@@ -233,6 +233,46 @@ describe("recommendation finalist simulation", () => {
     expect(explanation.scope).toContain("1-1 shields");
   });
 
+  it("simulates ranked-default partners while preserving owned provenance", async () => {
+    const inventory = [record("azumarill", ids.azumarill)];
+    const candidatePool = buildRecommendationCandidatePool(
+      recommendationRequestSchema.parse({
+        formatId: "great-league",
+        anchors: [{ inventoryId: ids.azumarill, position: "flex" }],
+        resultCount: 1,
+        buildStatusScope: "all",
+        partnerScope: "owned-and-ranked",
+      }),
+      inventory,
+      rankedCatalog,
+    );
+    const generation = generateStaticRecommendationTeams(candidatePool);
+    const adapter = new DeterministicAdapter();
+    const times = [0, 100];
+    const service = new RecommendationFinalistSimulationService(
+      adapter,
+      () => times.shift()!,
+    );
+    const result = await service.simulate(
+      generation,
+      inventory,
+      rankedCatalog,
+      { targetLimit: 5, teamShields: 1, targetShields: 1 },
+    );
+
+    expect(
+      adapter.requests[0]?.team.filter(
+        (build) => build.source === "meta-default",
+      ),
+    ).toHaveLength(2);
+    expect(result.selected).toHaveLength(1);
+    expect(
+      explainRecommendation(result.selected[0]!).tradeoffs.some((tradeoff) =>
+        tradeoff.includes("must be added to inventory"),
+      ),
+    ).toBe(true);
+  });
+
   it("rejects stale static data before invoking TeamRanker", async () => {
     const inventory = [
       record("azumarill", ids.azumarill),

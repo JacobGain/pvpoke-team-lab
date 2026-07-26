@@ -129,6 +129,43 @@ function pool(
 }
 
 describe("static recommendation generation", () => {
+  it("builds a fully simulatable team from one owned anchor and ranked defaults", () => {
+    const candidatePool = buildRecommendationCandidatePool(
+      recommendationRequestSchema.parse({
+        formatId: "great-league",
+        anchors: [{ inventoryId: ids.azumarill, position: "flex" }],
+        resultCount: 3,
+        buildStatusScope: "all",
+        partnerScope: "owned-and-ranked",
+      }),
+      [record("azumarill", ids.azumarill)],
+      rankedCatalog,
+    );
+    const generation = generateStaticRecommendationTeams(candidatePool);
+    const team = generation.finalists[0];
+
+    expect(team).toBeDefined();
+    expect(
+      team
+        ? [
+            team.orderedMembers.lead,
+            team.orderedMembers.switch,
+            team.orderedMembers.closer,
+          ].filter((candidate) => candidate.source === "ranked-default-build")
+            .length
+        : 0,
+    ).toBe(2);
+    expect(
+      team
+        ? [
+            team.orderedMembers.lead.exactBuild.source,
+            team.orderedMembers.switch.exactBuild.source,
+            team.orderedMembers.closer.exactBuild.source,
+          ]
+        : [],
+    ).toContain("meta-default");
+  });
+
   it("generates a species-safe team and assigns flexible roles by published fit", () => {
     const generation = generateStaticRecommendationTeams(
       pool([

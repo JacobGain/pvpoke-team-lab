@@ -128,6 +128,10 @@ function RecommendationResultCard({
       candidate: finalist.staticTeam.orderedMembers.closer,
     },
   ] as const;
+  const rankedDefaultCount = members.filter(
+    ({ candidate }) => candidate.source === "ranked-default-build",
+  ).length;
+  const canSave = rankedDefaultCount === 0;
 
   return (
     <article className="recommendation-result">
@@ -163,10 +167,17 @@ function RecommendationResultCard({
               {formatMoveList(candidate.exactBuild.chargedMoveIds)}
             </p>
             <small>
-              {formatIdentifier(candidate.readiness)}
+              {candidate.source === "ranked-default-build"
+                ? "Ranked option · not owned"
+                : formatIdentifier(candidate.readiness)}
               {candidate.favorite ? " · favorite" : ""}
             </small>
-            {candidate.buildRequirements.length > 0 ? (
+            {candidate.source === "ranked-default-build" ? (
+              <small>
+                Simulated with PvPoke’s recommended moves and default Great
+                League IVs.
+              </small>
+            ) : candidate.buildRequirements.length > 0 ? (
               <ul>
                 {candidate.buildRequirements.map((requirement) => (
                   <li key={`${requirement.code}-${requirement.message}`}>
@@ -266,6 +277,13 @@ function RecommendationResultCard({
       </details>
 
       <footer className="recommendation-result__actions">
+        {!canSave ? (
+          <p className="recommendation-save-notice">
+            Add the {rankedDefaultCount} ranked{" "}
+            {rankedDefaultCount === 1 ? "option" : "options"} to inventory
+            before saving this team.
+          </p>
+        ) : null}
         {finalist.run.request ? (
           <a
             className="secondary-link"
@@ -281,11 +299,17 @@ function RecommendationResultCard({
         <button
           className="primary-button"
           type="button"
-          disabled={saving || saved}
+          disabled={saving || saved || !canSave}
           onClick={onSave}
         >
           <Save size={18} />
-          {saved ? "Saved to teams" : saving ? "Saving…" : "Save this team"}
+          {saved
+            ? "Saved to teams"
+            : saving
+              ? "Saving…"
+              : canSave
+                ? "Save this team"
+                : "Inventory required to save"}
         </button>
       </footer>
     </article>
@@ -307,6 +331,7 @@ export function RecommendationPage() {
   const [resultCount, setResultCount] = useState(3);
   const [buildStatusScope, setBuildStatusScope] =
     useState<RecommendationBuildStatusScope>("all");
+  const [includeRankedPartners, setIncludeRankedPartners] = useState(false);
   const [targetLimit, setTargetLimit] = useState<MetaTargetLimit>(5);
   const [teamShields, setTeamShields] = useState<ShieldCount>(1);
   const [targetShields, setTargetShields] = useState<ShieldCount>(1);
@@ -383,6 +408,9 @@ export function RecommendationPage() {
         anchors,
         resultCount,
         buildStatusScope,
+        partnerScope: includeRankedPartners
+          ? "owned-and-ranked"
+          : "owned-only",
       });
       const pool = buildRecommendationCandidatePool(
         request,
@@ -395,7 +423,7 @@ export function RecommendationPage() {
 
       if (nextGeneration.finalists.length === 0) {
         throw new Error(
-          "No eligible species-distinct finalist teams remain under the current anchors and build scope.",
+          "No eligible species-distinct finalist teams remain under the current anchors and teammate scope.",
         );
       }
 
@@ -435,6 +463,17 @@ export function RecommendationPage() {
 
     try {
       const members = finalist.staticTeam.orderedMembers;
+      const candidates = [members.lead, members.switch, members.closer];
+
+      if (
+        candidates.some(
+          (candidate) => candidate.source === "ranked-default-build",
+        )
+      ) {
+        throw new Error(
+          "Add ranked-default teammates to inventory before saving this team.",
+        );
+      }
       const name = `TeamLab: ${members.lead.speciesName} / ${members.switch.speciesName} / ${members.closer.speciesName}`.slice(
         0,
         100,
@@ -475,20 +514,20 @@ export function RecommendationPage() {
       <PageHeader
         description={
           <p>
-            Choose one or two exact owned builds, set the experiment scope, and
-            compare simulated lineups built around them.
+            Choose one or two exact owned anchors, then compare lineups made
+            from your inventory, ranked PvPoke options, or both.
           </p>
         }
         eyebrow="Guided team discovery"
         title="Build around your anchors"
       />
 
-      {inventory.length < 3 ? (
+      {inventory.length < 1 ? (
         <section className="form-section">
-          <h2>At least three inventory records are required</h2>
+          <h2>Add one Pokémon to choose an anchor</h2>
           <p>
-            Recommendations use exact owned builds and still enforce species
-            clause.
+            Your anchor always uses an exact owned build. Ranked Pokémon can
+            fill the remaining positions once an anchor exists.
           </p>
           <Link className="primary-link" to="/inventory/new">
             Add Pokémon
@@ -736,6 +775,24 @@ export function RecommendationPage() {
                 </select>
               </label>
             </div>
+            <label className="recommendation-partner-scope">
+              <input
+                type="checkbox"
+                checked={includeRankedPartners}
+                disabled={running}
+                onChange={(event) =>
+                  setIncludeRankedPartners(event.target.checked)
+                }
+              />
+              <span>
+                <strong>Include ranked Pokémon not in my inventory</strong>
+                <small>
+                  Uses PvPoke’s recommended moves and default Great League IVs.
+                  These teams can be simulated now, but ranked picks must be
+                  added to inventory before saving.
+                </small>
+              </span>
+            </label>
             {targetLimit >= 20 ? (
               <p className="analysis-notice">
                 Large scopes can run hundreds or thousands of synchronous
