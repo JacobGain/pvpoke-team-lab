@@ -1076,6 +1076,47 @@ async function auditMobilePage(
   })()`);
 }
 
+async function assertStickyControls(
+  browser: BrowserWorkflow,
+  selector: ".catalog-controls" | ".inventory-controls",
+  viewportWidth: number,
+): Promise<void> {
+  await browser.setViewport(viewportWidth, 900);
+  const sticky = await browser.evaluate<{
+    readonly actualTop: number;
+    readonly expectedTop: number;
+    readonly position: string;
+    readonly scrollY: number;
+  }>(`(async () => {
+    window.scrollTo({ left: 0, top: 700, behavior: "instant" });
+    await new Promise((resolveFrame) =>
+      requestAnimationFrame(() => requestAnimationFrame(resolveFrame))
+    );
+    const controls = document.querySelector(${JSON.stringify(selector)});
+    const topbar = document.querySelector(".app-topbar--mobile");
+    const topbarStyle = topbar ? getComputedStyle(topbar) : null;
+    const topbarVisible =
+      topbar instanceof HTMLElement &&
+      topbarStyle?.display !== "none" &&
+      topbar.getBoundingClientRect().height > 0;
+    return {
+      actualTop: controls?.getBoundingClientRect().top ?? -1,
+      expectedTop: topbarVisible ? topbar.getBoundingClientRect().bottom : 0,
+      position: controls ? getComputedStyle(controls).position : "",
+      scrollY: window.scrollY
+    };
+  })()`);
+  invariant(
+    sticky.scrollY > 0 &&
+      sticky.position === "sticky" &&
+      Math.abs(sticky.actualTop - sticky.expectedTop) <= 1.5,
+    `${selector} was not flush with the active top chrome at ${viewportWidth}px: ${JSON.stringify(sticky)}.`,
+  );
+  await browser.evaluate(
+    `window.scrollTo({ left: 0, top: 0, behavior: "instant" })`,
+  );
+}
+
 async function runCriticalWorkflows(
   browser: BrowserWorkflow,
   client: DevToolsClient,
@@ -1085,10 +1126,37 @@ async function runCriticalWorkflows(
   const responsiveStates: string[] = [];
 
   await browser.setViewport(1440, 1_000);
-  await browser.navigate("/", "Build with what you actually own.");
+  await browser.navigate("/", "Turn your roster into a battle plan.");
   await browser.waitFor(
     `document.querySelector("#pvpoke-data-title")?.textContent?.trim() === "Connected"`,
     "real PvPoke data connection",
+  );
+  const dashboardContent = await browser.evaluate<{
+    readonly hasBattleProtocol: boolean;
+    readonly hasDisclaimer: boolean;
+    readonly hasLicenseLink: boolean;
+    readonly metaRows: number;
+    readonly spriteRows: number;
+  }>(`({
+    hasBattleProtocol: document.body.textContent?.includes("Battle protocol") === true,
+    hasDisclaimer:
+      document.querySelector(".app-footer__legal")?.textContent
+        ?.includes("TeamLab is an independent, unofficial project") === true,
+    hasLicenseLink:
+      document.querySelector('.app-footer a[href*="pvpoke/pvpoke"][href*="LICENSE"]')
+        ?.textContent?.trim() === "MIT License",
+    metaRows: document.querySelectorAll(".dashboard-meta-watch li").length,
+    spriteRows: document.querySelectorAll(
+      ".dashboard-meta-watch li .pokemon-sprite img"
+    ).length
+  })`);
+  invariant(
+    !dashboardContent.hasBattleProtocol &&
+      dashboardContent.hasDisclaimer &&
+      dashboardContent.hasLicenseLink &&
+      dashboardContent.metaRows === 3 &&
+      dashboardContent.spriteRows === 3,
+    `The dashboard meta watch or shared attribution was incomplete: ${JSON.stringify(dashboardContent)}.`,
   );
   await visual.capture(
     browser,
@@ -1136,6 +1204,9 @@ async function runCriticalWorkflows(
       rankingPagination.hasXlBuild,
     `Rankings pagination or XL labeling was incomplete: ${JSON.stringify(rankingPagination)}.`,
   );
+  await assertStickyControls(browser, ".catalog-controls", 1440);
+  await assertStickyControls(browser, ".catalog-controls", 768);
+  await browser.setViewport(1440, 1_000);
   const rankingRowSummary = await browser.evaluate<boolean>(`(() => {
     const row = document.querySelector(".ranking-row");
     const text = row?.querySelector(".ranking-row__summary")
@@ -1276,6 +1347,9 @@ async function runCriticalWorkflows(
   console.log(
     `[browser-workflows] created ${inventoryCount} inventory records through the UI`,
   );
+  await assertStickyControls(browser, ".inventory-controls", 1440);
+  await assertStickyControls(browser, ".inventory-controls", 768);
+  await browser.setViewport(1440, 1_000);
 
   await browser.setLabeledControl(
     "Search species or notes",
@@ -1719,7 +1793,7 @@ async function runCriticalWorkflows(
   );
 
   const mobileRoutes = [
-    ["/", "Build with what you actually own."],
+    ["/", "Turn your roster into a battle plan."],
     ["/catalog", "Rankings"],
     ["/inventory", "Your inventory"],
     ["/inventory/new", "Add Pokémon"],
@@ -1759,7 +1833,7 @@ async function runCriticalWorkflows(
     }
   }
 
-  await browser.navigate("/", "Build with what you actually own.");
+  await browser.navigate("/", "Turn your roster into a battle plan.");
   await browser.setViewport(320, 900);
   await browser.clickButton("More", ".mobile-tabbar button");
   const mobileMenuAudit = await browser.evaluate<{

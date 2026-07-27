@@ -4,7 +4,6 @@ import {
   CircleCheckBig,
   Plus,
   Sparkles,
-  Swords,
   Target,
   Users,
 } from "lucide-react";
@@ -15,6 +14,7 @@ import { useInventoryList } from "@/features/inventory/inventoryQueries";
 import { PvpokeDataStatusCard } from "@/features/meta/PvpokeDataStatusCard";
 import { usePokemonCatalog } from "@/features/meta/usePokemonCatalog";
 import { useSavedTeamList } from "@/features/teams/savedTeamQueries";
+import { formatMoveList } from "@/utils/formatters";
 
 function MetricCard({
   label,
@@ -55,6 +55,14 @@ export function HomePage() {
   const recent = [...inventory]
     .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))
     .slice(0, 4);
+  const metaWatch = [...(catalogResult.data?.entries ?? [])]
+    .filter((entry) => entry.ranking !== undefined)
+    .sort(
+      (left, right) =>
+        (left.ranking?.rank ?? Number.POSITIVE_INFINITY) -
+        (right.ranking?.rank ?? Number.POSITIVE_INFINITY),
+    )
+    .slice(0, 3);
 
   const nextAction =
     inventory.length === 0
@@ -103,8 +111,8 @@ export function HomePage() {
           </div>
           <p className="eyebrow">Competitive battle workspace</p>
           <h1>
-            Build with what
-            <span> you actually own.</span>
+            Turn your roster into a
+            <span> battle plan.</span>
           </h1>
           <p>
             Inventory exact Pokémon, understand their builds, and test teams
@@ -121,38 +129,49 @@ export function HomePage() {
             </Link>
           </div>
         </div>
-        <div className="dashboard-protocol">
-          <div className="dashboard-protocol__heading">
-            <span>Battle protocol</span>
-            <strong>03 phases</strong>
+        <aside className="dashboard-meta-watch" aria-label="Current meta leaders">
+          <div className="dashboard-meta-watch__heading">
+            <div>
+              <span>Meta watch</span>
+              <strong>Current leaders</strong>
+            </div>
+            <Link to="/catalog">
+              Rankings
+              <ArrowRight aria-hidden="true" size={14} />
+            </Link>
           </div>
-          <ol>
-            <li>
-              <span>01</span>
-              <Boxes aria-hidden="true" size={20} />
-              <div>
-                <strong>Record the roster</strong>
-                <small>Exact CP, IVs, moves, and build state</small>
-              </div>
-            </li>
-            <li>
-              <span>02</span>
-              <Users aria-hidden="true" size={20} />
-              <div>
-                <strong>Set the formation</strong>
-                <small>Lead, safe switch, and closer</small>
-              </div>
-            </li>
-            <li>
-              <span>03</span>
-              <Swords aria-hidden="true" size={20} />
-              <div>
-                <strong>Test the field</strong>
-                <small>Exact battles against the current meta</small>
-              </div>
-            </li>
-          </ol>
-        </div>
+          {metaWatch.length > 0 ? (
+            <ol>
+              {metaWatch.map((pokemon) => (
+                <li key={pokemon.speciesId}>
+                  <span className="dashboard-meta-watch__rank">
+                    #{pokemon.ranking?.rank}
+                  </span>
+                  <PokemonSprite
+                    eager
+                    size="small"
+                    speciesId={pokemon.speciesId}
+                    speciesName={pokemon.speciesName}
+                  />
+                  <div>
+                    <strong>{pokemon.speciesName}</strong>
+                    <small>{pokemon.types.join(" · ")}</small>
+                    <span>
+                      {formatMoveList(
+                        pokemon.ranking?.recommendedMoveIds ?? [],
+                        " · ",
+                      )}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <p className="dashboard-meta-watch__empty">
+              Current rankings will appear when PvPoke data is ready.
+            </p>
+          )}
+        </aside>
       </section>
 
       <section className="metric-grid" aria-label="TeamLab overview">

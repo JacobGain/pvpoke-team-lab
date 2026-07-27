@@ -88,12 +88,17 @@ without changing domain behavior:
 - rounded cards, pill buttons, broad shadows, and floating bubbles were
   replaced by rules, square metadata, cyan registration marks, and warm paper
   surfaces;
-- the dashboard became a battle desk with a three-phase roster, formation, and
-  test protocol;
+- the dashboard became a battle desk with a live, sprite-backed view of the
+  current top-ranked Pokémon and a direct route into Rankings;
 - saved teams became three-position formation records with larger sprites;
 - ranking expansions, recommendation results, and simulation evidence use one
   shared dossier hierarchy; and
-- purposeful entry motion is disabled automatically for reduced-motion users.
+- purposeful entry motion is disabled automatically for reduced-motion users;
+- sticky Rankings and Inventory filters sit flush with the top of the desktop
+  workspace or directly beneath the tablet header; the taller mobile filter
+  groups remain in normal flow so they do not obscure results; and
+- the shared footer records the project’s independent status, Pokémon
+  trademark attribution, PvPoke foundation, and MIT-license link.
 
 ## Navigation and progressive flow
 

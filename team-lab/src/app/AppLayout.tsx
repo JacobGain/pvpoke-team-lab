@@ -232,6 +232,43 @@ export function AppLayout() {
 
       <div className="app-content" id="main-content">
         <Outlet />
+        <footer className="app-footer">
+          <div className="app-footer__inner">
+            <div className="app-footer__identity">
+              <FlaskConical aria-hidden="true" size={20} />
+              <span>
+                <strong>TeamLab</strong>
+                <small>Independent battle-planning tool</small>
+              </span>
+            </div>
+            <div className="app-footer__legal">
+              <p>
+                Pokémon and Pokémon GO are copyright of The Pokémon Company,
+                Niantic, Inc., and Nintendo. All trademarked images and names
+                are property of their respective owners and are used here for
+                educational and informational purposes only. TeamLab is an
+                independent, unofficial project and is not affiliated with or
+                endorsed by The Pokémon Company, Niantic, Inc., Nintendo, or
+                PvPoke LLC.
+              </p>
+              <p>
+                Battle data and simulation foundations are derived from{" "}
+                <a href="https://pvpoke.com/" rel="noreferrer" target="_blank">
+                  PvPoke
+                </a>{" "}
+                and used under its{" "}
+                <a
+                  href="https://github.com/pvpoke/pvpoke/blob/master/LICENSE"
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  MIT License
+                </a>
+                .
+              </p>
+            </div>
+          </div>
+        </footer>
       </div>
 
       <nav className="mobile-tabbar" aria-label="Primary mobile navigation">
