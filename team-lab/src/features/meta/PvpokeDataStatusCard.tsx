@@ -14,7 +14,7 @@ export function PvpokeDataStatusCard() {
       <section className="data-card" aria-live="polite">
         <p className="eyebrow">Bundled PvPoke data</p>
         <h2>Loading…</h2>
-        <p>Validating the local Game Master, rankings, and Great League meta.</p>
+        <p>Validating the bundled Game Master, rankings, and Great League meta.</p>
       </section>
     );
   }

@@ -176,7 +176,7 @@ export function HomePage() {
 
       <section className="metric-grid" aria-label="TeamLab overview">
         <MetricCard
-          detail="Exact local records"
+          detail="Exact inventory records"
           icon={<Boxes size={21} />}
           label="Inventory"
           value={inventory.length}

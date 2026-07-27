@@ -22,7 +22,7 @@ import { useSavedTeamList } from "@/features/teams/savedTeamQueries";
 function formatError(error: unknown): string {
   return error instanceof Error
     ? error.message
-    : "The local data operation failed.";
+    : "The data operation failed.";
 }
 
 type ConfirmationAction =
@@ -182,7 +182,7 @@ export function InventoryBackupPage() {
   const confirmation = confirmationAction
     ? {
         "restore-replace": {
-          title: "Replace all local data?",
+          title: "Replace all TeamLab data?",
           message: inspection?.success
             ? `This will make ${selectedFilename} authoritative, replacing ${records.length} inventory records and ${savedTeams.length} saved teams with ${inspection.backup.inventory.length} inventory records and ${inspection.backup.savedTeams.length} saved teams.`
             : "The selected backup is no longer available.",
@@ -206,7 +206,7 @@ export function InventoryBackupPage() {
         },
         "reset-all": {
           title: "Reset all TeamLab data?",
-          message: `This permanently deletes ${records.length} inventory ${records.length === 1 ? "record" : "records"} and ${savedTeams.length} saved ${savedTeams.length === 1 ? "team" : "teams"} from this browser.`,
+          message: `This permanently deletes ${records.length} inventory ${records.length === 1 ? "record" : "records"} and ${savedTeams.length} saved ${savedTeams.length === 1 ? "team" : "teams"}.`,
           confirmLabel: resetAllMutation.isPending
             ? "Resetting…"
             : "Reset all data",
@@ -223,10 +223,10 @@ export function InventoryBackupPage() {
           <p>
             Export inventory and saved teams in one portable TeamLab JSON
             backup, or validate every record and reference before changing
-            IndexedDB.
+            stored data.
           </p>
         }
-        eyebrow="Local data safety"
+        eyebrow="Data safety"
         title="Backup and restore"
       />
 
@@ -248,7 +248,7 @@ export function InventoryBackupPage() {
       </section>
       {exportError ? (
         <p className="inventory-error" role="alert">
-          The current local data cannot produce a restorable backup.{" "}
+          The current TeamLab data cannot produce a restorable backup.{" "}
           {formatError(exportError)}
         </p>
       ) : null}
@@ -336,7 +336,7 @@ export function InventoryBackupPage() {
                 />
                 <span>
                   <strong>Merge</strong>
-                  Keep unrelated local inventory and teams. Backup records
+                  Keep unrelated inventory and teams. Backup records
                   replace matching IDs only when the complete merged state
                   remains legal.
                 </span>
@@ -354,7 +354,7 @@ export function InventoryBackupPage() {
                 <span>
                   <strong>Replace</strong>
                   Make the backup authoritative for both inventory and saved
-                  teams, removing other local data.
+                  teams, removing other TeamLab data.
                 </span>
               </label>
             </fieldset>
@@ -450,9 +450,9 @@ export function InventoryBackupPage() {
       <section className="form-section danger-zone">
         <header>
           <p className="eyebrow">Danger zone</p>
-          <h2>Manage local data</h2>
+          <h2>Manage TeamLab data</h2>
           <p>
-            These operations permanently remove local browser data. Each
+            These operations permanently remove inventory or team data. Each
             requires a separate confirmation and reports exact removal counts.
           </p>
         </header>

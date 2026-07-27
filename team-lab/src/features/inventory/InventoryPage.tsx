@@ -59,7 +59,7 @@ export function InventoryPage() {
   ]);
 
   if (catalogResult.isLoading || inventoryResult.isPending) {
-    return <main className="inventory-page">Loading local inventory…</main>;
+    return <main className="inventory-page">Loading inventory…</main>;
   }
 
   const error =
@@ -93,15 +93,15 @@ export function InventoryPage() {
             </Link>
             <Link className="secondary-link" to="/inventory/backup">
               <Archive size={18} />
-              Local data
+              Backups & reset
             </Link>
           </>
         }
         aside={
           <div className="catalog-summary">
             <strong>{inventoryResult.data?.length ?? 0}</strong>
-            <span>Pokémon saved locally</span>
-            <small>Private to this browser</small>
+            <span>Pokémon in inventory</span>
+            <small>Exact builds and future plans</small>
           </div>
         }
         description={
