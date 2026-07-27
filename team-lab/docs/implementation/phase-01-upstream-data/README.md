@@ -6,8 +6,10 @@
 
 ## Objective
 
-Allow TeamLab to consume current PvPoke data without copying datasets, exposing
-raw JSON to features, or depending on upstream UI/global JavaScript.
+Allow TeamLab to consume current PvPoke data without exposing raw JSON to
+features or coupling feature code to upstream UI/global JavaScript. The
+deployment inputs are now deterministic generated copies under
+`public/vendor/pvpoke/`.
 
 The phase must establish a stable progression:
 
@@ -27,15 +29,15 @@ Feature UI
 
 ## Implemented scope
 
-- configurable upstream base URL
-- Vite local-development proxy
+- self-contained bundled data path
+- validated, deterministic upstream sync command
 - Game Master schema and loader
 - Pokémon, move, cup, and format schemas
 - overall-ranking schema and loader
 - meta-group schema and loader
 - structured HTTP/JSON/schema errors
 - TanStack Query definitions
-- connection-status UI
+- bundled-data health UI
 - Open Great League configuration
 - immutable normalized Pokémon catalog
 - catalog integrity diagnostics

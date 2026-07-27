@@ -36,10 +36,7 @@ or partial meta subset as universal truth.
 - separately labeled unowned PvPoke default alternatives
 - species-clause filtering by Pokédex number
 - counter evidence, rating perspective, and non-simulation disclosure
-- exact-build PvPoke Team Builder links
-- exact team-member versus default-target PvPoke battle links
 - completed-run request provenance
-- shared upstream base URL for data and UI links
 
 ## Deferred enhancements
 
@@ -54,7 +51,7 @@ or partial meta subset as universal truth.
 - [Coverage, threats, and core breakers](coverage-threats-and-core-breakers.md)
 - [Bulk, safety, and consistency scorecard](bulk-safety-and-consistency.md)
 - [Owned and unowned threat alternatives](owned-and-unowned-alternatives.md)
-- [PvPoke Battle and Team Builder deep links](upstream-deep-links.md)
+- [Removed PvPoke Battle and Team Builder deep links](upstream-deep-links.md)
 
 ## Exit criteria
 
@@ -63,7 +60,7 @@ or partial meta subset as universal truth.
 - [x] Major threats and core breakers are displayed.
 - [x] Bulk, safety, and consistency are displayed.
 - [x] Owned and unowned alternatives are displayed.
-- [x] Upstream deep links are available.
+- [x] External deep links were removed for the self-contained runtime.
 - [x] Full MVP scorecard and threat view is complete.
 
 ## Next phase

@@ -121,9 +121,9 @@ FULL-SUMMARY.md
 
 Future fork-specific Docker overrides, top-level documentation, scripts, or automation should also be clearly named and kept outside upstream-owned paths.
 
-### Shared data, but not shared ownership
+### Generated upstream-derived assets
 
-Team Lab will consume data from:
+The authoritative upstream artifacts remain under:
 
 ```text
 src/data/gamemaster.min.json
@@ -132,7 +132,16 @@ src/data/groups/**
 src/data/training/**
 ```
 
-These remain upstream-owned artifacts. Team Lab should read them through repositories or adapters rather than moving, duplicating, or annotating them.
+Team Lab never modifies those files. Its deterministic sync command validates
+and copies the runtime subset it consumes into:
+
+```text
+team-lab/public/vendor/pvpoke/**
+```
+
+These generated copies are fork-owned deployment inputs and can be overwritten
+after a future upstream pull. The source tree remains upstream-owned and free
+of Team Lab changes.
 
 Fork-specific persistent data must not be written into those directories. User inventory, recommendation preferences, saved teams, cached calculations, and application migrations belong to Team Lab’s own storage layer.
 
@@ -153,9 +162,13 @@ It can eventually contain:
 - static files that do not pass through the source build;
 - generated frontend bundles, depending on the selected toolchain.
 
-`public/assets/` is only for fork-owned assets. Existing PvPoke imagery should continue to be referenced from the upstream application when licensing and deployment permit. Blindly copying all upstream images would introduce duplication and update drift.
+`public/assets/` contains fork-owned artwork. `public/vendor/pvpoke/` is the
+explicit exception for generated, licensed runtime inputs copied by
+`scripts/sync-pvpoke-assets.ts`. Its manifest records exact hashes and source
+paths so duplication is deliberate and refreshable rather than ad hoc.
 
-The public directory should not contain domain logic, source components, database code, or copies of upstream datasets.
+The public directory should not contain domain logic, source components, or
+database code.
 
 ## `team-lab/src/app/`
 

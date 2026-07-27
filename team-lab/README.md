@@ -9,20 +9,10 @@ portable full-data JSON backup and restore.
 
 ## Requirements
 
-- the complete PvPoke fork checkout;
-- Docker with Docker Compose;
 - Node.js 22.12 or newer;
 - npm 11 or newer.
 
 ## Quick start
-
-Start the inherited PvPoke server from the repository root:
-
-```bash
-make up
-```
-
-In another terminal, start TeamLab:
 
 ```bash
 cd team-lab
@@ -31,12 +21,11 @@ npm run dev
 ```
 
 Open the URL printed by Vite, normally `http://localhost:5173`. Confirm the
-home-page data card says **Connected** before entering inventory.
+home-page data card says **Ready** before entering inventory.
 
-TeamLab reads the existing PvPoke data through `/pvpoke/src` by default. During
-development, Vite proxies that path to `http://localhost`. Copy `.env.example`
-to `.env.local` if either path differs in your environment. Upstream UI links
-use this same base path.
+TeamLab serves its validated PvPoke-derived data and classic simulation engine
+from `public/vendor/pvpoke/`. It does not need Apache, PHP, Docker, or a second
+PvPoke application at development or deployment time.
 
 Inventory and saved teams live only in IndexedDB for the current browser
 profile and origin. Download JSON backups regularly.
@@ -51,8 +40,8 @@ Optimized local Pokémon artwork is checked into
 `public/assets/pokemon/`, so normal development and builds do not download
 anything from PokeAPI.
 
-When the inherited Game Master gains species/forms or the pinned artwork
-revision is intentionally changed, refresh the assets with:
+When the bundled Game Master gains species/forms or the pinned artwork
+revision is intentionally changed, refresh the assets after syncing PvPoke:
 
 ```bash
 npm run sync:sprites
@@ -61,6 +50,23 @@ npm run sync:sprites
 The script generates the typed manifest and attribution/fallback report. See
 the [sprite pipeline record](docs/implementation/phase-09-ui-ux-overhaul/sprite-pipeline.md)
 for its mapping and review contract.
+
+## Updating PvPoke data and engine files
+
+After updating the upstream checkout, regenerate TeamLab’s owned copy:
+
+```bash
+npm run sync:pvpoke
+npm run validate:data
+npm test
+npm run build
+```
+
+The sync command reads `../src` by default, validates all JSON inputs before
+overwriting anything, and records file hashes in
+`public/vendor/pvpoke/manifest.json`. To import from another checkout, set
+`PVPOKE_SOURCE_DIR` to its `src` directory. The upstream source tree is never
+modified. See [PvPoke asset maintenance](docs/PVPOKE-DATA.md).
 
 ## Validation
 
@@ -83,6 +89,7 @@ intentional visual change, inspect the generated diff before running
 ## Documentation
 
 - [Local user guide](docs/USER-GUIDE.md)
+- [PvPoke asset maintenance](docs/PVPOKE-DATA.md)
 - [Product scope and project plan](docs/PROJECT-PLAN.md)
 - [Implementation records](docs/implementation/README.md)
 - [Modern battle lab UI/UX](docs/implementation/phase-09-ui-ux-overhaul/README.md)
