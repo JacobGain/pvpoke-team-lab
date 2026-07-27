@@ -1,5 +1,4 @@
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
-import { createReadStream } from "node:fs";
 import {
   access,
   mkdir,
@@ -7,12 +6,11 @@ import {
   readFile,
   readdir,
   rm,
-  stat,
   writeFile,
 } from "node:fs/promises";
-import { createServer, type Server } from "node:http";
+import { createServer } from "node:http";
 import { tmpdir } from "node:os";
-import { extname, resolve, sep } from "node:path";
+import { resolve } from "node:path";
 
 import {
   createServer as createViteServer,
@@ -118,80 +116,6 @@ async function availablePort(): Promise<number> {
   });
 
   return port;
-}
-
-function contentType(filePath: string): string {
-  return (
-    {
-      ".css": "text/css; charset=utf-8",
-      ".html": "text/html; charset=utf-8",
-      ".js": "text/javascript; charset=utf-8",
-      ".json": "application/json; charset=utf-8",
-      ".png": "image/png",
-      ".svg": "image/svg+xml",
-    }[extname(filePath)] ?? "application/octet-stream"
-  );
-}
-
-async function startUpstreamServer(
-  upstreamRoot: string,
-  port: number,
-): Promise<Server> {
-  const rootPrefix = `${upstreamRoot}${sep}`;
-  const server = createServer((request, response) => {
-    void (async () => {
-      try {
-        const pathname = decodeURIComponent(
-          new URL(request.url ?? "/", `http://${HOST}`).pathname,
-        );
-
-        if (!pathname.startsWith("/pvpoke/")) {
-          response.writeHead(404).end("Not found");
-          return;
-        }
-
-        const filePath = resolve(
-          upstreamRoot,
-          pathname.slice("/pvpoke/".length),
-        );
-
-        if (!filePath.startsWith(rootPrefix)) {
-          response.writeHead(403).end("Forbidden");
-          return;
-        }
-
-        const fileStat = await stat(filePath);
-        if (!fileStat.isFile()) {
-          response.writeHead(404).end("Not found");
-          return;
-        }
-
-        response.writeHead(200, {
-          "cache-control": "no-store",
-          "content-length": fileStat.size,
-          "content-type": contentType(filePath),
-        });
-        createReadStream(filePath).pipe(response);
-      } catch {
-        response.writeHead(404).end("Not found");
-      }
-    })();
-  });
-
-  await new Promise<void>((resolveListen, rejectListen) => {
-    server.once("error", rejectListen);
-    server.listen(port, HOST, () => resolveListen());
-  });
-
-  return server;
-}
-
-async function closeServer(server: Server | undefined): Promise<void> {
-  if (!server?.listening) return;
-
-  await new Promise<void>((resolveClose) => {
-    server.close(() => resolveClose());
-  });
 }
 
 async function resolveChromeExecutable(): Promise<string> {
@@ -1193,8 +1117,8 @@ async function runCriticalWorkflows(
   await browser.setViewport(1440, 1_000);
   await browser.navigate("/", "Turn your roster into a battle plan.");
   await browser.waitFor(
-    `document.querySelector("#pvpoke-data-title")?.textContent?.trim() === "Connected"`,
-    "real PvPoke data connection",
+    `document.querySelector("#pvpoke-data-title")?.textContent?.trim() === "Ready"`,
+    "bundled PvPoke data",
   );
   const dashboardContent = await browser.evaluate<{
     readonly hasBattleProtocol: boolean;
@@ -2004,7 +1928,6 @@ async function main(): Promise<void> {
   const projectRoot = process.cwd();
   const visualMode = resolveVisualMode();
   const visual = new VisualRegression(visualMode, projectRoot);
-  const upstreamRoot = resolve(projectRoot, "..");
   const temporaryRoot = await mkdtemp(
     resolve(tmpdir(), "teamlab-browser-workflows-"),
   );
@@ -2015,7 +1938,6 @@ async function main(): Promise<void> {
     mkdir(downloadDirectory, { recursive: true }),
   ]);
 
-  let upstreamServer: Server | undefined;
   let viteServer: ViteDevServer | undefined;
   let chromeProcess: ChildProcessWithoutNullStreams | undefined;
   let client: DevToolsClient | undefined;
@@ -2028,15 +1950,10 @@ async function main(): Promise<void> {
   }, GLOBAL_TIMEOUT_MS);
 
   try {
-    const [upstreamPort, appPort, debuggingPort] = await Promise.all([
-      availablePort(),
+    const [appPort, debuggingPort] = await Promise.all([
       availablePort(),
       availablePort(),
     ]);
-    upstreamServer = await startUpstreamServer(upstreamRoot, upstreamPort);
-    process.env.VITE_PVPOKE_BASE_URL = "/pvpoke/src";
-    process.env.PVPOKE_DEV_PROXY_TARGET =
-      `http://${HOST}:${upstreamPort}`;
     viteServer = await createViteServer({
       configFile: resolve(projectRoot, "vite.config.ts"),
       logLevel: "error",
@@ -2082,7 +1999,6 @@ async function main(): Promise<void> {
       viteServer?.close() ?? Promise.resolve(),
       delay(3_000),
     ]);
-    await Promise.race([closeServer(upstreamServer), delay(3_000)]);
     await rm(temporaryRoot, { recursive: true, force: true });
   }
 }
