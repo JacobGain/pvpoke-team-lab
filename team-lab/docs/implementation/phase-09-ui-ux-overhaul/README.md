@@ -97,6 +97,12 @@ without changing domain behavior:
 - sticky Rankings and Inventory filters sit flush with the top of the desktop
   workspace or directly beneath the tablet header; the taller mobile filter
   groups remain in normal flow so they do not obscure results; and
+- shared sticky form actions use an opaque, isolated surface that meets the
+  desktop viewport or mobile tab bar without exposing scrolling form content;
+- the Rankings record count moves below the heading at constrained desktop and
+  tablet widths instead of compressing the title and description;
+- inventory cards distinguish the record creation timestamp from its latest
+  update timestamp; and
 - the shared footer records the project’s independent status, Pokémon
   trademark attribution, PvPoke foundation, and MIT-license link.
 

@@ -299,7 +299,7 @@ export function InventoryPage() {
                   <p className="inventory-notes">{record.notes}</p>
                 ) : null}
                 <small>
-                  Source {record.sourceDataVersion} · updated{" "}
+                  Created {new Date(record.createdAt).toLocaleString()} · updated{" "}
                   {new Date(record.updatedAt).toLocaleString()}
                 </small>
               </div>

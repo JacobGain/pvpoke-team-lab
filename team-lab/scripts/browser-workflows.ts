@@ -1117,6 +1117,71 @@ async function assertStickyControls(
   );
 }
 
+async function assertStickyActionSurface(
+  browser: BrowserWorkflow,
+  viewportWidth: number,
+  state: string,
+): Promise<void> {
+  await browser.setViewport(viewportWidth, 900);
+  const sticky = await browser.evaluate<{
+    readonly actualBottom: number;
+    readonly backdropFilter: string;
+    readonly backgroundColor: string;
+    readonly expectedBottom: number;
+    readonly opaque: boolean;
+    readonly position: string;
+    readonly scrollY: number;
+  }>(`(async () => {
+    const maxScroll = Math.max(
+      document.documentElement.scrollHeight - window.innerHeight,
+      0
+    );
+    window.scrollTo({
+      left: 0,
+      top: Math.min(160, Math.max(1, maxScroll - 1)),
+      behavior: "instant"
+    });
+    await new Promise((resolveFrame) =>
+      requestAnimationFrame(() => requestAnimationFrame(resolveFrame))
+    );
+    const actions = document.querySelector(".form-actions");
+    const tabbar = document.querySelector(".mobile-tabbar");
+    const tabbarStyle = tabbar ? getComputedStyle(tabbar) : null;
+    const tabbarVisible =
+      tabbar instanceof HTMLElement &&
+      tabbarStyle?.display !== "none" &&
+      tabbar.getBoundingClientRect().height > 0;
+    const style = actions ? getComputedStyle(actions) : null;
+    const backgroundColor = style?.backgroundColor ?? "";
+    const alphaMatch = backgroundColor.match(
+      /rgba?\\([^)]*[, /]([\\d.]+)\\)$/
+    );
+    return {
+      actualBottom: actions?.getBoundingClientRect().bottom ?? -1,
+      backdropFilter: style?.backdropFilter ?? "",
+      backgroundColor,
+      expectedBottom: tabbarVisible
+        ? tabbar.getBoundingClientRect().top
+        : window.innerHeight,
+      opaque: !backgroundColor.startsWith("rgba") ||
+        Number(alphaMatch?.[1] ?? 1) === 1,
+      position: style?.position ?? "",
+      scrollY: window.scrollY
+    };
+  })()`);
+  invariant(
+    sticky.scrollY > 0 &&
+      sticky.position === "sticky" &&
+      sticky.opaque &&
+      sticky.backdropFilter === "none" &&
+      Math.abs(sticky.actualBottom - sticky.expectedBottom) <= 1.5,
+    `${state} sticky actions did not form an opaque, flush surface at ${viewportWidth}px: ${JSON.stringify(sticky)}.`,
+  );
+  await browser.evaluate(
+    `window.scrollTo({ left: 0, top: 0, behavior: "instant" })`,
+  );
+}
+
 async function runCriticalWorkflows(
   browser: BrowserWorkflow,
   client: DevToolsClient,
@@ -1206,6 +1271,25 @@ async function runCriticalWorkflows(
   );
   await assertStickyControls(browser, ".catalog-controls", 1440);
   await assertStickyControls(browser, ".catalog-controls", 768);
+  const rankingHeaderLayout = await browser.evaluate<{
+    readonly asideTop: number;
+    readonly mainBottom: number;
+    readonly summaryWidth: number;
+  }>(`(() => {
+    const main = document.querySelector(".catalog-page .page-header__main");
+    const aside = document.querySelector(".catalog-page .page-header__aside");
+    const summary = document.querySelector(".catalog-page .catalog-summary");
+    return {
+      asideTop: aside?.getBoundingClientRect().top ?? -1,
+      mainBottom: main?.getBoundingClientRect().bottom ?? -1,
+      summaryWidth: summary?.getBoundingClientRect().width ?? -1
+    };
+  })()`);
+  invariant(
+    rankingHeaderLayout.asideTop >= rankingHeaderLayout.mainBottom &&
+      rankingHeaderLayout.summaryWidth >= 600,
+    `The Rankings count was cramped at 768px: ${JSON.stringify(rankingHeaderLayout)}.`,
+  );
   await browser.setViewport(1440, 1_000);
   const rankingRowSummary = await browser.evaluate<boolean>(`(() => {
     const row = document.querySelector(".ranking-row");
@@ -1347,6 +1431,17 @@ async function runCriticalWorkflows(
   console.log(
     `[browser-workflows] created ${inventoryCount} inventory records through the UI`,
   );
+  const inventoryTimestampLabels = await browser.evaluate<boolean>(
+    `[...document.querySelectorAll(".inventory-card__content > small")].every(
+      (metadata) =>
+        metadata.textContent?.trim().startsWith("Created ") === true &&
+        metadata.textContent.includes(" · updated ")
+    )`,
+  );
+  invariant(
+    inventoryTimestampLabels,
+    "Inventory records did not distinguish created and updated timestamps.",
+  );
   await assertStickyControls(browser, ".inventory-controls", 1440);
   await assertStickyControls(browser, ".inventory-controls", 768);
   await browser.setViewport(1440, 1_000);
@@ -1405,6 +1500,17 @@ async function runCriticalWorkflows(
   await browser.setViewport(1440, 1_000);
 
   await browser.navigate(firstRecord.editHref, "Edit Pokémon");
+  await assertStickyActionSurface(
+    browser,
+    1440,
+    "Inventory edit",
+  );
+  await assertStickyActionSurface(
+    browser,
+    320,
+    "Mobile inventory edit",
+  );
+  await browser.setViewport(1440, 1_000);
   await browser.clickButton("Continue");
   await browser.waitFor(
     `document.querySelector(".guided-form-panel h2")?.textContent?.trim() === "Current or planned"`,
@@ -1427,6 +1533,17 @@ async function runCriticalWorkflows(
   );
 
   await browser.navigate("/teams/new", "Create saved team");
+  await assertStickyActionSurface(
+    browser,
+    1440,
+    "Saved-team form",
+  );
+  await assertStickyActionSurface(
+    browser,
+    320,
+    "Mobile saved-team form",
+  );
+  await browser.setViewport(1440, 1_000);
   await browser.setLabeledControl(
     "Team name",
     "Browser Coverage Team",
