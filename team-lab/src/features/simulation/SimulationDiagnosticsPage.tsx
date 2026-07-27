@@ -43,7 +43,7 @@ export function SimulationDiagnosticsPage() {
   const [rankerRunning, setRankerRunning] = useState(false);
 
   if (catalogResult.isLoading) {
-    return <main className="diagnostics-page">Loading upstream data…</main>;
+    return <main className="diagnostics-page">Loading bundled data…</main>;
   }
 
   if (!catalogResult.data || catalogResult.error) {
@@ -96,7 +96,7 @@ export function SimulationDiagnosticsPage() {
       <PageHeader
         description={
           <p>
-            Load the real upstream classic scripts, run known exact Great
+            Load the bundled classic scripts, run known exact Great
             League battles twice, and verify deterministic translated results.
           </p>
         }
@@ -108,7 +108,7 @@ export function SimulationDiagnosticsPage() {
         <div>
           <h2>Browser engine check</h2>
           <p>
-            Source data {dataVersion}. This check runs four upstream
+            Source data {dataVersion}. This check runs four engine
             simulations across two known matchups and does not persist battle
             results.
           </p>
@@ -128,9 +128,8 @@ export function SimulationDiagnosticsPage() {
           <strong>Engine characterization failed</strong>
           <p>{formatError(error)}</p>
           <small>
-            Confirm the PvPoke container/proxy is reachable and that the
-            configured base URL serves upstream JavaScript and Game Master
-            data.
+            Confirm the bundled JavaScript and Game Master files are present
+            and pass the data validation command.
           </small>
         </section>
       ) : null}
@@ -222,7 +221,7 @@ export function SimulationDiagnosticsPage() {
           <h2>TeamRanker check</h2>
           <p>
             Rank exact Whiscash against an exact Azumarill/Altaria team twice.
-            This exercises the real upstream RankerMaster singleton.
+            This exercises the bundled RankerMaster singleton.
           </p>
         </div>
         <button

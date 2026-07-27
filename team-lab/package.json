@@ -8,9 +8,11 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && node --experimental-strip-types scripts/validate-build-capabilities.ts dist diagnostics-disabled",
+    "build:admin": "tsc -b && vite build --mode admin && node --experimental-strip-types scripts/validate-build-capabilities.ts dist-admin diagnostics-enabled",
     "lint": "eslint .",
     "preview": "vite preview",
+    "preview:admin": "vite preview --mode admin",
     "sync:pvpoke": "node --experimental-strip-types scripts/sync-pvpoke-assets.ts",
     "sync:sprites": "node --experimental-strip-types scripts/sync-pokemon-sprites.ts",
     "test": "vitest run",

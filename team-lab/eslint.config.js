@@ -5,7 +5,7 @@ import tseslint from "typescript-eslint";
 
 export default tseslint.config(
   {
-    ignores: ["dist", "node_modules", "public/vendor"],
+    ignores: ["dist", "dist-admin", "node_modules", "public/vendor"],
   },
   eslint.configs.recommended,
   {

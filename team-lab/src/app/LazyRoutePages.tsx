@@ -42,12 +42,6 @@ export const SavedTeamSimulationPage = lazy(() =>
   })),
 );
 
-export const SimulationDiagnosticsPage = lazy(() =>
-  import("@/features/simulation/SimulationDiagnosticsPage").then((module) => ({
-    default: module.SimulationDiagnosticsPage,
-  })),
-);
-
 export const SavedTeamFormPage = lazy(() =>
   import("@/features/teams/SavedTeamFormPage").then((module) => ({
     default: module.SavedTeamFormPage,
