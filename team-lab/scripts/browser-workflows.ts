@@ -1892,7 +1892,9 @@ async function runCriticalWorkflows(
     ".destructive-confirmation button",
   );
   await browser.waitFor(
-    `document.querySelector('[role="status"]')?.textContent?.includes("TeamLab reset complete")`,
+    `[...document.querySelectorAll('[role="status"]')].some((status) =>
+      status.textContent?.includes("TeamLab reset complete")
+    )`,
     "atomic local-data reset",
   );
 
@@ -1904,7 +1906,8 @@ async function runCriticalWorkflows(
   await browser.clickButton("Restore TeamLab data");
   const restoreStatus = await browser.waitFor<string>(
     `(() => {
-      const status = document.querySelector('[role="status"]');
+      const status = [...document.querySelectorAll('[role="status"]')]
+        .find((candidate) => candidate.textContent?.includes("Restore complete"));
       return status?.textContent?.includes("Restore complete")
         ? status.textContent.replace(/\\s+/g, " ").trim()
         : null;
