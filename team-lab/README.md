@@ -30,7 +30,9 @@ PvPoke application at development or deployment time.
 ## Deployment builds
 
 The standard production build excludes engine diagnostics from its routes,
-navigation, and JavaScript chunks:
+navigation, and JavaScript chunks. It also emits `release.json` with the app
+version, source commit, schema versions, capabilities, and PvPoke bundle
+identity:
 
 ```bash
 npm run build
@@ -95,6 +97,7 @@ modified. See [PvPoke asset maintenance](docs/PVPOKE-DATA.md).
 npm test
 npm run test:scale
 npm run test:browser
+npm run test:production
 npm run test:visual
 npm run typecheck
 npm run lint
