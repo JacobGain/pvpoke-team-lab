@@ -27,6 +27,27 @@ TeamLab serves its validated PvPoke-derived data and classic simulation engine
 from `public/vendor/pvpoke/`. It does not need Apache, PHP, Docker, or a second
 PvPoke application at development or deployment time.
 
+## Deployment builds
+
+The standard production build excludes engine diagnostics from its routes,
+navigation, and JavaScript chunks:
+
+```bash
+npm run build
+```
+
+Maintainers can create a separate diagnostics-enabled artifact in
+`dist-admin/`:
+
+```bash
+npm run build:admin
+```
+
+The admin artifact does not provide authentication by itself and must only be
+served locally or behind deployment-level access control. Development mode
+keeps diagnostics enabled. See
+[deployment build targets](docs/DEPLOYMENT-BUILDS.md).
+
 Inventory and saved teams live only in IndexedDB for the current browser
 profile and origin. Download JSON backups regularly.
 
@@ -89,6 +110,7 @@ intentional visual change, inspect the generated diff before running
 ## Documentation
 
 - [Local user guide](docs/USER-GUIDE.md)
+- [Deployment build targets](docs/DEPLOYMENT-BUILDS.md)
 - [PvPoke asset maintenance](docs/PVPOKE-DATA.md)
 - [Product scope and project plan](docs/PROJECT-PLAN.md)
 - [Implementation records](docs/implementation/README.md)

@@ -85,13 +85,17 @@ download a JSON backup
 
 On desktop, the top navigation keeps **Dashboard**, **Inventory**,
 **Rankings**, **Teams**, and **Recommend** available throughout the
-application. The data indicator opens engine diagnostics. Local backup/reset
-tools are in the utility menu.
+application. **Backups & reset** is available in the utility menu.
 
 On a phone, the same four primary destinations remain in the bottom navigation.
-Choose **More** for Rankings, local data, and diagnostics.
+Choose **More** for Rankings and **Backups & reset**.
 
-The Dashboard suggests one next action from your current local data. It does
+Public production builds show the data indicator as status only and do not
+contain engine diagnostics. Local development and the protected maintainer
+build make the indicator and **Engine diagnostics** destination available.
+
+The Dashboard suggests one next action from your current inventory and team
+data. It does
 not lock the rest of the application; use global navigation whenever you want
 to move to a different workflow.
 
