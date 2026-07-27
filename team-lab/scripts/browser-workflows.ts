@@ -14,6 +14,8 @@ import { resolve } from "node:path";
 
 import {
   createServer as createViteServer,
+  preview as createVitePreviewServer,
+  type PreviewServer,
   type ViteDevServer,
 } from "vite";
 import sharp from "sharp";
@@ -66,6 +68,8 @@ interface WorkflowTiming {
 }
 
 interface BrowserWorkflowReport {
+  readonly buildTarget: BrowserTestTarget;
+  readonly releaseId: string;
   readonly inventoryRecordsCreated: number;
   readonly savedTeamsBeforeBackup: number;
   readonly backupBytes: number;
@@ -78,6 +82,7 @@ interface BrowserWorkflowReport {
 }
 
 type VisualMode = "off" | "verify" | "update";
+type BrowserTestTarget = "development" | "production";
 
 function invariant(
   condition: unknown,
@@ -774,6 +779,95 @@ function resolveVisualMode(): VisualMode {
   );
 }
 
+function resolveBrowserTestTarget(): BrowserTestTarget {
+  return process.argv.includes("--production")
+    ? "production"
+    : "development";
+}
+
+async function assertBuildTarget(
+  browser: BrowserWorkflow,
+  target: BrowserTestTarget,
+): Promise<string> {
+  if (target === "development") {
+    const diagnosticsAvailable = await browser.evaluate<boolean>(
+      `Boolean(
+        document.querySelector('a[href="/diagnostics/simulation"]') &&
+        [...document.querySelectorAll(".app-nav a")].some(
+          (link) => link.textContent?.trim() === "Engine diagnostics"
+        )
+      )`,
+    );
+    invariant(
+      diagnosticsAvailable,
+      "Development mode did not expose engine diagnostics.",
+    );
+    return "development";
+  }
+
+  const productionState = await browser.evaluate<{
+    readonly dataHealthTag: string;
+    readonly diagnosticsLinks: number;
+    readonly release: {
+      readonly formatVersion?: number;
+      readonly releaseId?: string;
+      readonly target?: string;
+      readonly capabilities?: { readonly diagnostics?: boolean };
+      readonly schemas?: {
+        readonly database?: number;
+        readonly backup?: number;
+        readonly inventoryRecord?: number;
+        readonly savedTeam?: number;
+      };
+      readonly pvpoke?: {
+        readonly dataVersion?: string;
+        readonly manifestSha256?: string;
+      };
+    };
+  }>(`(async () => ({
+    dataHealthTag:
+      document.querySelector(".app-rail .data-health")?.tagName ?? "",
+    diagnosticsLinks:
+      document.querySelectorAll('a[href="/diagnostics/simulation"]').length,
+    release: await fetch("/release.json", { cache: "no-store" }).then(
+      (response) => {
+        if (!response.ok) {
+          throw new Error(\`release.json returned \${response.status}\`);
+        }
+        return response.json();
+      }
+    )
+  }))()`);
+  const release = productionState.release;
+
+  invariant(
+    productionState.dataHealthTag === "DIV" &&
+      productionState.diagnosticsLinks === 0,
+    `Production exposed diagnostics navigation: ${JSON.stringify(productionState)}.`,
+  );
+  invariant(
+    release.formatVersion === 1 &&
+      Boolean(release.releaseId) &&
+      release.target === "public" &&
+      release.capabilities?.diagnostics === false &&
+      Boolean(release.schemas?.database) &&
+      Boolean(release.schemas?.backup) &&
+      Boolean(release.schemas?.inventoryRecord) &&
+      Boolean(release.schemas?.savedTeam) &&
+      Boolean(release.pvpoke?.dataVersion) &&
+      /^[a-f0-9]{64}$/.test(release.pvpoke?.manifestSha256 ?? ""),
+    `Production release metadata is incomplete: ${JSON.stringify(release)}.`,
+  );
+  await browser.navigate(
+    "/diagnostics/simulation",
+    "Page not found",
+    "h2",
+  );
+  await browser.navigate("/", "Turn your roster into a battle plan.");
+
+  return release.releaseId!;
+}
+
 async function waitForDownload(downloadDirectory: string): Promise<string> {
   const deadline = Date.now() + STEP_TIMEOUT_MS;
 
@@ -1111,6 +1205,7 @@ async function runCriticalWorkflows(
   client: DevToolsClient,
   downloadDirectory: string,
   visual: VisualRegression,
+  buildTarget: BrowserTestTarget,
 ): Promise<BrowserWorkflowReport> {
   const responsiveStates: string[] = [];
 
@@ -1120,6 +1215,7 @@ async function runCriticalWorkflows(
     `document.querySelector("#pvpoke-data-title")?.textContent?.trim() === "Ready"`,
     "bundled PvPoke data",
   );
+  const releaseId = await assertBuildTarget(browser, buildTarget);
   const dashboardContent = await browser.evaluate<{
     readonly hasBattleProtocol: boolean;
     readonly hasDisclaimer: boolean;
@@ -1833,6 +1929,17 @@ async function runCriticalWorkflows(
     "restored inventory dashboard",
   );
 
+  const diagnosticsMobileRoute =
+    buildTarget === "production"
+      ? ([
+          "/diagnostics/simulation",
+          "Page not found",
+          "h2",
+        ] as const)
+      : ([
+          "/diagnostics/simulation",
+          "PvPoke engine diagnostics",
+        ] as const);
   const mobileRoutes = [
     ["/", "Turn your roster into a battle plan."],
     ["/catalog", "Rankings"],
@@ -1844,7 +1951,7 @@ async function runCriticalWorkflows(
     ["/teams", "Saved teams"],
     ["/teams/new", "Create saved team"],
     [teamLinks.editHref, "Edit saved team"],
-    ["/diagnostics/simulation", "PvPoke engine diagnostics"],
+    diagnosticsMobileRoute,
     [teamLinks.simulationHref, "Browser Coverage Team"],
     ["/recommend", "Build around your anchors"],
     ["/route-that-does-not-exist", "Page not found", "h2"],
@@ -1912,6 +2019,8 @@ async function runCriticalWorkflows(
   );
 
   return {
+    buildTarget,
+    releaseId,
     inventoryRecordsCreated: INVENTORY_SPECIES.length,
     savedTeamsBeforeBackup: persistedCounts.teams,
     backupBytes: Buffer.byteLength(backupContents),
@@ -1927,6 +2036,7 @@ async function runCriticalWorkflows(
 async function main(): Promise<void> {
   const projectRoot = process.cwd();
   const visualMode = resolveVisualMode();
+  const buildTarget = resolveBrowserTestTarget();
   const visual = new VisualRegression(visualMode, projectRoot);
   const temporaryRoot = await mkdtemp(
     resolve(tmpdir(), "teamlab-browser-workflows-"),
@@ -1938,7 +2048,7 @@ async function main(): Promise<void> {
     mkdir(downloadDirectory, { recursive: true }),
   ]);
 
-  let viteServer: ViteDevServer | undefined;
+  let viteServer: ViteDevServer | PreviewServer | undefined;
   let chromeProcess: ChildProcessWithoutNullStreams | undefined;
   let client: DevToolsClient | undefined;
   const globalTimeout = setTimeout(() => {
@@ -1954,16 +2064,29 @@ async function main(): Promise<void> {
       availablePort(),
       availablePort(),
     ]);
-    viteServer = await createViteServer({
-      configFile: resolve(projectRoot, "vite.config.ts"),
-      logLevel: "error",
-      server: {
-        host: HOST,
-        port: appPort,
-        strictPort: true,
-      },
-    });
-    await viteServer.listen();
+    if (buildTarget === "production") {
+      viteServer = await createVitePreviewServer({
+        configFile: resolve(projectRoot, "vite.config.ts"),
+        logLevel: "error",
+        mode: "production",
+        preview: {
+          host: HOST,
+          port: appPort,
+          strictPort: true,
+        },
+      });
+    } else {
+      viteServer = await createViteServer({
+        configFile: resolve(projectRoot, "vite.config.ts"),
+        logLevel: "error",
+        server: {
+          host: HOST,
+          port: appPort,
+          strictPort: true,
+        },
+      });
+      await viteServer.listen();
+    }
 
     const appUrl = `http://${HOST}:${appPort}`;
     const chromeExecutable = await resolveChromeExecutable();
@@ -1986,6 +2109,7 @@ async function main(): Promise<void> {
       client,
       downloadDirectory,
       visual,
+      buildTarget,
     );
 
     console.log(
