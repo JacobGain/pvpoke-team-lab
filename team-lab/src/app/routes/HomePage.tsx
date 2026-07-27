@@ -168,7 +168,7 @@ export function HomePage() {
             </ol>
           ) : (
             <p className="dashboard-meta-watch__empty">
-              Current rankings will appear when PvPoke data is ready.
+              Current rankings will appear when bundled battle data is ready.
             </p>
           )}
         </aside>

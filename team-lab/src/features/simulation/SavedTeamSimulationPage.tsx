@@ -28,11 +28,6 @@ import { useInventoryList } from "@/features/inventory/inventoryQueries";
 import { usePokemonCatalog } from "@/features/meta/usePokemonCatalog";
 import { useSavedTeam } from "@/features/teams/savedTeamQueries";
 import { createPvpokeTeamRankerAdapter } from "@/pvpoke/simulation";
-import {
-  createPvpokeBattleLink,
-  createPvpokeTeamBuilderLink,
-  pvpokeBaseUrl,
-} from "@/pvpoke/links";
 import { deriveTeamAlternatives } from "@/domain/teamAnalysis/alternatives";
 import { analyzeSavedTeamMatrix } from "@/domain/teamAnalysis/teamAnalysis";
 import {
@@ -288,18 +283,6 @@ export function SavedTeamSimulationPage() {
                 · data {run.result.dataVersion}
               </p>
             </div>
-            {run.request ? (
-              <a
-                className="upstream-link"
-                href={createPvpokeTeamBuilderLink(run.request.team, {
-                  baseUrl: pvpokeBaseUrl,
-                })}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Open exact team in PvPoke ↗
-              </a>
-            ) : null}
           </section>
 
           {analysis ? (
@@ -802,31 +785,6 @@ export function SavedTeamSimulationPage() {
                                 </strong>
                               </span>
                             </span>
-                            {run.request?.team[index] &&
-                            run.request.targets.find(
-                              (target) =>
-                                target.speciesId === ranking.speciesId,
-                            ) ? (
-                              <a
-                                  className="inline-upstream-link battle-metric__link"
-                                  href={createPvpokeBattleLink(
-                                    run.request.team[index],
-                                    run.request.targets.find(
-                                      (target) =>
-                                        target.speciesId === ranking.speciesId,
-                                    )!,
-                                    [
-                                      run.scope.teamShields,
-                                      run.scope.targetShields,
-                                    ],
-                                    { baseUrl: pvpokeBaseUrl },
-                                  )}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                >
-                                  Open exact battle ↗
-                                </a>
-                            ) : null}
                           </dd>
                         </div>
                       );

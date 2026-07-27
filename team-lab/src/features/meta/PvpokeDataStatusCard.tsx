@@ -3,7 +3,7 @@ import { usePvpokeDataStatus } from "@/features/meta/usePvpokeDataStatus";
 function formatError(error: unknown): string {
   return error instanceof Error
     ? error.message
-    : "TeamLab could not load the PvPoke data source.";
+    : "TeamLab could not load its bundled battle data.";
 }
 
 export function PvpokeDataStatusCard() {
@@ -12,9 +12,9 @@ export function PvpokeDataStatusCard() {
   if (isLoading) {
     return (
       <section className="data-card" aria-live="polite">
-        <p className="eyebrow">PvPoke data</p>
-        <h2>Connecting…</h2>
-        <p>Validating the Game Master, rankings, and Great League meta.</p>
+        <p className="eyebrow">Bundled PvPoke data</p>
+        <h2>Loading…</h2>
+        <p>Validating the local Game Master, rankings, and Great League meta.</p>
       </section>
     );
   }
@@ -22,8 +22,8 @@ export function PvpokeDataStatusCard() {
   if (error || !data) {
     return (
       <section className="data-card data-card--error" role="alert">
-        <p className="eyebrow">PvPoke data</p>
-        <h2>Connection failed</h2>
+        <p className="eyebrow">Bundled PvPoke data</p>
+        <h2>Data unavailable</h2>
         <p>{formatError(error)}</p>
         <button type="button" onClick={() => void refetch()}>
           Try again
@@ -36,8 +36,8 @@ export function PvpokeDataStatusCard() {
     <section className="data-card" aria-labelledby="pvpoke-data-title">
       <div className="data-card__heading">
         <div>
-          <p className="eyebrow">PvPoke data</p>
-          <h2 id="pvpoke-data-title">Connected</h2>
+          <p className="eyebrow">Bundled PvPoke data</p>
+          <h2 id="pvpoke-data-title">Ready</h2>
         </div>
         <span className="connection-badge">Schema valid</span>
       </div>

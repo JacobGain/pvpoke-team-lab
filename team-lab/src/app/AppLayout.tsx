@@ -146,18 +146,18 @@ export function AppLayout() {
             to="/diagnostics/simulation"
             title={
               dataState === "ready"
-                ? `PvPoke connected · ${data?.gameMasterTitle}`
-                : "Check PvPoke data connection"
+                ? `Bundled PvPoke data · ${data?.gameMasterTitle}`
+                : "Check bundled battle data"
             }
           >
             <span aria-hidden="true" />
             <ShieldCheck size={16} />
             <strong>
               {dataState === "loading"
-                ? "Connecting"
+                ? "Loading"
                 : dataState === "ready"
-                  ? "PvPoke data ready"
-                  : "Data connection issue"}
+                  ? "Battle data ready"
+                  : "Bundled data issue"}
             </strong>
           </NavLink>
           <small>Local-first workspace · no account required</small>
@@ -182,15 +182,15 @@ export function AppLayout() {
               to="/diagnostics/simulation"
               title={
                 dataState === "ready"
-                  ? `PvPoke connected · ${data?.gameMasterTitle}`
-                  : "Check PvPoke data connection"
+                  ? `Bundled PvPoke data · ${data?.gameMasterTitle}`
+                  : "Check bundled battle data"
               }
             >
               <span aria-hidden="true" />
               <ShieldCheck size={16} />
               <strong>
                 {dataState === "loading"
-                  ? "Connecting"
+                  ? "Loading"
                   : dataState === "ready"
                     ? "Data ready"
                     : "Data issue"}
