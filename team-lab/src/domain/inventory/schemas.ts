@@ -1,6 +1,8 @@
 import { z } from "zod";
 
-export const INVENTORY_RECORD_SCHEMA_VERSION = 1 as const;
+import { INVENTORY_RECORD_SCHEMA_VERSION } from "@/domain/schemaVersions";
+
+export { INVENTORY_RECORD_SCHEMA_VERSION } from "@/domain/schemaVersions";
 
 const inventoryIdSchema = z.string().uuid();
 const speciesIdSchema = z.string().trim().min(1).max(120);

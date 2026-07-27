@@ -14,6 +14,32 @@ if (
 }
 
 const outputDirectory = resolve(outputArgument);
+const releaseMetadata = JSON.parse(
+  await readFile(resolve(outputDirectory, "release.json"), "utf8"),
+) as {
+  readonly formatVersion?: number;
+  readonly releaseId?: string;
+  readonly appVersion?: string;
+  readonly builtAt?: string;
+  readonly target?: string;
+  readonly source?: {
+    readonly commitSha?: string;
+    readonly dirty?: boolean | null;
+  };
+  readonly capabilities?: {
+    readonly diagnostics?: boolean;
+  };
+  readonly schemas?: {
+    readonly database?: number;
+    readonly backup?: number;
+    readonly inventoryRecord?: number;
+    readonly savedTeam?: number;
+  };
+  readonly pvpoke?: {
+    readonly dataVersion?: string;
+    readonly manifestSha256?: string;
+  };
+};
 const files = await readdir(outputDirectory, {
   recursive: true,
   withFileTypes: true,
@@ -30,6 +56,7 @@ const includesDiagnostics =
   javascript.includes("PvPoke engine diagnostics") &&
   javascript.includes("Run characterization");
 const expectsDiagnostics = expectation === "diagnostics-enabled";
+const expectedTarget = expectsDiagnostics ? "admin" : "public";
 const forbiddenProductionCopy = [
   "Local data",
   "local data",
@@ -46,6 +73,27 @@ if (includesDiagnostics !== expectsDiagnostics) {
   );
 }
 
+if (
+  releaseMetadata.formatVersion !== 1 ||
+  releaseMetadata.target !== expectedTarget ||
+  releaseMetadata.capabilities?.diagnostics !== expectsDiagnostics ||
+  !releaseMetadata.releaseId ||
+  !releaseMetadata.appVersion ||
+  !releaseMetadata.source?.commitSha ||
+  !releaseMetadata.pvpoke?.dataVersion ||
+  !releaseMetadata.pvpoke.manifestSha256?.match(/^[a-f0-9]{64}$/) ||
+  !releaseMetadata.builtAt ||
+  Number.isNaN(Date.parse(releaseMetadata.builtAt)) ||
+  !releaseMetadata.schemas?.database ||
+  !releaseMetadata.schemas.backup ||
+  !releaseMetadata.schemas.inventoryRecord ||
+  !releaseMetadata.schemas.savedTeam
+) {
+  throw new Error(
+    `The ${expectedTarget} artifact contains invalid release metadata.`,
+  );
+}
+
 if (!expectsDiagnostics && forbiddenProductionCopy.length > 0) {
   throw new Error(
     `The production build contains deployment-specific local-storage copy: ${forbiddenProductionCopy.join(", ")}.`,
@@ -53,5 +101,5 @@ if (!expectsDiagnostics && forbiddenProductionCopy.length > 0) {
 }
 
 process.stdout.write(
-  `${expectsDiagnostics ? "Admin" : "Production"} build capability check passed: diagnostics ${expectsDiagnostics ? "included" : "excluded"}${expectsDiagnostics ? "" : " and production copy is deployment-neutral"}.\n`,
+  `${expectsDiagnostics ? "Admin" : "Production"} build capability check passed for ${releaseMetadata.releaseId}: diagnostics ${expectsDiagnostics ? "included" : "excluded"}${expectsDiagnostics ? "" : " and production copy is deployment-neutral"}.\n`,
 );
