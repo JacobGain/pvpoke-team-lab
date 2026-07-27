@@ -1,0 +1,79 @@
+name: Team Lab release gate
+
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify-public-artifact:
+    name: Verify public artifact
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    outputs:
+      public_artifact_id: ${{ steps.upload_public_artifact.outputs['artifact-id'] }}
+      public_artifact_url: ${{ steps.upload_public_artifact.outputs['artifact-url'] }}
+      public_artifact_digest: ${{ steps.upload_public_artifact.outputs['artifact-digest'] }}
+
+    defaults:
+      run:
+        working-directory: team-lab
+
+    env:
+      CI: "true"
+      TEAMLAB_CHROME_PATH: /usr/bin/google-chrome
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: team-lab/package-lock.json
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Run unit tests
+        run: npm test
+
+      - name: Validate bundled PvPoke data
+        run: npm run validate:data
+
+      - name: Build public artifact
+        run: npm run build
+
+      - name: Test exact production artifact
+        run: npm run test:production:artifact
+
+      - name: Reject maintainer artifact
+        run: test ! -e dist-admin
+
+      - name: Upload verified public artifact
+        id: upload_public_artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: team-lab-public-${{ github.sha }}
+          path: team-lab/dist/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 9
+          include-hidden-files: false
