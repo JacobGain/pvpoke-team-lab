@@ -11,6 +11,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "sync:pvpoke": "node --experimental-strip-types scripts/sync-pvpoke-assets.ts",
     "sync:sprites": "node --experimental-strip-types scripts/sync-pokemon-sprites.ts",
     "test": "vitest run",
     "test:browser": "node --experimental-strip-types scripts/browser-workflows.ts",

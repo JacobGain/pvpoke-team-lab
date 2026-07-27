@@ -14,13 +14,5 @@ export default defineConfig(({ mode }) => {
         "@": fileURLToPath(new URL("./src", import.meta.url)),
       },
     },
-    server: {
-      proxy: {
-        "/pvpoke": {
-          target: environment.PVPOKE_DEV_PROXY_TARGET || "http://localhost",
-          changeOrigin: true,
-        },
-      },
-    },
   };
 });

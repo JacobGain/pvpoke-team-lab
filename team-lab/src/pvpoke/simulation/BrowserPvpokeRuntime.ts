@@ -1,22 +1,10 @@
+import { PVPOKE_ENGINE_SCRIPT_PATHS } from "@/pvpoke/assetPaths";
 import type {
   PvpokeBattle,
   PvpokeBattleRuntime,
   PvpokePokemon,
   PvpokeTeamRanker,
 } from "@/pvpoke/simulation/runtime";
-
-const ENGINE_SCRIPT_PATHS = [
-  "js/libs/jquery-3.3.1.min.js",
-  "js/battle/DamageCalculator.js",
-  "js/battle/actions/ActionLogic.js",
-  "js/battle/timeline/TimelineEvent.js",
-  "js/battle/timeline/TimelineAction.js",
-  "js/training/DecisionOption.js",
-  "js/battle/Battle.js",
-  "js/GameMaster.js",
-  "js/pokemon/Pokemon.js",
-  "js/battle/rankers/TeamRanker.js",
-] as const;
 
 interface PvpokeGameMaster {
   readonly data: {
@@ -232,7 +220,7 @@ export class BrowserPvpokeRuntime implements PvpokeBattleRuntime {
     });
 
     try {
-      for (const scriptPath of ENGINE_SCRIPT_PATHS) {
+      for (const scriptPath of PVPOKE_ENGINE_SCRIPT_PATHS) {
         await loadClassicScript(`${this.baseUrl}/${scriptPath}`);
       }
       await waitForGameMaster(globals, this.timeoutMs);
