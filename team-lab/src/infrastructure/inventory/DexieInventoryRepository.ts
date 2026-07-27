@@ -1,0 +1,153 @@
+import { inventoryPokemonSchema, type InventoryPokemon } from "@/domain/inventory/schemas";
+import {
+  type InventoryRepository,
+  type InventoryRestoreMode,
+  type InventoryRestoreResult,
+  InvalidStoredInventoryRecordError,
+  InventoryRecordAlreadyExistsError,
+  InventoryRecordNotFoundError,
+} from "@/domain/inventory/repository";
+import type { TeamLabDatabase } from "@/infrastructure/database/TeamLabDatabase";
+
+function parseStoredRecord(value: unknown): InventoryPokemon {
+  const result = inventoryPokemonSchema.safeParse(value);
+
+  if (result.success) {
+    return result.data;
+  }
+
+  const inventoryId =
+    typeof value === "object" &&
+    value !== null &&
+    "inventoryId" in value &&
+    typeof value.inventoryId === "string"
+      ? value.inventoryId
+      : "unknown";
+
+  throw new InvalidStoredInventoryRecordError(inventoryId, result.error);
+}
+
+export class DexieInventoryRepository implements InventoryRepository {
+  constructor(private readonly database: TeamLabDatabase) {}
+
+  async list(): Promise<readonly InventoryPokemon[]> {
+    const records = await this.database.inventory
+      .orderBy("updatedAt")
+      .reverse()
+      .toArray();
+
+    return records.map(parseStoredRecord);
+  }
+
+  async get(inventoryId: string): Promise<InventoryPokemon | undefined> {
+    const record = await this.database.inventory.get(inventoryId);
+    return record === undefined ? undefined : parseStoredRecord(record);
+  }
+
+  async create(record: InventoryPokemon): Promise<void> {
+    const validatedRecord = inventoryPokemonSchema.parse(record);
+
+    try {
+      await this.database.inventory.add(validatedRecord);
+    } catch (error) {
+      if (
+        error instanceof DOMException &&
+        error.name === "ConstraintError"
+      ) {
+        throw new InventoryRecordAlreadyExistsError(record.inventoryId);
+      }
+
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "name" in error &&
+        error.name === "ConstraintError"
+      ) {
+        throw new InventoryRecordAlreadyExistsError(record.inventoryId);
+      }
+
+      throw error;
+    }
+  }
+
+  async update(record: InventoryPokemon): Promise<void> {
+    const validatedRecord = inventoryPokemonSchema.parse(record);
+    const updatedCount = await this.database.inventory.update(
+      record.inventoryId,
+      validatedRecord,
+    );
+
+    if (updatedCount === 0) {
+      throw new InventoryRecordNotFoundError(record.inventoryId);
+    }
+  }
+
+  async delete(inventoryId: string): Promise<void> {
+    const existingRecord = await this.database.inventory.get(inventoryId);
+
+    if (existingRecord === undefined) {
+      throw new InventoryRecordNotFoundError(inventoryId);
+    }
+
+    await this.database.inventory.delete(inventoryId);
+  }
+
+  count(): Promise<number> {
+    return this.database.inventory.count();
+  }
+
+  clear(): Promise<void> {
+    return this.database.inventory.clear();
+  }
+
+  async restore(
+    records: readonly InventoryPokemon[],
+    mode: InventoryRestoreMode,
+  ): Promise<InventoryRestoreResult> {
+    const validatedRecords = records.map((record) =>
+      inventoryPokemonSchema.parse(record),
+    );
+    const incomingIds = new Set(
+      validatedRecords.map((record) => record.inventoryId),
+    );
+
+    if (incomingIds.size !== validatedRecords.length) {
+      throw new Error("Restore records contain duplicate inventory IDs.");
+    }
+
+    return this.database.transaction(
+      "rw",
+      this.database.inventory,
+      async () => {
+        const existingIds = await this.database.inventory
+          .toCollection()
+          .primaryKeys();
+        const existingIdSet = new Set(existingIds);
+        const updated = validatedRecords.filter((record) =>
+          existingIdSet.has(record.inventoryId),
+        ).length;
+        const inserted = validatedRecords.length - updated;
+        const removed =
+          mode === "replace"
+            ? existingIds.filter((id) => !incomingIds.has(id)).length
+            : 0;
+
+        if (mode === "replace") {
+          await this.database.inventory.clear();
+          await this.database.inventory.bulkAdd(validatedRecords);
+        } else {
+          await this.database.inventory.bulkPut(validatedRecords);
+        }
+
+        return {
+          mode,
+          incoming: validatedRecords.length,
+          inserted,
+          updated,
+          removed,
+          finalCount: await this.database.inventory.count(),
+        };
+      },
+    );
+  }
+}

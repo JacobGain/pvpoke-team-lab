@@ -1,0 +1,264 @@
+:root {
+  --ink-950: #101827;
+  --ink-900: #172033;
+  --ink-800: #28344b;
+  --ink-700: #3d4b66;
+  --ink-600: #596780;
+  --ink-500: #748097;
+  --surface: #ffffff;
+  --surface-subtle: #f6f8fb;
+  --surface-muted: #eef2f7;
+  --line: #dce3ec;
+  --line-strong: #c7d1df;
+  --lab-700: #115e72;
+  --lab-600: #087e93;
+  --lab-500: #0aa2b8;
+  --lab-400: #35c5d1;
+  --lab-100: #dff7f8;
+  --signal-500: #a3e635;
+  --signal-100: #ecfccb;
+  --violet-500: #7c5ce5;
+  --violet-100: #eeeafd;
+  --warning-500: #d88718;
+  --warning-100: #fff4d9;
+  --danger-600: #b63d4b;
+  --danger-100: #fdebed;
+  --success-600: #168457;
+  --success-100: #e4f7ed;
+  --shadow-sm: 0 1px 2px rgb(16 24 39 / 5%);
+  --shadow-md: 0 12px 32px rgb(16 24 39 / 8%);
+  --shadow-lg: 0 28px 70px rgb(7 31 48 / 14%);
+  --radius-sm: 0.65rem;
+  --radius-md: 0.9rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.7rem;
+  --content-wide: 90rem;
+  --content: 76rem;
+  color: var(--ink-900);
+  background: #f3f6f9;
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(circle at 8% 0%, rgb(53 197 209 / 8%), transparent 25rem),
+    #f3f6f9;
+}
+
+button,
+input,
+select,
+textarea {
+  max-width: 100%;
+  font: inherit;
+}
+
+a {
+  color: var(--lab-700);
+  overflow-wrap: anywhere;
+}
+
+.primary-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  color: #ffffff;
+  background: #3157c8;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.secondary-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1rem;
+  border: 1px solid #cbd5e5;
+  border-radius: 0.75rem;
+  color: #3157c8;
+  background: #ffffff;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.home-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.app-shell {
+  display: grid;
+  min-height: 100vh;
+  align-content: center;
+  justify-items: center;
+  gap: 1.5rem;
+  padding: 2rem;
+}
+
+.route-loading {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 2rem;
+  color: #52607a;
+  font-weight: 700;
+}
+
+.welcome-card,
+.data-card {
+  min-width: 0;
+  width: min(100%, 42rem);
+  padding: clamp(2rem, 6vw, 4rem);
+  border: 1px solid #dce4f1;
+  border-radius: 1.5rem;
+  background: #ffffff;
+  box-shadow: 0 1.25rem 4rem rgb(34 52 94 / 10%);
+}
+
+.welcome-card h1 {
+  margin: 0;
+  font-size: clamp(2.75rem, 10vw, 5rem);
+  letter-spacing: -0.06em;
+}
+
+.welcome-card p {
+  max-width: 36rem;
+  color: #52607a;
+  font-size: 1.125rem;
+  line-height: 1.65;
+}
+
+.eyebrow {
+  margin: 0 0 0.5rem;
+  color: #3157c8;
+  font-size: 0.8rem !important;
+  font-weight: 750;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.status {
+  margin-top: 2rem;
+  font-size: 0.9rem !important;
+}
+
+.data-card {
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.data-card h2 {
+  margin: 0;
+  font-size: 1.75rem;
+}
+
+.data-card__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.connection-badge {
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  color: #11663b;
+  background: #e5f7ed;
+  font-size: 0.75rem;
+  font-weight: 750;
+}
+
+.data-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 2rem 0 0;
+}
+
+.data-grid div {
+  min-width: 0;
+  padding: 1rem;
+  border-radius: 0.9rem;
+  background: #f4f7fb;
+}
+
+.data-grid dt {
+  margin-bottom: 0.35rem;
+  color: #69758d;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.data-grid dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.data-card--error {
+  border-color: #efc8c8;
+}
+
+.data-card button {
+  padding: 0.7rem 1rem;
+  border: 0;
+  border-radius: 0.75rem;
+  color: #ffffff;
+  background: #3157c8;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+@media (max-width: 520px) {
+  .app-shell {
+    padding: 1rem;
+  }
+
+  .welcome-card,
+  .data-card {
+    padding: 1.25rem;
+    border-radius: 1rem;
+  }
+
+  .welcome-card h1 {
+    font-size: clamp(2.4rem, 15vw, 3.5rem);
+  }
+
+  .home-actions {
+    display: grid;
+  }
+
+  .home-actions a {
+    width: 100%;
+  }
+
+  .data-card__heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .connection-badge {
+    align-self: flex-start;
+  }
+
+  .data-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

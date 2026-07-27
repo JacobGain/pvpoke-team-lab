@@ -1,0 +1,22 @@
+/*
+ * TeamLab stylesheet entry point.
+ *
+ * Import order is the cascade contract. Feature-specific legacy rules remain
+ * after the modern theme layers until each feature is fully component-scoped.
+ * See docs/implementation/phase-09-ui-ux-overhaul/style-architecture.md.
+ */
+
+@import "./fonts.css";
+@import "./modules/foundation.css";
+@import "./modules/maintenance-overrides.css";
+@import "./modules/shell.css";
+@import "./modules/dashboard.css";
+@import "./modules/primitives.css";
+@import "./modules/responsive-shell.css";
+@import "./modules/modern-feature-overrides.css";
+@import "./modules/catalog.css";
+@import "./modules/inventory.css";
+@import "./modules/analysis.css";
+@import "./modules/teams-simulation.css";
+@import "./modules/recommendations.css";
+@import "./modules/battle-dossier.css";
