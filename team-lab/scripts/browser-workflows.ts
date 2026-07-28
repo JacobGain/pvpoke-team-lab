@@ -194,16 +194,27 @@ async function stopChrome(
   if (!browserProcess || browserProcess.exitCode !== null) return;
 
   browserProcess.kill("SIGTERM");
-  await Promise.race([
-    new Promise<void>((resolveExit) => {
-      browserProcess.once("exit", () => resolveExit());
-    }),
-    delay(2_000),
-  ]);
+  const exitedAfterTerm = await waitForProcessExit(browserProcess, 2_000);
+  if (exitedAfterTerm) return;
 
   if (browserProcess.exitCode === null) {
     browserProcess.kill("SIGKILL");
+    await waitForProcessExit(browserProcess, 2_000);
   }
+}
+
+async function waitForProcessExit(
+  browserProcess: ChildProcessWithoutNullStreams,
+  timeoutMilliseconds: number,
+): Promise<boolean> {
+  if (browserProcess.exitCode !== null) return true;
+
+  return Promise.race([
+    new Promise<true>((resolveExit) => {
+      browserProcess.once("exit", () => resolveExit(true));
+    }),
+    delay(timeoutMilliseconds).then(() => false),
+  ]);
 }
 
 async function findPageWebSocket(
@@ -2248,7 +2259,12 @@ async function main(): Promise<void> {
       viteServer?.close() ?? Promise.resolve(),
       delay(3_000),
     ]);
-    await rm(temporaryRoot, { recursive: true, force: true });
+    await rm(temporaryRoot, {
+      recursive: true,
+      force: true,
+      maxRetries: 5,
+      retryDelay: 200,
+    });
   }
 }
 
