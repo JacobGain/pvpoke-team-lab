@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build && node --experimental-strip-types scripts/validate-build-capabilities.ts dist diagnostics-disabled",
+    "build": "tsc -b && vite build && node --experimental-strip-types scripts/prepare-static-artifact.ts dist && node --experimental-strip-types scripts/validate-build-capabilities.ts dist diagnostics-disabled",
     "build:admin": "tsc -b && vite build --mode admin && node --experimental-strip-types scripts/validate-build-capabilities.ts dist-admin diagnostics-enabled",
     "lint": "eslint .",
     "preview": "vite preview",

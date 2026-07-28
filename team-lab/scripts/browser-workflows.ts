@@ -333,6 +333,29 @@ class BrowserWorkflow {
     this.appUrl = appUrl;
   }
 
+  resolveUrl(pathname: string): string {
+    const appBase = new URL(this.appUrl);
+    const supplied = new URL(pathname, appBase.origin);
+    const appPath = appBase.pathname.replace(/\/+$/, "");
+
+    invariant(
+      supplied.origin === appBase.origin,
+      `Navigation must remain within TeamLab: ${pathname}.`,
+    );
+
+    if (
+      appPath &&
+      (supplied.pathname === appPath ||
+        supplied.pathname.startsWith(`${appPath}/`))
+    ) {
+      return supplied.href;
+    }
+
+    const relativePath = `${supplied.pathname}${supplied.search}${supplied.hash}`
+      .replace(/^\/+/, "");
+    return new URL(`${appPath}/${relativePath}`, appBase.origin).href;
+  }
+
   async evaluate<T>(
     expression: string,
     timeoutMs = STEP_TIMEOUT_MS,
@@ -381,11 +404,14 @@ class BrowserWorkflow {
     heading: string,
     headingSelector = "h1",
   ): Promise<void> {
+    const destination = this.resolveUrl(pathname);
+    const destinationPath = new URL(destination).pathname;
+
     await this.client.call("Page.navigate", {
-      url: `${this.appUrl}${pathname}`,
+      url: destination,
     });
     await this.waitFor(
-      `location.pathname === ${JSON.stringify(pathname)} && document.querySelector(${JSON.stringify(headingSelector)})?.textContent?.trim() === ${JSON.stringify(heading)}`,
+      `location.pathname === ${JSON.stringify(destinationPath)} && document.querySelector(${JSON.stringify(headingSelector)})?.textContent?.trim() === ${JSON.stringify(heading)}`,
       `${pathname} to render “${heading}”`,
     );
   }
@@ -785,7 +811,7 @@ function resolveBrowserTestTarget(): BrowserTestTarget {
     : "development";
 }
 
-function resolveDeploymentOrigin(): string | undefined {
+function resolveDeploymentBaseUrl(): string | undefined {
   const deploymentMode = process.argv.includes("--deployment");
   const argument = process.argv.find((value) =>
     value.startsWith("--origin="),
@@ -804,29 +830,43 @@ function resolveDeploymentOrigin(): string | undefined {
     "Deployment browser tests require --origin=https://deployed.example.",
   );
   const value = argument.slice("--origin=".length);
-  const origin = new URL(value);
+  const deploymentUrl = new URL(value);
 
   invariant(
-    (origin.protocol === "https:" || origin.protocol === "http:") &&
-      !origin.username &&
-      !origin.password &&
-      !origin.search &&
-      !origin.hash &&
-      origin.pathname === "/",
-    "The deployment origin must be an HTTP(S) origin root without credentials, a path, query, or fragment.",
+    (deploymentUrl.protocol === "https:" ||
+      deploymentUrl.protocol === "http:") &&
+      !deploymentUrl.username &&
+      !deploymentUrl.password &&
+      !deploymentUrl.search &&
+      !deploymentUrl.hash,
+    "The deployment URL must be an HTTP(S) application base without credentials, a query, or a fragment.",
   );
 
-  return origin.origin;
+  return `${deploymentUrl.origin}${deploymentUrl.pathname.replace(/\/+$/, "")}`;
+}
+
+function resolveConfiguredBasePath(): string {
+  const configuredBasePath = process.env.VITE_BASE_PATH?.trim() || "/";
+  const baseUrl = new URL(configuredBasePath, "http://teamlab.invalid");
+
+  invariant(
+    baseUrl.origin === "http://teamlab.invalid" &&
+      !baseUrl.search &&
+      !baseUrl.hash,
+    "VITE_BASE_PATH must be an application-rooted path without a query or fragment.",
+  );
+
+  return baseUrl.pathname.replace(/\/+$/, "");
 }
 
 function resolveExpectedCommitSha(
-  deploymentOrigin: string | undefined,
+  deploymentBaseUrl: string | undefined,
 ): string | undefined {
   const expectedCommitSha =
     process.env.TEAMLAB_EXPECTED_COMMIT_SHA?.trim().toLowerCase();
 
   invariant(
-    deploymentOrigin || !expectedCommitSha,
+    deploymentBaseUrl || !expectedCommitSha,
     "TEAMLAB_EXPECTED_COMMIT_SHA is only valid for deployment browser tests.",
   );
   invariant(
@@ -845,7 +885,7 @@ async function assertBuildTarget(
   if (target === "development") {
     const diagnosticsAvailable = await browser.evaluate<boolean>(
       `Boolean(
-        document.querySelector('a[href="/diagnostics/simulation"]') &&
+        document.querySelector('a[href$="/diagnostics/simulation"]') &&
         [...document.querySelectorAll(".app-nav a")].some(
           (link) => link.textContent?.trim() === "Engine diagnostics"
         )
@@ -882,8 +922,8 @@ async function assertBuildTarget(
     dataHealthTag:
       document.querySelector(".app-rail .data-health")?.tagName ?? "",
     diagnosticsLinks:
-      document.querySelectorAll('a[href="/diagnostics/simulation"]').length,
-    release: await fetch("/release.json", { cache: "no-store" }).then(
+      document.querySelectorAll('a[href$="/diagnostics/simulation"]').length,
+    release: await fetch(${JSON.stringify(browser.resolveUrl("/release.json"))}, { cache: "no-store" }).then(
       (response) => {
         if (!response.ok) {
           throw new Error(\`release.json returned \${response.status}\`);
@@ -1039,7 +1079,7 @@ async function createInventory(
     );
     await browser.clickButton("Add to inventory");
     await browser.waitFor(
-      `location.pathname === "/inventory" && document.querySelectorAll(".inventory-card").length === ${index + 1}`,
+      `location.pathname.endsWith("/inventory") && document.querySelectorAll(".inventory-card").length === ${index + 1}`,
       `${speciesId} to persist`,
     );
     if (index === 0) {
@@ -1324,7 +1364,7 @@ async function runCriticalWorkflows(
   const rankingsInDesktopNavigation = await browser.evaluate<boolean>(
     `[...document.querySelectorAll(".app-nav--rail a")].some(
       (link) =>
-        link.getAttribute("href") === "/catalog" &&
+        link.getAttribute("href")?.endsWith("/catalog") &&
         link.textContent?.trim() === "Rankings"
     ) && Boolean(document.querySelector(".app-rail .app-rail__format"))`,
   );
@@ -1613,7 +1653,7 @@ async function runCriticalWorkflows(
   );
   await browser.clickButton("Save changes");
   await browser.waitFor(
-    `location.pathname === "/inventory" && document.body.textContent?.includes("Edited by durable browser coverage")`,
+    `location.pathname.endsWith("/inventory") && document.body.textContent?.includes("Edited by durable browser coverage")`,
     "inventory edit to persist",
   );
 
@@ -1641,7 +1681,7 @@ async function runCriticalWorkflows(
   );
   await browser.clickButton("Save team");
   await browser.waitFor(
-    `location.pathname === "/teams" && document.querySelector(".team-card h2")?.textContent === "Browser Coverage Team"`,
+    `location.pathname.endsWith("/teams") && document.querySelector(".team-card h2")?.textContent === "Browser Coverage Team"`,
     "saved team creation",
   );
   const renderedTeamRoles = await browser.evaluate<readonly string[]>(
@@ -1693,7 +1733,7 @@ async function runCriticalWorkflows(
   );
   await browser.clickButton("Save changes");
   await browser.waitFor(
-    `location.pathname === "/teams" && document.body.textContent?.includes("Edited through populated browser coverage")`,
+    `location.pathname.endsWith("/teams") && document.body.textContent?.includes("Edited through populated browser coverage")`,
     "saved team edit to persist",
   );
 
@@ -2105,8 +2145,8 @@ async function main(): Promise<void> {
   const projectRoot = process.cwd();
   const visualMode = resolveVisualMode();
   const buildTarget = resolveBrowserTestTarget();
-  const deploymentOrigin = resolveDeploymentOrigin();
-  const expectedCommitSha = resolveExpectedCommitSha(deploymentOrigin);
+  const deploymentBaseUrl = resolveDeploymentBaseUrl();
+  const expectedCommitSha = resolveExpectedCommitSha(deploymentBaseUrl);
   const visual = new VisualRegression(visualMode, projectRoot);
   const temporaryRoot = await mkdtemp(
     resolve(tmpdir(), "teamlab-browser-workflows-"),
@@ -2131,12 +2171,12 @@ async function main(): Promise<void> {
 
   try {
     const debuggingPort = await availablePort();
-    const appPort = deploymentOrigin
+    const appPort = deploymentBaseUrl
       ? undefined
       : await availablePort();
-    let appUrl = deploymentOrigin;
+    let appUrl = deploymentBaseUrl;
 
-    if (!deploymentOrigin && buildTarget === "production") {
+    if (!deploymentBaseUrl && buildTarget === "production") {
       viteServer = await createVitePreviewServer({
         configFile: resolve(projectRoot, "vite.config.ts"),
         logLevel: "error",
@@ -2147,7 +2187,7 @@ async function main(): Promise<void> {
           strictPort: true,
         },
       });
-    } else if (!deploymentOrigin) {
+    } else if (!deploymentBaseUrl) {
       viteServer = await createViteServer({
         configFile: resolve(projectRoot, "vite.config.ts"),
         logLevel: "error",
@@ -2160,10 +2200,10 @@ async function main(): Promise<void> {
       await viteServer.listen();
     }
 
-    appUrl ??= `http://${HOST}:${appPort!}`;
-    if (deploymentOrigin) {
+    appUrl ??= `http://${HOST}:${appPort!}${resolveConfiguredBasePath()}`;
+    if (deploymentBaseUrl) {
       console.log(
-        `[browser-workflows] testing deployed origin ${deploymentOrigin}`,
+        `[browser-workflows] testing deployed application ${deploymentBaseUrl}`,
       );
     }
     const chromeExecutable = await resolveChromeExecutable();
