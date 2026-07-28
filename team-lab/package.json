@@ -28,6 +28,7 @@
     "update:visual": "node --experimental-strip-types scripts/browser-workflows.ts --visual=update",
     "validate:cloudflare": "node --experimental-strip-types scripts/validate-cloudflare-artifact.ts dist",
     "validate:data": "node --experimental-strip-types scripts/validate-pvpoke-data.ts",
+    "validate:workflows": "node --experimental-strip-types scripts/validate-workflow-security.ts",
     "wait:deployment": "node --experimental-strip-types scripts/wait-for-deployment.ts"
   },
   "dependencies": {

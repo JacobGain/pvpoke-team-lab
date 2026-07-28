@@ -46,18 +46,24 @@ deploying.
 The job uses a read-only GitHub token and performs this sequence from a fresh
 checkout:
 
-1. install `package-lock.json` exactly with `npm ci`;
-2. reject high-severity advisories across runtime and build dependencies;
-3. run lint, typechecking, and the deterministic unit suite;
-4. run the MVP scale characterization alone, using the median of three
+1. reject mutable Action references and privileged untrusted-code triggers;
+2. install `package-lock.json` exactly with `npm ci`;
+3. reject high-severity advisories across runtime and build dependencies;
+4. run lint, typechecking, and the deterministic unit suite;
+5. run the MVP scale characterization alone, using the median of three
    cache-cold recommendation samples;
-5. validate the bundled PvPoke data;
-6. build only the public `dist/`;
-7. run the real-Chrome workflow against that exact artifact;
-8. fail if `dist-admin/` exists;
-9. upload `dist/` as `team-lab-public-<commit SHA>`;
-10. on `master`, make those same files available to the Cloudflare deployment
+6. validate the bundled PvPoke data;
+7. build only the public `dist/`;
+8. run the real-Chrome workflow against that exact artifact;
+9. fail if `dist-admin/` exists;
+10. upload `dist/` as `team-lab-public-<commit SHA>`;
+11. on `master`, make those same files available to the Cloudflare deployment
    job.
+
+Every external Action is pinned to a full commit SHA with its release line
+recorded as a comment. `validate:workflows` makes immutable references a release
+invariant, while Dependabot checks both GitHub Actions and the npm lockfile
+weekly for maintainable updates.
 
 Artifacts are retained for 30 days. GitHub records a SHA-256 artifact digest,
 and the job exposes the generic artifact ID, URL, and digest as outputs.
