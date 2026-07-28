@@ -2,6 +2,10 @@ import { readFile, readdir } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const workflowsDirectory = resolve(process.cwd(), "../.github/workflows");
+const masterRulesetPath = resolve(
+  process.cwd(),
+  "../.github/rulesets/master-protection.json",
+);
 const workflowNames = (await readdir(workflowsDirectory))
   .filter((name) => name.endsWith(".yml") || name.endsWith(".yaml"))
   .sort();
@@ -57,6 +61,40 @@ if (unsafeTriggers.length > 0) {
   );
 }
 
+const masterRuleset = JSON.parse(
+  await readFile(masterRulesetPath, "utf8"),
+) as {
+  readonly bypass_actors?: readonly unknown[];
+  readonly enforcement?: string;
+  readonly rules?: readonly {
+    readonly type?: string;
+    readonly parameters?: {
+      readonly required_status_checks?: readonly {
+        readonly context?: string;
+      }[];
+      readonly strict_required_status_checks_policy?: boolean;
+    };
+  }[];
+};
+const requiredChecksRule = masterRuleset.rules?.find(
+  (rule) => rule.type === "required_status_checks",
+);
+const requiredChecks =
+  requiredChecksRule?.parameters?.required_status_checks?.map(
+    (check) => check.context,
+  ) ?? [];
+
+if (
+  masterRuleset.enforcement !== "active" ||
+  (masterRuleset.bypass_actors?.length ?? 0) > 0 ||
+  !requiredChecks.includes("Verify public artifact") ||
+  requiredChecksRule?.parameters?.strict_required_status_checks_policy !== true
+) {
+  throw new Error(
+    "The master ruleset must actively require the up-to-date Verify public artifact check without bypass actors.",
+  );
+}
+
 process.stdout.write(
-  `Workflow security check passed: ${actionCount} external Action references are immutable and no privileged untrusted-code triggers are present.\n`,
+  `Workflow security check passed: ${actionCount} external Action references are immutable, no privileged untrusted-code triggers are present, and the master release check is enforced.\n`,
 );

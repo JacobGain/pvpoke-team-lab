@@ -65,6 +65,22 @@ recorded as a comment. `validate:workflows` makes immutable references a release
 invariant, while Dependabot checks both GitHub Actions and the npm lockfile
 weekly for maintainable updates.
 
+### Repository release protections
+
+`.github/rulesets/master-protection.json` is the auditable source for the active
+`master` ruleset. It prevents deletion and force-push, requires changes through
+a pull request with resolved review threads, and requires the up-to-date
+**Verify public artifact** check before merge. `validate:workflows` also rejects
+a local ruleset that drops that check, weakens strictness, or adds a bypass
+actor.
+
+The `cloudflare-pages` GitHub environment accepts only protected branches, so
+the deployment job cannot be reused from an unprotected ref. GitHub secret
+scanning and push protection cover repository history and new pushes;
+Dependabot security updates and CodeQL default setup provide dependency and
+JavaScript/TypeScript analysis. Repository Actions retain read-only default
+permissions, with `deployments: write` granted only to the deployment job.
+
 Artifacts are retained for 30 days. GitHub records a SHA-256 artifact digest,
 and the job exposes the generic artifact ID, URL, and digest as outputs.
 
