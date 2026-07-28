@@ -161,10 +161,10 @@ the result to IndexedDB and invalidates saved-team queries.
 No recommendation result is persisted automatically. Once saved, the team
 uses the normal edit, list, and exact-analysis workflows.
 
-A result containing a ranked-default teammate remains fully simulatable and
-can open in PvPoke, but its save action is disabled. The result names how many
-ranked picks must first be added to inventory; TeamLab does not fabricate
-saved inventory UUIDs or silently create records.
+A result containing a ranked-default teammate remains fully simulatable in
+TeamLab, but its save action is disabled. The result names how many ranked
+picks must first be added to inventory; TeamLab does not fabricate saved
+inventory UUIDs or silently create records.
 
 ## File ownership
 

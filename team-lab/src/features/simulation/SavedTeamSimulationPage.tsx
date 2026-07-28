@@ -689,7 +689,7 @@ export function SavedTeamSimulationPage() {
             </summary>
             <p className="analysis-panel__intro">
               Open this technical detail when you need individual ratings,
-              fast-move damage, Attack differential, or PvPoke battle links.
+              fast-move damage, or Attack differential.
             </p>
             <section className="diagnostics-grid">
               {run.result.rankings.map((ranking) => (

@@ -446,16 +446,14 @@ This centralizes paths, caching, schema validation, ranking aliases, and data-ve
 
 ### `pvpoke/serializers/`
 
-Serializers handle upstream-compatible encodings:
+Serializers handle reusable data encodings:
 
 - compact Pokémon build strings;
 - moveset strings;
-- Battle deep links;
-- Team Builder deep links;
-- group import/export formats;
-- upstream URL query/path state.
+- group import/export formats.
 
-Domain models should not become coupled to legacy URL syntax.
+Domain models should not become coupled to legacy URL syntax, and TeamLab
+does not expose upstream Battle or Team Builder links.
 
 ### `pvpoke/types/`
 
@@ -552,7 +550,6 @@ Compatibility and characterization tests for the PvPoke boundary:
 - cup eligibility;
 - known matchup outputs;
 - TeamRanker result translation;
-- deep-link serialization;
 - Game Master and ranking schema checks.
 
 These are the highest-value tests for safe upstream updates.
@@ -680,7 +677,7 @@ A scalable pipeline is:
 9. Run exact `Battle` or `TeamRanker` simulations for finalists.
 10. Produce several recommendations for different objectives.
 11. Explain moves, IV assumptions, upgrades, strengths, and uncovered threats.
-12. Provide deep links into upstream PvPoke tools for inspection.
+12. Expose matchup evidence for inspection inside TeamLab.
 
 The recommendation domain owns this orchestration. The PvPoke adapter supplies calculations but should not decide the product’s recommendation policy.
 
@@ -889,7 +886,7 @@ When application work begins, a low-risk order is:
 11. Wrap TeamRanker and meta groups.
 12. Implement recommendation candidate selection.
 13. Move expensive batch calculations into workers.
-14. Add recommendation explanations and upstream deep links.
+14. Add recommendation explanations and in-app matchup inspection.
 
 ## Git and empty directories
 

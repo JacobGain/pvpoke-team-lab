@@ -301,8 +301,8 @@ Each selected result explains:
 
 Choose **Save this team** to persist a fully owned result in Saved Teams.
 Recommendations are not saved automatically. A result containing a ranked
-Pokémon you do not own can still be simulated and opened in PvPoke, but it
-cannot be saved until those Pokémon are added to inventory.
+Pokémon you do not own can still be simulated in TeamLab, but it cannot be
+saved until those Pokémon are added to inventory.
 
 If fewer teams satisfy the request, TeamLab reports a shortfall instead of
 silently duplicating teams.

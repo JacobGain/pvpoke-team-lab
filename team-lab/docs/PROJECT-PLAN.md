@@ -891,7 +891,7 @@ TeamLab will wrap:
 - cup eligibility;
 - published ranking and group loading;
 - breakpoint/bulkpoint calculation where usable;
-- upstream URL serialization where useful.
+- bundled asset-path resolution.
 
 ### 17.2 Not claimed
 
@@ -901,16 +901,14 @@ The team scorecard represents PvPoke-derived matchup coverage and heuristics und
 
 Full training AI battles exist upstream but are out of MVP recommendation scope.
 
-### 17.3 Deep links
+### 17.3 Matchup inspection
 
-Where possible, TeamLab should provide:
+TeamLab should provide in-app inspection for:
 
-- Open in PvPoke Battle;
-- Open in PvPoke Team Builder;
 - inspect a threat matchup;
 - inspect an alternative matchup.
 
-URL generation belongs behind upstream serializers.
+TeamLab does not generate external PvPoke Battle or Team Builder links.
 
 ## 18. Upstream data sources
 
@@ -1711,7 +1709,7 @@ Exit criteria:
 - Display coverage, bulk, safety, consistency.
 - Display threats and core breakers.
 - Display owned and unowned alternatives.
-- Add upstream deep links.
+- Keep matchup inspection inside TeamLab.
 - Recalculate using current data.
 
 Exit criteria:
