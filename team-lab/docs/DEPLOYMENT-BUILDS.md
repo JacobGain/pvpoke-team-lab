@@ -47,15 +47,16 @@ The job uses a read-only GitHub token and performs this sequence from a fresh
 checkout:
 
 1. install `package-lock.json` exactly with `npm ci`;
-2. run lint, typechecking, and the deterministic unit suite;
-3. run the MVP scale characterization alone, using the median of three
+2. reject high-severity advisories across runtime and build dependencies;
+3. run lint, typechecking, and the deterministic unit suite;
+4. run the MVP scale characterization alone, using the median of three
    cache-cold recommendation samples;
-4. validate the bundled PvPoke data;
-5. build only the public `dist/`;
-6. run the real-Chrome workflow against that exact artifact;
-7. fail if `dist-admin/` exists;
-8. upload `dist/` as `team-lab-public-<commit SHA>`;
-9. on `master`, make those same files available to the Cloudflare deployment
+5. validate the bundled PvPoke data;
+6. build only the public `dist/`;
+7. run the real-Chrome workflow against that exact artifact;
+8. fail if `dist-admin/` exists;
+9. upload `dist/` as `team-lab-public-<commit SHA>`;
+10. on `master`, make those same files available to the Cloudflare deployment
    job.
 
 Artifacts are retained for 30 days. GitHub records a SHA-256 artifact digest,

@@ -49,6 +49,9 @@ jobs:
       - name: Install locked dependencies
         run: npm ci
 
+      - name: Audit locked dependencies
+        run: npm run audit:security
+
       - name: Lint
         run: npm run lint
 

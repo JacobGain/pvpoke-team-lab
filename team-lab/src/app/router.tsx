@@ -1,7 +1,7 @@
 import {
   createBrowserRouter,
   type RouteObject,
-} from "react-router-dom";
+} from "react-router";
 
 import {
   InventoryAnalysisPage,
