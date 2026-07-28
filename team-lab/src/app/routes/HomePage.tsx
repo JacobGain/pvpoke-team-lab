@@ -168,7 +168,7 @@ export function HomePage() {
             </ol>
           ) : (
             <p className="dashboard-meta-watch__empty">
-              Current rankings will appear when PvPoke data is ready.
+              Current rankings will appear when bundled battle data is ready.
             </p>
           )}
         </aside>
@@ -176,7 +176,7 @@ export function HomePage() {
 
       <section className="metric-grid" aria-label="TeamLab overview">
         <MetricCard
-          detail="Exact local records"
+          detail="Exact inventory records"
           icon={<Boxes size={21} />}
           label="Inventory"
           value={inventory.length}

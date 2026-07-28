@@ -39,7 +39,7 @@ const desktopPrimaryNavigation = [
   { to: "/recommend", label: "Recommend", icon: Sparkles, end: false },
 ] as const satisfies readonly NavigationItem[];
 
-const utilityNavigation = [
+const utilityNavigation: readonly NavigationItem[] = [
   {
     to: "/catalog",
     label: "Rankings",
@@ -48,17 +48,21 @@ const utilityNavigation = [
   },
   {
     to: "/inventory/backup",
-    label: "Local data",
+    label: "Backups & reset",
     icon: Archive,
     end: false,
   },
-  {
-    to: "/diagnostics/simulation",
-    label: "Engine diagnostics",
-    icon: HeartPulse,
-    end: false,
-  },
-] as const satisfies readonly NavigationItem[];
+  ...(__TEAMLAB_DIAGNOSTICS__
+    ? [
+        {
+          to: "/diagnostics/simulation",
+          label: "Engine diagnostics",
+          icon: HeartPulse,
+          end: false,
+        },
+      ]
+    : []),
+];
 
 function NavigationLink({
   to,
@@ -85,6 +89,53 @@ function NavigationLink({
       <Icon aria-hidden="true" size={19} strokeWidth={2.1} />
       <span>{label}</span>
     </NavLink>
+  );
+}
+
+function DataHealthIndicator({
+  dataState,
+  gameMasterTitle,
+  compact = false,
+}: {
+  readonly dataState: "loading" | "ready" | "error";
+  readonly gameMasterTitle?: string;
+  readonly compact?: boolean;
+}) {
+  const className = `data-health data-health--${dataState}`;
+  const title =
+    dataState === "ready"
+      ? `Bundled PvPoke data · ${gameMasterTitle}`
+      : "Check bundled battle data";
+  const content = (
+    <>
+      <span aria-hidden="true" />
+      <ShieldCheck size={16} />
+      <strong>
+        {dataState === "loading"
+          ? "Loading"
+          : dataState === "ready"
+            ? compact
+              ? "Data ready"
+              : "Battle data ready"
+            : compact
+              ? "Data issue"
+              : "Bundled data issue"}
+      </strong>
+    </>
+  );
+
+  return __TEAMLAB_DIAGNOSTICS__ ? (
+    <NavLink
+      className={className}
+      title={title}
+      to="/diagnostics/simulation"
+    >
+      {content}
+    </NavLink>
+  ) : (
+    <div className={className} role="status" title={title}>
+      {content}
+    </div>
   );
 }
 
@@ -141,26 +192,11 @@ export function AppLayout() {
         </nav>
 
         <div className="app-rail__footer">
-          <NavLink
-            className={`data-health data-health--${dataState}`}
-            to="/diagnostics/simulation"
-            title={
-              dataState === "ready"
-                ? `PvPoke connected · ${data?.gameMasterTitle}`
-                : "Check PvPoke data connection"
-            }
-          >
-            <span aria-hidden="true" />
-            <ShieldCheck size={16} />
-            <strong>
-              {dataState === "loading"
-                ? "Connecting"
-                : dataState === "ready"
-                  ? "PvPoke data ready"
-                  : "Data connection issue"}
-            </strong>
-          </NavLink>
-          <small>Local-first workspace · no account required</small>
+          <DataHealthIndicator
+            dataState={dataState}
+            gameMasterTitle={data?.gameMasterTitle}
+          />
+          <small>Inventory and team-planning workspace</small>
         </div>
       </aside>
 
@@ -177,25 +213,11 @@ export function AppLayout() {
           </NavLink>
 
           <div className="app-topbar__tools">
-            <NavLink
-              className={`data-health data-health--${dataState}`}
-              to="/diagnostics/simulation"
-              title={
-                dataState === "ready"
-                  ? `PvPoke connected · ${data?.gameMasterTitle}`
-                  : "Check PvPoke data connection"
-              }
-            >
-              <span aria-hidden="true" />
-              <ShieldCheck size={16} />
-              <strong>
-                {dataState === "loading"
-                  ? "Connecting"
-                  : dataState === "ready"
-                    ? "Data ready"
-                    : "Data issue"}
-              </strong>
-            </NavLink>
+            <DataHealthIndicator
+              compact
+              dataState={dataState}
+              gameMasterTitle={data?.gameMasterTitle}
+            />
             <button
               aria-controls="mobile-menu"
               aria-expanded={menuOpen}

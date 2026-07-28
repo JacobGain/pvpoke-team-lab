@@ -4,6 +4,12 @@
 > **Status:** Complete for Game Master, overall rankings, and meta groups  
 > **Last reviewed:** 2026-07-24
 
+> **Superseded 2026-07-27:** TeamLab now copies these validated inputs to
+> `public/vendor/pvpoke/` with `npm run sync:pvpoke`. The repository and query
+> layers remain, but the Vite proxy, external server, and runtime environment
+> URL described below were removed. See
+> [PvPoke asset maintenance](../../PVPOKE-DATA.md).
+
 ## Summary
 
 TeamLab reads upstream PvPoke JSON through typed HTTP repositories, validates

@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { TEAM_LAB_BACKUP_SCHEMA_VERSION } from "@/domain/schemaVersions";
 import {
   inventoryPokemonSchema,
   type InventoryPokemon,
@@ -19,7 +20,7 @@ import {
 } from "@/domain/teams/validation";
 
 export const TEAM_LAB_BACKUP_FORMAT = "teamlab-backup" as const;
-export const TEAM_LAB_BACKUP_SCHEMA_VERSION = 2 as const;
+export { TEAM_LAB_BACKUP_SCHEMA_VERSION } from "@/domain/schemaVersions";
 export const LEGACY_INVENTORY_BACKUP_SCHEMA_VERSION = 1 as const;
 
 const backupMetadataSchema = z.object({

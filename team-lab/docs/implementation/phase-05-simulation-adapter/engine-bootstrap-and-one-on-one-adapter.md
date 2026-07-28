@@ -3,6 +3,11 @@
 > **Status:** Implemented; real-engine browser characterization pending
 > **Last reviewed:** 2026-07-25
 
+> **Runtime update 2026-07-27:** The classic scripts and Game Master are now
+> served from TeamLab’s `public/vendor/pvpoke/` bundle. The typed runtime
+> boundary below is unchanged, but it no longer targets a running upstream
+> application. See [PvPoke asset maintenance](../../PVPOKE-DATA.md).
+
 ## Outcome
 
 TeamLab now owns a typed boundary capable of configuring and invoking an exact

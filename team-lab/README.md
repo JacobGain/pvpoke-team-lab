@@ -9,20 +9,10 @@ portable full-data JSON backup and restore.
 
 ## Requirements
 
-- the complete PvPoke fork checkout;
-- Docker with Docker Compose;
 - Node.js 22.12 or newer;
 - npm 11 or newer.
 
 ## Quick start
-
-Start the inherited PvPoke server from the repository root:
-
-```bash
-make up
-```
-
-In another terminal, start TeamLab:
 
 ```bash
 cd team-lab
@@ -31,12 +21,55 @@ npm run dev
 ```
 
 Open the URL printed by Vite, normally `http://localhost:5173`. Confirm the
-home-page data card says **Connected** before entering inventory.
+home-page data card says **Ready** before entering inventory.
 
-TeamLab reads the existing PvPoke data through `/pvpoke/src` by default. During
-development, Vite proxies that path to `http://localhost`. Copy `.env.example`
-to `.env.local` if either path differs in your environment. Upstream UI links
-use this same base path.
+TeamLab serves its validated PvPoke-derived data and classic simulation engine
+from `public/vendor/pvpoke/`. It does not need Apache, PHP, Docker, or a second
+PvPoke application at development or deployment time.
+
+## Deployment builds
+
+The standard production build excludes engine diagnostics from its routes,
+navigation, and JavaScript chunks. It also emits `release.json` with the app
+version, source commit, schema versions, capabilities, and PvPoke bundle
+identity:
+
+```bash
+npm run build
+```
+
+Maintainers can create a separate diagnostics-enabled artifact in
+`dist-admin/`:
+
+```bash
+npm run build:admin
+```
+
+The admin artifact does not provide authentication by itself and must only be
+served locally or behind deployment-level access control. Development mode
+keeps diagnostics enabled. See
+[deployment build targets](docs/DEPLOYMENT-BUILDS.md).
+
+GitHub Actions runs the **Verify public artifact** release gate on pull
+requests, pushes to `master`, and manual dispatches. Feature-branch pushes with
+an open pull request produce only the pull-request run. The gate installs the
+locked dependencies, runs the complete static/unit/data checks, builds and
+browser-tests the exact public artifact, rejects `dist-admin/`, and uploads
+`team-lab-public-<commit SHA>`. After a successful push to `master`, the same
+verified bytes deploy to GitHub Pages and the live application is browser-tested
+at `https://jacobgain.github.io/pvpoke-team-lab/`. Pull requests never deploy.
+
+Verify the live application and its release
+identity with:
+
+```bash
+TEAMLAB_EXPECTED_COMMIT_SHA=<commit SHA> \
+  npm run test:deployment -- \
+    --origin=https://jacobgain.github.io/pvpoke-team-lab/
+```
+
+The **Team Lab deployment check** GitHub workflow exposes the same verification
+as both a manual action and the automatic post-deployment job.
 
 Inventory and saved teams live only in IndexedDB for the current browser
 profile and origin. Download JSON backups regularly.
@@ -51,8 +84,8 @@ Optimized local Pokémon artwork is checked into
 `public/assets/pokemon/`, so normal development and builds do not download
 anything from PokeAPI.
 
-When the inherited Game Master gains species/forms or the pinned artwork
-revision is intentionally changed, refresh the assets with:
+When the bundled Game Master gains species/forms or the pinned artwork
+revision is intentionally changed, refresh the assets after syncing PvPoke:
 
 ```bash
 npm run sync:sprites
@@ -62,12 +95,30 @@ The script generates the typed manifest and attribution/fallback report. See
 the [sprite pipeline record](docs/implementation/phase-09-ui-ux-overhaul/sprite-pipeline.md)
 for its mapping and review contract.
 
+## Updating PvPoke data and engine files
+
+After updating the upstream checkout, regenerate TeamLab’s owned copy:
+
+```bash
+npm run sync:pvpoke
+npm run validate:data
+npm test
+npm run build
+```
+
+The sync command reads `../src` by default, validates all JSON inputs before
+overwriting anything, and records file hashes in
+`public/vendor/pvpoke/manifest.json`. To import from another checkout, set
+`PVPOKE_SOURCE_DIR` to its `src` directory. The upstream source tree is never
+modified. See [PvPoke asset maintenance](docs/PVPOKE-DATA.md).
+
 ## Validation
 
 ```bash
 npm test
 npm run test:scale
 npm run test:browser
+npm run test:production
 npm run test:visual
 npm run typecheck
 npm run lint
@@ -80,9 +131,17 @@ intentional visual change, inspect the generated diff before running
 `npm run update:visual`. Normal development and validation commands run from
 `team-lab/`.
 
+`npm test` runs the deterministic unit suite. The wall-clock MVP scale
+characterization runs separately through `npm run test:scale`, where it uses
+three cache-cold recommendation samples and gates on their median. Release CI
+runs both commands as separate steps so parallel unit workers cannot distort
+the performance budget.
+
 ## Documentation
 
 - [Local user guide](docs/USER-GUIDE.md)
+- [Deployment build targets](docs/DEPLOYMENT-BUILDS.md)
+- [PvPoke asset maintenance](docs/PVPOKE-DATA.md)
 - [Product scope and project plan](docs/PROJECT-PLAN.md)
 - [Implementation records](docs/implementation/README.md)
 - [Modern battle lab UI/UX](docs/implementation/phase-09-ui-ux-overhaul/README.md)

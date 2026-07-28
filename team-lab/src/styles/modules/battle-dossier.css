@@ -1438,19 +1438,6 @@ h3 {
   border-radius: 2px;
 }
 
-.upstream-link {
-  border: 1px solid var(--dossier-navy);
-  border-radius: 2px;
-  color: white;
-  background: var(--dossier-navy);
-  box-shadow: inset 4px 0 var(--dossier-cyan);
-}
-
-.upstream-link:hover {
-  color: white;
-  background: #17353e;
-}
-
 .recommendation-members section,
 .recommendation-evidence section,
 .recommendation-partner-scope,

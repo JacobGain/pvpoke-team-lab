@@ -104,8 +104,8 @@ The phase must preserve the distinction between:
   but cannot interrupt the upstream synchronous engine mid-finalist.
 - Recommendation results remain ephemeral until the user explicitly saves one
   through the existing saved-team factory and repository.
-- A theoretical result can be simulated and opened in PvPoke, but cannot be
-  saved until every ranked-default member has an inventory record.
+- A theoretical result can be simulated in TeamLab, but cannot be saved until
+  every ranked-default member has an inventory record.
 
 ## Validation
 

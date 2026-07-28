@@ -1,6 +1,8 @@
 import { z } from "zod";
 
-export const SAVED_TEAM_SCHEMA_VERSION = 1 as const;
+import { SAVED_TEAM_SCHEMA_VERSION } from "@/domain/schemaVersions";
+
+export { SAVED_TEAM_SCHEMA_VERSION } from "@/domain/schemaVersions";
 export const GREAT_LEAGUE_FORMAT_ID = "great-league" as const;
 
 const teamIdSchema = z.string().uuid();

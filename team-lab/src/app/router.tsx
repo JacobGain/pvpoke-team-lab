@@ -1,4 +1,7 @@
-import { createBrowserRouter } from "react-router-dom";
+import {
+  createBrowserRouter,
+  type RouteObject,
+} from "react-router-dom";
 
 import {
   InventoryAnalysisPage,
@@ -11,11 +14,24 @@ import {
   SavedTeamFormPage,
   SavedTeamSimulationPage,
   SavedTeamsPage,
-  SimulationDiagnosticsPage,
 } from "@/app/LazyRoutePages";
 import { AppLayout } from "@/app/AppLayout";
 import { HomePage } from "@/app/routes/HomePage";
 import { NotFoundPage } from "@/app/routes/NotFoundPage";
+
+const diagnosticsRoutes: RouteObject[] = __TEAMLAB_DIAGNOSTICS__
+  ? [
+      {
+        path: "diagnostics/simulation",
+        lazy: async () => {
+          const module = await import(
+            "@/features/simulation/SimulationDiagnosticsPage"
+          );
+          return { Component: module.SimulationDiagnosticsPage };
+        },
+      },
+    ]
+  : [];
 
 export const router = createBrowserRouter(
   [
@@ -99,14 +115,7 @@ export const router = createBrowserRouter(
             </LazyRoute>
           ),
         },
-        {
-          path: "diagnostics/simulation",
-          element: (
-            <LazyRoute>
-              <SimulationDiagnosticsPage />
-            </LazyRoute>
-          ),
-        },
+        ...diagnosticsRoutes,
         {
           path: "teams/:teamId/simulation",
           element: (

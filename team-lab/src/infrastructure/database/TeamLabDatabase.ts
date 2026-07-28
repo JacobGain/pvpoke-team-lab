@@ -1,10 +1,11 @@
 import Dexie, { type EntityTable } from "dexie";
 
 import type { InventoryPokemon } from "@/domain/inventory/schemas";
+import { TEAM_LAB_DATABASE_VERSION } from "@/domain/schemaVersions";
 import type { SavedTeam } from "@/domain/teams/schemas";
 
 export const TEAM_LAB_DATABASE_NAME = "team-lab";
-export const TEAM_LAB_DATABASE_VERSION = 2;
+export { TEAM_LAB_DATABASE_VERSION } from "@/domain/schemaVersions";
 
 export class TeamLabDatabase extends Dexie {
   inventory!: EntityTable<InventoryPokemon, "inventoryId">;

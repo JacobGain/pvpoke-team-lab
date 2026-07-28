@@ -77,7 +77,7 @@ export function SavedTeamsPage() {
         aside={
           <div className="catalog-summary">
             <strong>{resolvedTeams.length}</strong>
-            <span>teams saved locally</span>
+            <span>saved teams</span>
             <small>References live inventory builds</small>
           </div>
         }
