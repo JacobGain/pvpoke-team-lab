@@ -55,34 +55,46 @@ checkout:
 6. run the real-Chrome workflow against that exact artifact;
 7. fail if `dist-admin/` exists;
 8. upload `dist/` as `team-lab-public-<commit SHA>`;
-9. on `master`, package those same files as the GitHub Pages artifact.
+9. on `master`, make those same files available to the Cloudflare deployment
+   job.
 
 Artifacts are retained for 30 days. GitHub records a SHA-256 artifact digest,
 and the job exposes the generic artifact ID, URL, and digest as outputs.
 
-### GitHub Pages deployment
+### Cloudflare Pages deployment
 
 Successful pushes to `master` deploy the Pages artifact produced by
-**Verify public artifact**. The deployment job does not check out source,
-install dependencies, or rebuild TeamLab. This keeps the tested bytes identical
-to the deployed bytes and prevents the hosting layer from selecting the admin
-target.
+**Verify public artifact**. The deployment job checks out only the repository
+configuration; it does not install application dependencies, rebuild TeamLab,
+or invoke a Cloudflare build. It downloads the named GitHub artifact and sends
+those exact files through pinned Wrangler. This keeps the tested bytes
+identical to the deployed bytes and prevents the hosting layer from selecting
+the admin target.
 
-The verified build uses `VITE_BASE_PATH=/pvpoke-team-lab/` for the repository
-site. `dist/404.html` is an exact copy of `dist/index.html`, allowing GitHub
-Pages to bootstrap React Router on direct application routes. The deployment:
+The verified build uses `VITE_BASE_PATH=/` for the `pages.dev` site. Production
+`dist/` intentionally has no top-level `404.html`, allowing Cloudflare Pages to
+apply its native SPA fallback and return HTTP 200 on direct application routes.
+The deployment:
 
-- uses the standard `github-pages` protected environment;
-- requires only `pages: write` and `id-token: write` in the deployment job;
+- uses the `cloudflare-pages` GitHub environment;
+- requires scoped `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` repository
+  secrets;
 - publishes only after the complete public release gate succeeds;
 - preserves `release.json` at the application base;
-- reports the deployed URL without generating a second build;
+- rejects GitHub's `404.html`, any `_worker.js`, and `dist-admin/`;
+- reports the unique deployed URL without generating a second build;
 - runs the reusable deployed-origin browser workflow against the exact commit.
 
 Pull requests and manual release-gate runs verify artifacts but never deploy.
-Changing hosting providers later requires replacing only the two deployment
-jobs and `VITE_BASE_PATH`; the public build and artifact contract remain
-provider-neutral.
+The application remains static-only and configures no Functions, Workers, D1,
+KV, R2, authentication, or server-side persistence. See
+[Cloudflare Pages deployment](CLOUDFLARE-DEPLOYMENT.md) for account bootstrap,
+credential setup, local emulation, and the GitHub Pages cutover checklist.
+
+For emergency GitHub Pages compatibility, set
+`VITE_BASE_PATH=/pvpoke-team-lab/` and run `npm run build:github-pages`. That
+explicit target copies `index.html` to `404.html`; normal production builds do
+not.
 
 ## Post-deployment verification
 
@@ -92,7 +104,7 @@ publishes the verified artifact:
 ```bash
 TEAMLAB_EXPECTED_COMMIT_SHA=<commit SHA> \
   npm run test:deployment -- \
-    --origin=https://jacobgain.github.io/pvpoke-team-lab/
+    --origin=https://pvpoke-team-lab.pages.dev/
 ```
 
 The URL must be the HTTP or HTTPS application base without credentials, query
@@ -124,14 +136,14 @@ does not enter an existing user profile.
   pipeline;
 - a stable **Verify deployed origin** status name.
 
-The release workflow calls it after GitHub Pages deployment:
+The release workflow calls it after Cloudflare Pages deployment:
 
 ```yaml
 verify-deployment:
-  needs: deploy
+  needs: deploy-cloudflare
   uses: ./.github/workflows/team-lab-deployment-check.yml
   with:
-    origin: ${{ needs.deploy.outputs.origin }}
+    origin: ${{ needs.deploy-cloudflare.outputs.origin }}
     expected_commit: ${{ github.sha }}
 ```
 

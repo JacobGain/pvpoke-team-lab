@@ -31,7 +31,7 @@ jobs:
     env:
       CI: "true"
       TEAMLAB_CHROME_PATH: /usr/bin/google-chrome
-      VITE_BASE_PATH: /pvpoke-team-lab/
+      VITE_BASE_PATH: /
 
     steps:
       - name: Check out source
@@ -84,40 +84,65 @@ jobs:
           compression-level: 9
           include-hidden-files: false
 
-      - name: Package verified artifact for GitHub Pages
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-        uses: actions/upload-pages-artifact@v4
-        with:
-          path: team-lab/dist/
-
-  deploy-pages:
-    name: Deploy verified artifact
+  deploy-cloudflare:
+    name: Deploy verified artifact to Cloudflare Pages
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     needs: verify-public-artifact
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
       contents: read
-      pages: write
-      id-token: write
+      deployments: write
     environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      name: cloudflare-pages
+      url: ${{ steps.deploy.outputs.deployment-url }}
     outputs:
-      origin: ${{ steps.deployment.outputs.page_url }}
+      origin: ${{ steps.deploy.outputs.deployment-url }}
 
     steps:
-      - name: Deploy exact public artifact to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Check out deployment configuration
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Download exact verified public artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: team-lab-public-${{ github.sha }}
+          path: team-lab/dist
+
+      - name: Confirm only the public static artifact is present
+        working-directory: team-lab
+        run: |
+          test -f dist/index.html
+          test -f dist/release.json
+          test ! -e dist/404.html
+          test ! -e dist/_worker.js
+          test ! -e dist-admin
+
+      - name: Deploy exact public artifact to Cloudflare Pages
+        id: deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          workingDirectory: team-lab
+          wranglerVersion: "4.114.0"
+          command: >-
+            pages deploy dist
+            --project-name=pvpoke-team-lab
+            --branch=master
+            --commit-hash=${{ github.sha }}
+            --commit-dirty=false
 
   verify-deployment:
     name: Verify production deployment
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-    needs: deploy-pages
+    needs: deploy-cloudflare
     permissions:
       contents: read
     uses: ./.github/workflows/team-lab-deployment-check.yml
     with:
-      origin: ${{ needs.deploy-pages.outputs.origin }}
+      origin: ${{ needs.deploy-cloudflare.outputs.origin }}
       expected_commit: ${{ github.sha }}

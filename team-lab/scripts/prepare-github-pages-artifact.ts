@@ -5,7 +5,7 @@ const outputDirectory = process.argv[2];
 
 if (!outputDirectory) {
   throw new Error(
-    "Static artifact preparation requires an output directory argument.",
+    "GitHub Pages artifact preparation requires an output directory argument.",
   );
 }
 
@@ -18,4 +18,4 @@ if (!indexHtml.includes('<div id="root"></div>')) {
 }
 
 await writeFile(fallbackPath, indexHtml);
-console.log(`Static hosting fallback prepared at ${fallbackPath}.`);
+console.log(`GitHub Pages fallback prepared at ${fallbackPath}.`);
