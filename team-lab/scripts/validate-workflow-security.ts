@@ -6,6 +6,10 @@ const masterRulesetPath = resolve(
   process.cwd(),
   "../.github/rulesets/master-protection.json",
 );
+const codeqlConfigPath = resolve(
+  process.cwd(),
+  "../.github/codeql/codeql-config.yml",
+);
 const workflowNames = (await readdir(workflowsDirectory))
   .filter((name) => name.endsWith(".yml") || name.endsWith(".yaml"))
   .sort();
@@ -83,18 +87,32 @@ const requiredChecks =
   requiredChecksRule?.parameters?.required_status_checks?.map(
     (check) => check.context,
   ) ?? [];
+const requiredReleaseChecks = [
+  "Verify public artifact",
+  "Analyze TeamLab (javascript-typescript)",
+] as const;
 
 if (
   masterRuleset.enforcement !== "active" ||
   (masterRuleset.bypass_actors?.length ?? 0) > 0 ||
-  !requiredChecks.includes("Verify public artifact") ||
+  requiredReleaseChecks.some((check) => !requiredChecks.includes(check)) ||
   requiredChecksRule?.parameters?.strict_required_status_checks_policy !== true
 ) {
   throw new Error(
-    "The master ruleset must actively require the up-to-date Verify public artifact check without bypass actors.",
+    "The master ruleset must actively require the up-to-date artifact and TeamLab CodeQL checks without bypass actors.",
+  );
+}
+
+const codeqlConfig = await readFile(codeqlConfigPath, "utf8");
+if (
+  !/^paths:\s*\n\s+- team-lab\s*$/m.test(codeqlConfig) ||
+  /^\s+- (?:src|data|js|index\.html)(?:\/|\s|$)/m.test(codeqlConfig)
+) {
+  throw new Error(
+    "CodeQL must scan TeamLab without modifying or treating the preserved upstream PvPoke tree as release code.",
   );
 }
 
 process.stdout.write(
-  `Workflow security check passed: ${actionCount} external Action references are immutable, no privileged untrusted-code triggers are present, and the master release check is enforced.\n`,
+  `Workflow security check passed: ${actionCount} external Action references are immutable, no privileged untrusted-code triggers are present, and the artifact and TeamLab CodeQL release checks are enforced.\n`,
 );
