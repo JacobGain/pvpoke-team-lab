@@ -51,9 +51,10 @@ keeps diagnostics enabled. See
 [deployment build targets](docs/DEPLOYMENT-BUILDS.md).
 
 GitHub Actions runs the **Verify public artifact** release gate on pull
-requests, pushes, and manual dispatches. It installs the locked dependencies,
-runs the complete static/unit/data checks, builds and browser-tests the exact
-public artifact, rejects `dist-admin/`, and uploads
+requests, pushes to `master`, and manual dispatches. Feature-branch pushes with
+an open pull request produce only the pull-request run. The gate installs the
+locked dependencies, runs the complete static/unit/data checks, builds and
+browser-tests the exact public artifact, rejects `dist-admin/`, and uploads
 `team-lab-public-<commit SHA>`. Future hosting jobs must deploy that verified
 artifact without rebuilding it.
 

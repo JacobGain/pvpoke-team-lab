@@ -3,6 +3,8 @@ name: Team Lab release gate
 on:
   pull_request:
   push:
+    branches:
+      - master
   workflow_dispatch:
 
 permissions:

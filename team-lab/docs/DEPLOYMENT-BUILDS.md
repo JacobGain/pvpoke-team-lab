@@ -36,10 +36,12 @@ already has the artifact, `npm run test:production:artifact` tests the existing
 
 ## Automated release gate
 
-`.github/workflows/team-lab-release.yml` runs on every pull request, push, and
-manual dispatch. Its stable required-check name is **Verify public artifact**.
-Configure the protected release branch or repository ruleset to require that
-check before merging or deploying.
+`.github/workflows/team-lab-release.yml` runs on every pull request, every push
+to `master`, and manual dispatch. Feature-branch pushes are covered by their
+pull-request event instead of starting a duplicate push run. Its stable
+required-check name is **Verify public artifact**. Configure the protected
+release branch or repository ruleset to require that check before merging or
+deploying.
 
 The job uses a read-only GitHub token and performs this sequence from a fresh
 checkout:
