@@ -1,13 +1,17 @@
 # PvPoke Battle and Team Builder Deep Links
 
 > **Phase:** Phase 6 — Team Analysis  
-> **Status:** Complete for the Open Great League MVP  
+> **Status:** Removed 2026-07-27
 > **Route:** `/teams/:teamId/simulate`  
 > **Last reviewed:** 2026-07-25
 
 ## Summary
 
-Every completed saved-team matrix now exposes:
+This document records a historical implementation. Team Builder and Single
+Battle links were removed when TeamLab became self-contained; no current
+component generates or exposes PvPoke deep links.
+
+The former completed saved-team matrix exposed:
 
 - one PvPoke Team Builder link containing the three exact selected inventory
   builds;

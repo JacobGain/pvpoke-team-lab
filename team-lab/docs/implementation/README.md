@@ -63,13 +63,13 @@ Status: **Complete for the initial Great League slice**
 
 Implemented:
 
-- environment-controlled upstream data path
-- local Vite-to-Apache proxy
-- Zod validation of external PvPoke data
+- self-contained, manifest-tracked PvPoke data bundle
+- deterministic and overwriteable upstream sync command
+- Zod validation before bundling and at runtime
 - typed repository contracts
 - HTTP repository implementations
 - TanStack Query integration
-- connection-status UI
+- bundled-data health UI
 - immutable TeamLab catalog models
 - catalog normalization and integrity diagnostics
 - searchable Open Great League catalog
@@ -190,7 +190,7 @@ Implemented:
 - engine-independent exact-build request/result contracts
 - exact Phase 3 build serialization
 - explicit ambiguous-level handling
-- isolated upstream classic-script and Game Master bootstrap
+- isolated bundled classic-script and Game Master bootstrap
 - injectable PvPoke runtime facade
 - exact one-on-one configuration and invocation
 - immutable result translation
@@ -219,7 +219,7 @@ Status: **Complete for MVP**
 - [Coverage, threats, and core breakers](phase-06-team-analysis/coverage-threats-and-core-breakers.md)
 - [Bulk, safety, and consistency scorecard](phase-06-team-analysis/bulk-safety-and-consistency.md)
 - [Owned and unowned threat alternatives](phase-06-team-analysis/owned-and-unowned-alternatives.md)
-- [PvPoke Battle and Team Builder deep links](phase-06-team-analysis/upstream-deep-links.md)
+- [Removed PvPoke Battle and Team Builder deep links](phase-06-team-analysis/upstream-deep-links.md)
 
 Implemented:
 
@@ -239,9 +239,7 @@ Implemented:
 - owned exact-record counter candidates
 - unowned PvPoke-default counter candidates
 - species-clause filtering and source disclosure
-- exact completed-team PvPoke Team Builder links
-- exact matrix-matchup PvPoke battle links
-- shared upstream data/link base URL and completed-run provenance
+- completed-run data provenance without external deep links
 
 Deferred enhancements:
 

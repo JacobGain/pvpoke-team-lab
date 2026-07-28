@@ -1,5 +1,4 @@
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
-import { createReadStream } from "node:fs";
 import {
   access,
   mkdir,
@@ -7,15 +6,16 @@ import {
   readFile,
   readdir,
   rm,
-  stat,
   writeFile,
 } from "node:fs/promises";
-import { createServer, type Server } from "node:http";
+import { createServer } from "node:http";
 import { tmpdir } from "node:os";
-import { extname, resolve, sep } from "node:path";
+import { resolve } from "node:path";
 
 import {
   createServer as createViteServer,
+  preview as createVitePreviewServer,
+  type PreviewServer,
   type ViteDevServer,
 } from "vite";
 import sharp from "sharp";
@@ -68,6 +68,8 @@ interface WorkflowTiming {
 }
 
 interface BrowserWorkflowReport {
+  readonly buildTarget: BrowserTestTarget;
+  readonly releaseId: string;
   readonly inventoryRecordsCreated: number;
   readonly savedTeamsBeforeBackup: number;
   readonly backupBytes: number;
@@ -80,6 +82,7 @@ interface BrowserWorkflowReport {
 }
 
 type VisualMode = "off" | "verify" | "update";
+type BrowserTestTarget = "development" | "production";
 
 function invariant(
   condition: unknown,
@@ -118,80 +121,6 @@ async function availablePort(): Promise<number> {
   });
 
   return port;
-}
-
-function contentType(filePath: string): string {
-  return (
-    {
-      ".css": "text/css; charset=utf-8",
-      ".html": "text/html; charset=utf-8",
-      ".js": "text/javascript; charset=utf-8",
-      ".json": "application/json; charset=utf-8",
-      ".png": "image/png",
-      ".svg": "image/svg+xml",
-    }[extname(filePath)] ?? "application/octet-stream"
-  );
-}
-
-async function startUpstreamServer(
-  upstreamRoot: string,
-  port: number,
-): Promise<Server> {
-  const rootPrefix = `${upstreamRoot}${sep}`;
-  const server = createServer((request, response) => {
-    void (async () => {
-      try {
-        const pathname = decodeURIComponent(
-          new URL(request.url ?? "/", `http://${HOST}`).pathname,
-        );
-
-        if (!pathname.startsWith("/pvpoke/")) {
-          response.writeHead(404).end("Not found");
-          return;
-        }
-
-        const filePath = resolve(
-          upstreamRoot,
-          pathname.slice("/pvpoke/".length),
-        );
-
-        if (!filePath.startsWith(rootPrefix)) {
-          response.writeHead(403).end("Forbidden");
-          return;
-        }
-
-        const fileStat = await stat(filePath);
-        if (!fileStat.isFile()) {
-          response.writeHead(404).end("Not found");
-          return;
-        }
-
-        response.writeHead(200, {
-          "cache-control": "no-store",
-          "content-length": fileStat.size,
-          "content-type": contentType(filePath),
-        });
-        createReadStream(filePath).pipe(response);
-      } catch {
-        response.writeHead(404).end("Not found");
-      }
-    })();
-  });
-
-  await new Promise<void>((resolveListen, rejectListen) => {
-    server.once("error", rejectListen);
-    server.listen(port, HOST, () => resolveListen());
-  });
-
-  return server;
-}
-
-async function closeServer(server: Server | undefined): Promise<void> {
-  if (!server?.listening) return;
-
-  await new Promise<void>((resolveClose) => {
-    server.close(() => resolveClose());
-  });
 }
 
 async function resolveChromeExecutable(): Promise<string> {
@@ -404,6 +333,29 @@ class BrowserWorkflow {
     this.appUrl = appUrl;
   }
 
+  resolveUrl(pathname: string): string {
+    const appBase = new URL(this.appUrl);
+    const supplied = new URL(pathname, appBase.origin);
+    const appPath = appBase.pathname.replace(/\/+$/, "");
+
+    invariant(
+      supplied.origin === appBase.origin,
+      `Navigation must remain within TeamLab: ${pathname}.`,
+    );
+
+    if (
+      appPath &&
+      (supplied.pathname === appPath ||
+        supplied.pathname.startsWith(`${appPath}/`))
+    ) {
+      return supplied.href;
+    }
+
+    const relativePath = `${supplied.pathname}${supplied.search}${supplied.hash}`
+      .replace(/^\/+/, "");
+    return new URL(`${appPath}/${relativePath}`, appBase.origin).href;
+  }
+
   async evaluate<T>(
     expression: string,
     timeoutMs = STEP_TIMEOUT_MS,
@@ -452,11 +404,14 @@ class BrowserWorkflow {
     heading: string,
     headingSelector = "h1",
   ): Promise<void> {
+    const destination = this.resolveUrl(pathname);
+    const destinationPath = new URL(destination).pathname;
+
     await this.client.call("Page.navigate", {
-      url: `${this.appUrl}${pathname}`,
+      url: destination,
     });
     await this.waitFor(
-      `location.pathname === ${JSON.stringify(pathname)} && document.querySelector(${JSON.stringify(headingSelector)})?.textContent?.trim() === ${JSON.stringify(heading)}`,
+      `location.pathname === ${JSON.stringify(destinationPath)} && document.querySelector(${JSON.stringify(headingSelector)})?.textContent?.trim() === ${JSON.stringify(heading)}`,
       `${pathname} to render “${heading}”`,
     );
   }
@@ -850,6 +805,169 @@ function resolveVisualMode(): VisualMode {
   );
 }
 
+function resolveBrowserTestTarget(): BrowserTestTarget {
+  return process.argv.includes("--production")
+    ? "production"
+    : "development";
+}
+
+function resolveDeploymentBaseUrl(): string | undefined {
+  const deploymentMode = process.argv.includes("--deployment");
+  const argument = process.argv.find((value) =>
+    value.startsWith("--origin="),
+  );
+
+  if (!deploymentMode) {
+    invariant(
+      !argument,
+      "--origin requires the --deployment browser-test mode.",
+    );
+    return undefined;
+  }
+
+  invariant(
+    argument,
+    "Deployment browser tests require --origin=https://deployed.example.",
+  );
+  const value = argument.slice("--origin=".length);
+  const deploymentUrl = new URL(value);
+
+  invariant(
+    (deploymentUrl.protocol === "https:" ||
+      deploymentUrl.protocol === "http:") &&
+      !deploymentUrl.username &&
+      !deploymentUrl.password &&
+      !deploymentUrl.search &&
+      !deploymentUrl.hash,
+    "The deployment URL must be an HTTP(S) application base without credentials, a query, or a fragment.",
+  );
+
+  return `${deploymentUrl.origin}${deploymentUrl.pathname.replace(/\/+$/, "")}`;
+}
+
+function resolveConfiguredBasePath(): string {
+  const configuredBasePath = process.env.VITE_BASE_PATH?.trim() || "/";
+  const baseUrl = new URL(configuredBasePath, "http://teamlab.invalid");
+
+  invariant(
+    baseUrl.origin === "http://teamlab.invalid" &&
+      !baseUrl.search &&
+      !baseUrl.hash,
+    "VITE_BASE_PATH must be an application-rooted path without a query or fragment.",
+  );
+
+  return baseUrl.pathname.replace(/\/+$/, "");
+}
+
+function resolveExpectedCommitSha(
+  deploymentBaseUrl: string | undefined,
+): string | undefined {
+  const expectedCommitSha =
+    process.env.TEAMLAB_EXPECTED_COMMIT_SHA?.trim().toLowerCase();
+
+  invariant(
+    deploymentBaseUrl || !expectedCommitSha,
+    "TEAMLAB_EXPECTED_COMMIT_SHA is only valid for deployment browser tests.",
+  );
+  invariant(
+    !expectedCommitSha || /^[a-f0-9]{7,64}$/.test(expectedCommitSha),
+    "TEAMLAB_EXPECTED_COMMIT_SHA must be a 7-64 character hexadecimal Git commit ID.",
+  );
+
+  return expectedCommitSha || undefined;
+}
+
+async function assertBuildTarget(
+  browser: BrowserWorkflow,
+  target: BrowserTestTarget,
+  expectedCommitSha?: string,
+): Promise<string> {
+  if (target === "development") {
+    const diagnosticsAvailable = await browser.evaluate<boolean>(
+      `Boolean(
+        document.querySelector('a[href$="/diagnostics/simulation"]') &&
+        [...document.querySelectorAll(".app-nav a")].some(
+          (link) => link.textContent?.trim() === "Engine diagnostics"
+        )
+      )`,
+    );
+    invariant(
+      diagnosticsAvailable,
+      "Development mode did not expose engine diagnostics.",
+    );
+    return "development";
+  }
+
+  const productionState = await browser.evaluate<{
+    readonly dataHealthTag: string;
+    readonly diagnosticsLinks: number;
+    readonly release: {
+      readonly formatVersion?: number;
+      readonly releaseId?: string;
+      readonly target?: string;
+      readonly source?: { readonly commitSha?: string };
+      readonly capabilities?: { readonly diagnostics?: boolean };
+      readonly schemas?: {
+        readonly database?: number;
+        readonly backup?: number;
+        readonly inventoryRecord?: number;
+        readonly savedTeam?: number;
+      };
+      readonly pvpoke?: {
+        readonly dataVersion?: string;
+        readonly manifestSha256?: string;
+      };
+    };
+  }>(`(async () => ({
+    dataHealthTag:
+      document.querySelector(".app-rail .data-health")?.tagName ?? "",
+    diagnosticsLinks:
+      document.querySelectorAll('a[href$="/diagnostics/simulation"]').length,
+    release: await fetch(${JSON.stringify(browser.resolveUrl("/release.json"))}, { cache: "no-store" }).then(
+      (response) => {
+        if (!response.ok) {
+          throw new Error(\`release.json returned \${response.status}\`);
+        }
+        return response.json();
+      }
+    )
+  }))()`);
+  const release = productionState.release;
+
+  invariant(
+    productionState.dataHealthTag === "DIV" &&
+      productionState.diagnosticsLinks === 0,
+    `Production exposed diagnostics navigation: ${JSON.stringify(productionState)}.`,
+  );
+  invariant(
+    release.formatVersion === 1 &&
+      Boolean(release.releaseId) &&
+      release.target === "public" &&
+      Boolean(release.source?.commitSha) &&
+      release.capabilities?.diagnostics === false &&
+      Boolean(release.schemas?.database) &&
+      Boolean(release.schemas?.backup) &&
+      Boolean(release.schemas?.inventoryRecord) &&
+      Boolean(release.schemas?.savedTeam) &&
+      Boolean(release.pvpoke?.dataVersion) &&
+      /^[a-f0-9]{64}$/.test(release.pvpoke?.manifestSha256 ?? ""),
+    `Production release metadata is incomplete: ${JSON.stringify(release)}.`,
+  );
+  invariant(
+    !expectedCommitSha ||
+      release.source!.commitSha!.toLowerCase().startsWith(expectedCommitSha),
+    `Deployment commit mismatch: expected ${expectedCommitSha}, received ${release.source?.commitSha ?? "missing"}.`,
+  );
+  await browser.navigate(
+    "/diagnostics/simulation",
+    "Page not found",
+    "h2",
+  );
+  await browser.navigate("/", "Turn your roster into a battle plan.");
+
+  return release.releaseId!;
+}
+
 async function waitForDownload(downloadDirectory: string): Promise<string> {
   const deadline = Date.now() + STEP_TIMEOUT_MS;
 
@@ -961,7 +1079,7 @@ async function createInventory(
     );
     await browser.clickButton("Add to inventory");
     await browser.waitFor(
-      `location.pathname === "/inventory" && document.querySelectorAll(".inventory-card").length === ${index + 1}`,
+      `location.pathname.endsWith("/inventory") && document.querySelectorAll(".inventory-card").length === ${index + 1}`,
       `${speciesId} to persist`,
     );
     if (index === 0) {
@@ -1187,14 +1305,28 @@ async function runCriticalWorkflows(
   client: DevToolsClient,
   downloadDirectory: string,
   visual: VisualRegression,
+  buildTarget: BrowserTestTarget,
+  expectedCommitSha?: string,
 ): Promise<BrowserWorkflowReport> {
   const responsiveStates: string[] = [];
 
   await browser.setViewport(1440, 1_000);
   await browser.navigate("/", "Turn your roster into a battle plan.");
   await browser.waitFor(
-    `document.querySelector("#pvpoke-data-title")?.textContent?.trim() === "Connected"`,
-    "real PvPoke data connection",
+    `document.querySelector("#pvpoke-data-title")?.textContent?.trim() === "Ready"`,
+    "bundled PvPoke data",
+  );
+  const releaseId = await assertBuildTarget(
+    browser,
+    buildTarget,
+    expectedCommitSha,
+  );
+  await browser.waitFor(
+    `document.querySelectorAll(".dashboard-meta-watch li").length === 3 &&
+      document.querySelectorAll(
+        ".dashboard-meta-watch li .pokemon-sprite img"
+      ).length === 3`,
+    "dashboard meta watch",
   );
   const dashboardContent = await browser.evaluate<{
     readonly hasBattleProtocol: boolean;
@@ -1239,7 +1371,7 @@ async function runCriticalWorkflows(
   const rankingsInDesktopNavigation = await browser.evaluate<boolean>(
     `[...document.querySelectorAll(".app-nav--rail a")].some(
       (link) =>
-        link.getAttribute("href") === "/catalog" &&
+        link.getAttribute("href")?.endsWith("/catalog") &&
         link.textContent?.trim() === "Rankings"
     ) && Boolean(document.querySelector(".app-rail .app-rail__format"))`,
   );
@@ -1528,7 +1660,7 @@ async function runCriticalWorkflows(
   );
   await browser.clickButton("Save changes");
   await browser.waitFor(
-    `location.pathname === "/inventory" && document.body.textContent?.includes("Edited by durable browser coverage")`,
+    `location.pathname.endsWith("/inventory") && document.body.textContent?.includes("Edited by durable browser coverage")`,
     "inventory edit to persist",
   );
 
@@ -1556,7 +1688,7 @@ async function runCriticalWorkflows(
   );
   await browser.clickButton("Save team");
   await browser.waitFor(
-    `location.pathname === "/teams" && document.querySelector(".team-card h2")?.textContent === "Browser Coverage Team"`,
+    `location.pathname.endsWith("/teams") && document.querySelector(".team-card h2")?.textContent === "Browser Coverage Team"`,
     "saved team creation",
   );
   const renderedTeamRoles = await browser.evaluate<readonly string[]>(
@@ -1608,7 +1740,7 @@ async function runCriticalWorkflows(
   );
   await browser.clickButton("Save changes");
   await browser.waitFor(
-    `location.pathname === "/teams" && document.body.textContent?.includes("Edited through populated browser coverage")`,
+    `location.pathname.endsWith("/teams") && document.body.textContent?.includes("Edited through populated browser coverage")`,
     "saved team edit to persist",
   );
 
@@ -1872,7 +2004,9 @@ async function runCriticalWorkflows(
     ".destructive-confirmation button",
   );
   await browser.waitFor(
-    `document.querySelector('[role="status"]')?.textContent?.includes("TeamLab reset complete")`,
+    `[...document.querySelectorAll('[role="status"]')].some((status) =>
+      status.textContent?.includes("TeamLab reset complete")
+    )`,
     "atomic local-data reset",
   );
 
@@ -1884,7 +2018,8 @@ async function runCriticalWorkflows(
   await browser.clickButton("Restore TeamLab data");
   const restoreStatus = await browser.waitFor<string>(
     `(() => {
-      const status = document.querySelector('[role="status"]');
+      const status = [...document.querySelectorAll('[role="status"]')]
+        .find((candidate) => candidate.textContent?.includes("Restore complete"));
       return status?.textContent?.includes("Restore complete")
         ? status.textContent.replace(/\\s+/g, " ").trim()
         : null;
@@ -1909,6 +2044,17 @@ async function runCriticalWorkflows(
     "restored inventory dashboard",
   );
 
+  const diagnosticsMobileRoute =
+    buildTarget === "production"
+      ? ([
+          "/diagnostics/simulation",
+          "Page not found",
+          "h2",
+        ] as const)
+      : ([
+          "/diagnostics/simulation",
+          "PvPoke engine diagnostics",
+        ] as const);
   const mobileRoutes = [
     ["/", "Turn your roster into a battle plan."],
     ["/catalog", "Rankings"],
@@ -1920,7 +2066,7 @@ async function runCriticalWorkflows(
     ["/teams", "Saved teams"],
     ["/teams/new", "Create saved team"],
     [teamLinks.editHref, "Edit saved team"],
-    ["/diagnostics/simulation", "PvPoke engine diagnostics"],
+    diagnosticsMobileRoute,
     [teamLinks.simulationHref, "Browser Coverage Team"],
     ["/recommend", "Build around your anchors"],
     ["/route-that-does-not-exist", "Page not found", "h2"],
@@ -1988,6 +2134,8 @@ async function runCriticalWorkflows(
   );
 
   return {
+    buildTarget,
+    releaseId,
     inventoryRecordsCreated: INVENTORY_SPECIES.length,
     savedTeamsBeforeBackup: persistedCounts.teams,
     backupBytes: Buffer.byteLength(backupContents),
@@ -2003,8 +2151,10 @@ async function runCriticalWorkflows(
 async function main(): Promise<void> {
   const projectRoot = process.cwd();
   const visualMode = resolveVisualMode();
+  const buildTarget = resolveBrowserTestTarget();
+  const deploymentBaseUrl = resolveDeploymentBaseUrl();
+  const expectedCommitSha = resolveExpectedCommitSha(deploymentBaseUrl);
   const visual = new VisualRegression(visualMode, projectRoot);
-  const upstreamRoot = resolve(projectRoot, "..");
   const temporaryRoot = await mkdtemp(
     resolve(tmpdir(), "teamlab-browser-workflows-"),
   );
@@ -2015,8 +2165,7 @@ async function main(): Promise<void> {
     mkdir(downloadDirectory, { recursive: true }),
   ]);
 
-  let upstreamServer: Server | undefined;
-  let viteServer: ViteDevServer | undefined;
+  let viteServer: ViteDevServer | PreviewServer | undefined;
   let chromeProcess: ChildProcessWithoutNullStreams | undefined;
   let client: DevToolsClient | undefined;
   const globalTimeout = setTimeout(() => {
@@ -2028,27 +2177,42 @@ async function main(): Promise<void> {
   }, GLOBAL_TIMEOUT_MS);
 
   try {
-    const [upstreamPort, appPort, debuggingPort] = await Promise.all([
-      availablePort(),
-      availablePort(),
-      availablePort(),
-    ]);
-    upstreamServer = await startUpstreamServer(upstreamRoot, upstreamPort);
-    process.env.VITE_PVPOKE_BASE_URL = "/pvpoke/src";
-    process.env.PVPOKE_DEV_PROXY_TARGET =
-      `http://${HOST}:${upstreamPort}`;
-    viteServer = await createViteServer({
-      configFile: resolve(projectRoot, "vite.config.ts"),
-      logLevel: "error",
-      server: {
-        host: HOST,
-        port: appPort,
-        strictPort: true,
-      },
-    });
-    await viteServer.listen();
+    const debuggingPort = await availablePort();
+    const appPort = deploymentBaseUrl
+      ? undefined
+      : await availablePort();
+    let appUrl = deploymentBaseUrl;
 
-    const appUrl = `http://${HOST}:${appPort}`;
+    if (!deploymentBaseUrl && buildTarget === "production") {
+      viteServer = await createVitePreviewServer({
+        configFile: resolve(projectRoot, "vite.config.ts"),
+        logLevel: "error",
+        mode: "production",
+        preview: {
+          host: HOST,
+          port: appPort!,
+          strictPort: true,
+        },
+      });
+    } else if (!deploymentBaseUrl) {
+      viteServer = await createViteServer({
+        configFile: resolve(projectRoot, "vite.config.ts"),
+        logLevel: "error",
+        server: {
+          host: HOST,
+          port: appPort!,
+          strictPort: true,
+        },
+      });
+      await viteServer.listen();
+    }
+
+    appUrl ??= `http://${HOST}:${appPort!}${resolveConfiguredBasePath()}`;
+    if (deploymentBaseUrl) {
+      console.log(
+        `[browser-workflows] testing deployed application ${deploymentBaseUrl}`,
+      );
+    }
     const chromeExecutable = await resolveChromeExecutable();
     const chrome = startChrome(
       chromeExecutable,
@@ -2069,6 +2233,8 @@ async function main(): Promise<void> {
       client,
       downloadDirectory,
       visual,
+      buildTarget,
+      expectedCommitSha,
     );
 
     console.log(
@@ -2082,7 +2248,6 @@ async function main(): Promise<void> {
       viteServer?.close() ?? Promise.resolve(),
       delay(3_000),
     ]);
-    await Promise.race([closeServer(upstreamServer), delay(3_000)]);
     await rm(temporaryRoot, { recursive: true, force: true });
   }
 }

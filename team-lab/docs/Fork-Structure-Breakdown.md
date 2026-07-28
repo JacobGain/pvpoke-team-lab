@@ -121,9 +121,9 @@ FULL-SUMMARY.md
 
 Future fork-specific Docker overrides, top-level documentation, scripts, or automation should also be clearly named and kept outside upstream-owned paths.
 
-### Shared data, but not shared ownership
+### Generated upstream-derived assets
 
-Team Lab will consume data from:
+The authoritative upstream artifacts remain under:
 
 ```text
 src/data/gamemaster.min.json
@@ -132,7 +132,16 @@ src/data/groups/**
 src/data/training/**
 ```
 
-These remain upstream-owned artifacts. Team Lab should read them through repositories or adapters rather than moving, duplicating, or annotating them.
+Team Lab never modifies those files. Its deterministic sync command validates
+and copies the runtime subset it consumes into:
+
+```text
+team-lab/public/vendor/pvpoke/**
+```
+
+These generated copies are fork-owned deployment inputs and can be overwritten
+after a future upstream pull. The source tree remains upstream-owned and free
+of Team Lab changes.
 
 Fork-specific persistent data must not be written into those directories. User inventory, recommendation preferences, saved teams, cached calculations, and application migrations belong to Team Lab’s own storage layer.
 
@@ -153,9 +162,13 @@ It can eventually contain:
 - static files that do not pass through the source build;
 - generated frontend bundles, depending on the selected toolchain.
 
-`public/assets/` is only for fork-owned assets. Existing PvPoke imagery should continue to be referenced from the upstream application when licensing and deployment permit. Blindly copying all upstream images would introduce duplication and update drift.
+`public/assets/` contains fork-owned artwork. `public/vendor/pvpoke/` is the
+explicit exception for generated, licensed runtime inputs copied by
+`scripts/sync-pvpoke-assets.ts`. Its manifest records exact hashes and source
+paths so duplication is deliberate and refreshable rather than ad hoc.
 
-The public directory should not contain domain logic, source components, database code, or copies of upstream datasets.
+The public directory should not contain domain logic, source components, or
+database code.
 
 ## `team-lab/src/app/`
 
@@ -433,16 +446,14 @@ This centralizes paths, caching, schema validation, ranking aliases, and data-ve
 
 ### `pvpoke/serializers/`
 
-Serializers handle upstream-compatible encodings:
+Serializers handle reusable data encodings:
 
 - compact Pokémon build strings;
 - moveset strings;
-- Battle deep links;
-- Team Builder deep links;
-- group import/export formats;
-- upstream URL query/path state.
+- group import/export formats.
 
-Domain models should not become coupled to legacy URL syntax.
+Domain models should not become coupled to legacy URL syntax, and TeamLab
+does not expose upstream Battle or Team Builder links.
 
 ### `pvpoke/types/`
 
@@ -539,7 +550,6 @@ Compatibility and characterization tests for the PvPoke boundary:
 - cup eligibility;
 - known matchup outputs;
 - TeamRanker result translation;
-- deep-link serialization;
 - Game Master and ranking schema checks.
 
 These are the highest-value tests for safe upstream updates.
@@ -667,7 +677,7 @@ A scalable pipeline is:
 9. Run exact `Battle` or `TeamRanker` simulations for finalists.
 10. Produce several recommendations for different objectives.
 11. Explain moves, IV assumptions, upgrades, strengths, and uncovered threats.
-12. Provide deep links into upstream PvPoke tools for inspection.
+12. Expose matchup evidence for inspection inside TeamLab.
 
 The recommendation domain owns this orchestration. The PvPoke adapter supplies calculations but should not decide the product’s recommendation policy.
 
@@ -876,7 +886,7 @@ When application work begins, a low-risk order is:
 11. Wrap TeamRanker and meta groups.
 12. Implement recommendation candidate selection.
 13. Move expensive batch calculations into workers.
-14. Add recommendation explanations and upstream deep links.
+14. Add recommendation explanations and in-app matchup inspection.
 
 ## Git and empty directories
 

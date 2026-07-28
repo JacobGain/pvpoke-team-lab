@@ -21,7 +21,7 @@ export async function fetchValidatedJson<T>(
     response = await fetch(resource);
   } catch (error) {
     throw new PvpokeDataError(
-      `Could not connect to the PvPoke data source at ${resource}.`,
+      `Could not load TeamLab's bundled battle data at ${resource}.`,
       resource,
       { cause: error },
     );
@@ -29,7 +29,7 @@ export async function fetchValidatedJson<T>(
 
   if (!response.ok) {
     throw new PvpokeDataError(
-      `PvPoke returned ${String(response.status)} for ${resource}.`,
+      `TeamLab's bundled battle data returned ${String(response.status)} for ${resource}.`,
       resource,
     );
   }
@@ -40,7 +40,7 @@ export async function fetchValidatedJson<T>(
     data = (await response.json()) as unknown;
   } catch (error) {
     throw new PvpokeDataError(
-      `PvPoke returned invalid JSON for ${resource}.`,
+      `TeamLab's bundled battle data contains invalid JSON at ${resource}.`,
       resource,
       { cause: error },
     );
@@ -50,7 +50,7 @@ export async function fetchValidatedJson<T>(
 
   if (!result.success) {
     throw new PvpokeDataError(
-      `PvPoke data at ${resource} does not match TeamLab's expected schema.`,
+      `Bundled battle data at ${resource} does not match TeamLab's expected schema.`,
       resource,
       { cause: result.error },
     );

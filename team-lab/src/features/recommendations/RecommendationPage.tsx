@@ -42,10 +42,6 @@ import { createSavedTeam } from "@/domain/teams/factory";
 import { useInventoryList } from "@/features/inventory/inventoryQueries";
 import { usePokemonCatalog } from "@/features/meta/usePokemonCatalog";
 import { useCreateSavedTeam } from "@/features/teams/savedTeamQueries";
-import {
-  createPvpokeTeamBuilderLink,
-  pvpokeBaseUrl,
-} from "@/pvpoke/links";
 import { createPvpokeTeamRankerAdapter } from "@/pvpoke/simulation";
 import {
   formatIdentifier,
@@ -283,18 +279,6 @@ function RecommendationResultCard({
             {rankedDefaultCount === 1 ? "option" : "options"} to inventory
             before saving this team.
           </p>
-        ) : null}
-        {finalist.run.request ? (
-          <a
-            className="secondary-link"
-            href={createPvpokeTeamBuilderLink(finalist.run.request.team, {
-              baseUrl: pvpokeBaseUrl,
-            })}
-            target="_blank"
-            rel="noreferrer"
-          >
-            Open exact team in PvPoke ↗
-          </a>
         ) : null}
         <button
           className="primary-button"

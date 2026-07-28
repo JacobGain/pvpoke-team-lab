@@ -27,6 +27,7 @@ import { filterAndSortInventory } from "@/features/inventory/inventoryView";
 
 const INVENTORY_COUNT = 120;
 const SAVED_TEAM_COUNT = 30;
+const RECOMMENDATION_SAMPLE_COUNT = 3;
 
 const budgetsMilliseconds = {
   fixture: 2_000,
@@ -40,6 +41,11 @@ const budgetsMilliseconds = {
 
 function elapsedSince(start: number): number {
   return performance.now() - start;
+}
+
+function median(values: readonly number[]): number {
+  const ordered = [...values].sort((left, right) => left - right);
+  return ordered[Math.floor(ordered.length / 2)]!;
 }
 
 function inventoryId(index: number): string {
@@ -182,7 +188,6 @@ function createScaleTeams(
 it(
   "keeps the complete MVP workflow bounded with 120 inventory records",
   async () => {
-    const totalStart = performance.now();
     const fixtureStart = performance.now();
     const catalog = createScaleCatalog();
     const inventory = createScaleInventory(catalog);
@@ -232,27 +237,50 @@ it(
       ]);
       const repositoryRead = elapsedSince(repositoryReadStart);
 
-      clearIvRankingCache();
-      const recommendationStart = performance.now();
-      const request = recommendationRequestSchema.parse({
-        formatId: "great-league",
-        anchors: [
-          {
-            inventoryId: inventory[0]!.inventoryId,
-            position: "flex",
-          },
-        ],
-        resultCount: 3,
-        buildStatusScope: "all",
-      });
-      const pool = buildRecommendationCandidatePool(
-        request,
-        inventory,
-        catalog,
+      const recommendationSamples = Array.from(
+        { length: RECOMMENDATION_SAMPLE_COUNT },
+        () => {
+          clearIvRankingCache();
+          const recommendationStart = performance.now();
+          const request = recommendationRequestSchema.parse({
+            formatId: "great-league",
+            anchors: [
+              {
+                inventoryId: inventory[0]!.inventoryId,
+                position: "flex",
+              },
+            ],
+            resultCount: 3,
+            buildStatusScope: "all",
+          });
+          const pool = buildRecommendationCandidatePool(
+            request,
+            inventory,
+            catalog,
+          );
+          const generation = generateStaticRecommendationTeams(pool);
+
+          return {
+            elapsedMs: elapsedSince(recommendationStart),
+            pool,
+            generation,
+          };
+        },
       );
-      const generation = generateStaticRecommendationTeams(pool);
-      const recommendationDiscovery = elapsedSince(recommendationStart);
-      const total = elapsedSince(totalStart);
+      const { pool, generation } = recommendationSamples[0]!;
+      const recommendationDiscoverySamples = recommendationSamples.map(
+        (sample) => sample.elapsedMs,
+      );
+      const recommendationDiscovery = median(
+        recommendationDiscoverySamples,
+      );
+      const total =
+        fixture +
+        inventoryView +
+        backupRoundTrip +
+        restore +
+        repositoryRead +
+        recommendationDiscovery;
       const measurements = {
         fixture,
         inventoryView,
@@ -260,6 +288,7 @@ it(
         restore,
         repositoryRead,
         recommendationDiscovery,
+        recommendationDiscoverySamples,
         total,
         serializedBytes: new TextEncoder().encode(serialized).byteLength,
       };

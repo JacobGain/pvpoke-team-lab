@@ -16,7 +16,10 @@ const SPRITE_SOURCE_ROOT =
   `https://raw.githubusercontent.com/PokeAPI/sprites/${SPRITES_REVISION}` +
   "/sprites/pokemon/other/home";
 const projectRoot = resolve(import.meta.dirname, "..");
-const gameMasterPath = resolve(projectRoot, "../src/data/gamemaster.json");
+const gameMasterPath = resolve(
+  projectRoot,
+  "public/vendor/pvpoke/data/gamemaster.min.json",
+);
 const assetDirectory = resolve(projectRoot, "public/assets/pokemon");
 const manifestPath = resolve(
   projectRoot,

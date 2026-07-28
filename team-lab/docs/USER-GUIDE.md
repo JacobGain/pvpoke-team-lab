@@ -22,33 +22,15 @@ current browser profile.
 
 The local application requires:
 
-- the complete PvPoke fork checkout, with `team-lab/` beside the inherited
-  `src/` directory;
-- Docker with Docker Compose for the inherited PvPoke server;
 - Node.js 22.12 or newer;
 - npm 11 or newer;
 - a current desktop or mobile browser.
 
-Docker serves the inherited PvPoke data and classic simulation scripts.
-Vite serves the TeamLab React application and proxies PvPoke requests to
-Docker.
+TeamLab ships its validated PvPoke-derived data and classic simulation scripts
+inside the application. Docker and a separately running PvPoke server are not
+required.
 
 ## Start TeamLab locally
-
-Use two terminals.
-
-### Terminal 1: start inherited PvPoke
-
-From the repository root, one directory above `team-lab/`:
-
-```bash
-make up
-```
-
-This builds and starts the local Apache/PHP container on port 80. Leave it
-running.
-
-### Terminal 2: start TeamLab
 
 From `team-lab/`:
 
@@ -63,25 +45,9 @@ Open the local URL printed by Vite, normally:
 http://localhost:5173
 ```
 
-The home page’s PvPoke data card should say **Connected** and **Schema valid**.
-Do not begin entering data while the card says **Connection failed**.
-
-### Use a different PvPoke port
-
-If port 80 is unavailable, start the container on another port:
-
-```bash
-PVPOKE_PORT=8080 make up
-```
-
-Create `team-lab/.env.local`:
-
-```dotenv
-VITE_PVPOKE_BASE_URL=/pvpoke/src
-PVPOKE_DEV_PROXY_TARGET=http://localhost:8080
-```
-
-Restart `npm run dev` after changing environment values.
+The home page’s bundled data card should say **Ready** and **Schema valid**.
+If it says **Data unavailable**, reinstall or rebuild from a checkout that
+contains `public/vendor/pvpoke/`.
 
 ### Keep the same browser origin
 
@@ -100,7 +66,7 @@ browser profiles.
 ## Recommended first-use workflow
 
 ```text
-confirm PvPoke connection
+confirm bundled data is ready
         ↓
 explore the catalog
         ↓
@@ -119,13 +85,17 @@ download a JSON backup
 
 On desktop, the top navigation keeps **Dashboard**, **Inventory**,
 **Rankings**, **Teams**, and **Recommend** available throughout the
-application. The data indicator opens engine diagnostics. Local backup/reset
-tools are in the utility menu.
+application. **Backups & reset** is available in the utility menu.
 
 On a phone, the same four primary destinations remain in the bottom navigation.
-Choose **More** for Rankings, local data, and diagnostics.
+Choose **More** for Rankings and **Backups & reset**.
 
-The Dashboard suggests one next action from your current local data. It does
+Public production builds show the data indicator as status only and do not
+contain engine diagnostics. Local development and the protected maintainer
+build make the indicator and **Engine diagnostics** destination available.
+
+The Dashboard suggests one next action from your current inventory and team
+data. It does
 not lock the rest of the application; use global navigation whenever you want
 to move to a different workflow.
 
@@ -331,8 +301,8 @@ Each selected result explains:
 
 Choose **Save this team** to persist a fully owned result in Saved Teams.
 Recommendations are not saved automatically. A result containing a ranked
-Pokémon you do not own can still be simulated and opened in PvPoke, but it
-cannot be saved until those Pokémon are added to inventory.
+Pokémon you do not own can still be simulated in TeamLab, but it cannot be
+saved until those Pokémon are added to inventory.
 
 If fewer teams satisfy the request, TeamLab reports a shortfall instead of
 silently duplicating teams.
@@ -431,36 +401,34 @@ inside TeamLab; recovery requires a previously downloaded backup.
 
 ## Data versions and refreshes
 
-TeamLab reads the Game Master, Open Great League rankings, and Great League
-meta group from the local inherited PvPoke checkout.
+TeamLab reads the Game Master, Open Great League rankings, Great League meta
+group, and simulation scripts from its checked-in
+`public/vendor/pvpoke/` directory.
 
 The loaded data version appears throughout analysis and simulation results.
-Refresh TeamLab after updating the inherited PvPoke data. Saved teams and
-inventory remain local, while analysis and simulations use the newly loaded
-upstream data.
+Maintainers can refresh that bundle with `npm run sync:pvpoke` after updating
+an upstream checkout. Saved teams and inventory remain local, while new builds
+use the refreshed data. See [PvPoke asset maintenance](PVPOKE-DATA.md).
 
 An upstream change can make an old species, form, move, or team reference
 invalid. Repair the affected inventory or team before exporting a new backup.
 
 ## Troubleshooting
 
-### The home page says “Connection failed”
+### The home page says “Data unavailable”
 
 Check:
 
-1. the inherited PvPoke Docker container is running;
-2. the configured `PVPOKE_DEV_PROXY_TARGET` uses the correct port;
-3. `VITE_PVPOKE_BASE_URL` is `/pvpoke/src` for the normal local setup;
-4. Vite was restarted after environment changes.
-
-The source must serve Game Master, ranking, group, and classic JavaScript
-files—not only the TeamLab frontend.
+1. `public/vendor/pvpoke/manifest.json` exists;
+2. the Game Master, ranking, and group files listed in the manifest exist;
+3. `npm run validate:data` succeeds;
+4. Vite was restarted after a data sync.
 
 ### Simulation scripts fail to load
 
-Confirm the inherited path is reachable through the same base URL as the JSON
-data. TeamRanker needs the checked-in jQuery, Battle, GameMaster, Pokémon, and
-TeamRanker classic scripts.
+Run `npm run sync:pvpoke` and confirm the engine files listed in
+`public/vendor/pvpoke/manifest.json` are present. TeamRanker needs the bundled
+jQuery, Battle, GameMaster, Pokémon, and TeamRanker classic scripts.
 
 ### A CP and IV combination cannot be saved
 
@@ -541,12 +509,13 @@ Real-Chrome critical workflow coverage:
 npm run test:browser
 ```
 
-The browser suite is self-contained but requires a Chromium-compatible browser
-and the inherited `src/` directory. Set `TEAMLAB_CHROME_PATH` when Chrome is
-installed somewhere other than the supported default locations.
+The browser suite is self-contained and requires only a Chromium-compatible
+browser. Set `TEAMLAB_CHROME_PATH` when Chrome is installed somewhere other
+than the supported default locations.
 
 ## Further reading
 
 - [Project plan](PROJECT-PLAN.md)
+- [PvPoke asset maintenance](PVPOKE-DATA.md)
 - [Implementation records](implementation/README.md)
 - [Phase 8 hardening overview](implementation/phase-08-mvp-hardening/README.md)
