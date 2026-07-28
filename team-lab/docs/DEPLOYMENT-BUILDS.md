@@ -45,11 +45,14 @@ The job uses a read-only GitHub token and performs this sequence from a fresh
 checkout:
 
 1. install `package-lock.json` exactly with `npm ci`;
-2. run lint, typechecking, unit tests, and bundled-data validation;
-3. build only the public `dist/`;
-4. run the real-Chrome workflow against that exact artifact;
-5. fail if `dist-admin/` exists;
-6. upload `dist/` as `team-lab-public-<commit SHA>`.
+2. run lint, typechecking, and the deterministic unit suite;
+3. run the MVP scale characterization alone, using the median of three
+   cache-cold recommendation samples;
+4. validate the bundled PvPoke data;
+5. build only the public `dist/`;
+6. run the real-Chrome workflow against that exact artifact;
+7. fail if `dist-admin/` exists;
+8. upload `dist/` as `team-lab-public-<commit SHA>`.
 
 Artifacts are retained for 30 days. GitHub records a SHA-256 artifact digest,
 and the job exposes the artifact ID, URL, and digest as outputs for a future

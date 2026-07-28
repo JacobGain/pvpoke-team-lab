@@ -55,6 +55,9 @@ jobs:
       - name: Run unit tests
         run: npm test
 
+      - name: Run MVP scale characterization
+        run: npm run test:scale
+
       - name: Validate bundled PvPoke data
         run: npm run validate:data
 

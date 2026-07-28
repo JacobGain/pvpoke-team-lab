@@ -128,6 +128,12 @@ intentional visual change, inspect the generated diff before running
 `npm run update:visual`. Normal development and validation commands run from
 `team-lab/`.
 
+`npm test` runs the deterministic unit suite. The wall-clock MVP scale
+characterization runs separately through `npm run test:scale`, where it uses
+three cache-cold recommendation samples and gates on their median. Release CI
+runs both commands as separate steps so parallel unit workers cannot distort
+the performance budget.
+
 ## Documentation
 
 - [Local user guide](docs/USER-GUIDE.md)
