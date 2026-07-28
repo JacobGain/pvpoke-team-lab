@@ -55,19 +55,21 @@ requests, pushes to `master`, and manual dispatches. Feature-branch pushes with
 an open pull request produce only the pull-request run. The gate installs the
 locked dependencies, runs the complete static/unit/data checks, builds and
 browser-tests the exact public artifact, rejects `dist-admin/`, and uploads
-`team-lab-public-<commit SHA>`. Future hosting jobs must deploy that verified
-artifact without rebuilding it.
+`team-lab-public-<commit SHA>`. After a successful push to `master`, the same
+verified bytes deploy to GitHub Pages and the live application is browser-tested
+at `https://jacobgain.github.io/pvpoke-team-lab/`. Pull requests never deploy.
 
-Once an HTTPS deployment exists, verify the live origin and its release
+Verify the live application and its release
 identity with:
 
 ```bash
 TEAMLAB_EXPECTED_COMMIT_SHA=<commit SHA> \
-  npm run test:deployment -- --origin=https://teamlab.example
+  npm run test:deployment -- \
+    --origin=https://jacobgain.github.io/pvpoke-team-lab/
 ```
 
 The **Team Lab deployment check** GitHub workflow exposes the same verification
-as both a manual action and a reusable post-deployment job.
+as both a manual action and the automatic post-deployment job.
 
 Inventory and saved teams live only in IndexedDB for the current browser
 profile and origin. Download JSON backups regularly.

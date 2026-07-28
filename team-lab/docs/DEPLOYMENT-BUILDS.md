@@ -54,29 +54,35 @@ checkout:
 5. build only the public `dist/`;
 6. run the real-Chrome workflow against that exact artifact;
 7. fail if `dist-admin/` exists;
-8. upload `dist/` as `team-lab-public-<commit SHA>`.
+8. upload `dist/` as `team-lab-public-<commit SHA>`;
+9. on `master`, package those same files as the GitHub Pages artifact.
 
 Artifacts are retained for 30 days. GitHub records a SHA-256 artifact digest,
-and the job exposes the artifact ID, URL, and digest as outputs for a future
-provider-specific deployment job.
+and the job exposes the generic artifact ID, URL, and digest as outputs.
 
-### Deployment handoff contract
+### GitHub Pages deployment
 
-A hosting integration must consume the artifact produced by a successful
-**Verify public artifact** job. It must not check out the source and rebuild
-TeamLab independently. This keeps the tested bytes identical to the deployed
-bytes and prevents a hosting provider from accidentally selecting the admin
+Successful pushes to `master` deploy the Pages artifact produced by
+**Verify public artifact**. The deployment job does not check out source,
+install dependencies, or rebuild TeamLab. This keeps the tested bytes identical
+to the deployed bytes and prevents the hosting layer from selecting the admin
 target.
 
-The hosting adapter remains intentionally separate from the release gate. Once
-a provider is selected, add a dependent deployment job that:
+The verified build uses `VITE_BASE_PATH=/pvpoke-team-lab/` for the repository
+site. `dist/404.html` is an exact copy of `dist/index.html`, allowing GitHub
+Pages to bootstrap React Router on direct application routes. The deployment:
 
-- downloads `team-lab-public-<commit SHA>` from the successful workflow run;
-- deploys those files as a static single-page application;
-- maps unknown application routes to `index.html`;
-- preserves `release.json` at the origin root;
-- reports the deployed origin and artifact digest without generating a second
-  build.
+- uses the standard `github-pages` protected environment;
+- requires only `pages: write` and `id-token: write` in the deployment job;
+- publishes only after the complete public release gate succeeds;
+- preserves `release.json` at the application base;
+- reports the deployed URL without generating a second build;
+- runs the reusable deployed-origin browser workflow against the exact commit.
+
+Pull requests and manual release-gate runs verify artifacts but never deploy.
+Changing hosting providers later requires replacing only the two deployment
+jobs and `VITE_BASE_PATH`; the public build and artifact contract remain
+provider-neutral.
 
 ## Post-deployment verification
 
@@ -85,12 +91,14 @@ publishes the verified artifact:
 
 ```bash
 TEAMLAB_EXPECTED_COMMIT_SHA=<commit SHA> \
-  npm run test:deployment -- --origin=https://teamlab.example
+  npm run test:deployment -- \
+    --origin=https://jacobgain.github.io/pvpoke-team-lab/
 ```
 
-The origin must be the HTTP or HTTPS origin root without credentials, a path,
-query parameters, or a fragment. HTTP is supported for local infrastructure
-testing; the GitHub workflow requires HTTPS.
+The URL must be the HTTP or HTTPS application base without credentials, query
+parameters, or a fragment. A path is supported for static project sites. HTTP
+is supported for local infrastructure testing; the GitHub workflow requires
+HTTPS.
 
 Deployment mode does not build or start TeamLab locally. It opens the supplied
 origin in a temporary Chrome profile and verifies:
@@ -116,7 +124,7 @@ does not enter an existing user profile.
   pipeline;
 - a stable **Verify deployed origin** status name.
 
-A hosting workflow can call it after deployment:
+The release workflow calls it after GitHub Pages deployment:
 
 ```yaml
 verify-deployment:

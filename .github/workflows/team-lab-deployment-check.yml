@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       origin:
-        description: HTTPS origin root containing the deployed Team Lab artifact
+        description: HTTPS application base URL containing the deployed Team Lab artifact
         required: true
         type: string
       expected_commit:
@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
     inputs:
       origin:
-        description: HTTPS origin root containing the deployed Team Lab artifact
+        description: HTTPS application base URL containing the deployed Team Lab artifact
         required: true
         type: string
       expected_commit:
@@ -61,12 +61,12 @@ jobs:
       - name: Install locked dependencies
         run: npm ci
 
-      - name: Require an HTTPS deployment origin
+      - name: Require an HTTPS deployment URL
         run: |
           case "$TEAMLAB_DEPLOYMENT_ORIGIN" in
             https://*) ;;
             *)
-              echo "Deployment verification requires an HTTPS origin root."
+              echo "Deployment verification requires an HTTPS application URL."
               exit 1
               ;;
           esac

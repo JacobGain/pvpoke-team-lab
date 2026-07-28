@@ -31,6 +31,7 @@ jobs:
     env:
       CI: "true"
       TEAMLAB_CHROME_PATH: /usr/bin/google-chrome
+      VITE_BASE_PATH: /pvpoke-team-lab/
 
     steps:
       - name: Check out source
@@ -82,3 +83,41 @@ jobs:
           retention-days: 30
           compression-level: 9
           include-hidden-files: false
+
+      - name: Package verified artifact for GitHub Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: team-lab/dist/
+
+  deploy-pages:
+    name: Deploy verified artifact
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: verify-public-artifact
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    outputs:
+      origin: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy exact public artifact to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  verify-deployment:
+    name: Verify production deployment
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: deploy-pages
+    permissions:
+      contents: read
+    uses: ./.github/workflows/team-lab-deployment-check.yml
+    with:
+      origin: ${{ needs.deploy-pages.outputs.origin }}
+      expected_commit: ${{ github.sha }}
