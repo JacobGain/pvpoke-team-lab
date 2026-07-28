@@ -61,6 +61,23 @@ interface PendingCommand {
   readonly timeout: ReturnType<typeof setTimeout>;
 }
 
+type DevToolsEventListener = (
+  params: Record<string, unknown>,
+) => void;
+
+interface NavigationOptions {
+  readonly attempts?: number;
+}
+
+interface NavigationDocumentState {
+  readonly bodyText: string;
+  readonly heading: string;
+  readonly readyState: string;
+  readonly rootChildCount: number;
+  readonly title: string;
+  readonly url: string;
+}
+
 interface WorkflowTiming {
   readonly elapsedMs: number;
   readonly maxMainThreadGapMs: number;
@@ -258,6 +275,10 @@ async function findPageWebSocket(
 class DevToolsClient {
   private nextId = 1;
   private readonly pending = new Map<number, PendingCommand>();
+  private readonly eventListeners = new Map<
+    string,
+    Set<DevToolsEventListener>
+  >();
   private readonly socket: WebSocket;
 
   private constructor(socket: WebSocket) {
@@ -267,8 +288,19 @@ class DevToolsClient {
         readonly id?: number;
         readonly result?: unknown;
         readonly error?: { readonly message?: string };
+        readonly method?: string;
+        readonly params?: Record<string, unknown>;
       };
 
+      if (message.method) {
+        for (
+          const listener of
+          this.eventListeners.get(message.method) ?? []
+        ) {
+          listener(message.params ?? {});
+        }
+        return;
+      }
       if (message.id === undefined) return;
       const command = this.pending.get(message.id);
       if (!command) return;
@@ -307,6 +339,24 @@ class DevToolsClient {
     return new DevToolsClient(socket);
   }
 
+  on(
+    method: string,
+    listener: DevToolsEventListener,
+  ): () => void {
+    const listeners =
+      this.eventListeners.get(method) ??
+      new Set<DevToolsEventListener>();
+    listeners.add(listener);
+    this.eventListeners.set(method, listeners);
+
+    return () => {
+      listeners.delete(listener);
+      if (listeners.size === 0) {
+        this.eventListeners.delete(method);
+      }
+    };
+  }
+
   call(
     method: string,
     params: Record<string, unknown> = {},
@@ -338,10 +388,156 @@ class DevToolsClient {
 class BrowserWorkflow {
   private readonly client: DevToolsClient;
   private readonly appUrl: string;
+  private readonly networkRequests = new Map<string, string>();
+  private readonly recentBrowserErrors: string[] = [];
 
   constructor(client: DevToolsClient, appUrl: string) {
     this.client = client;
     this.appUrl = appUrl;
+  }
+
+  async initializeDiagnostics(): Promise<void> {
+    this.client.on("Network.requestWillBeSent", (params) => {
+      const event = params as {
+        readonly requestId?: string;
+        readonly request?: { readonly url?: string };
+      };
+      if (event.requestId && event.request?.url) {
+        this.networkRequests.set(event.requestId, event.request.url);
+      }
+    });
+    this.client.on("Network.loadingFailed", (params) => {
+      const event = params as {
+        readonly requestId?: string;
+        readonly errorText?: string;
+        readonly canceled?: boolean;
+      };
+      if (!event.canceled) {
+        this.recordBrowserError(
+          `Network load failed for ${this.networkRequests.get(event.requestId ?? "") ?? "unknown request"}: ${event.errorText ?? "unknown error"}`,
+        );
+      }
+    });
+    this.client.on("Network.responseReceived", (params) => {
+      const event = params as {
+        readonly response?: {
+          readonly status?: number;
+          readonly url?: string;
+        };
+      };
+      const status = event.response?.status;
+      if (status !== undefined && status >= 400) {
+        this.recordBrowserError(
+          `HTTP ${status} from ${event.response?.url ?? "unknown request"}`,
+        );
+      }
+    });
+    this.client.on("Runtime.exceptionThrown", (params) => {
+      const event = params as {
+        readonly exceptionDetails?: {
+          readonly text?: string;
+          readonly exception?: {
+            readonly description?: string;
+          };
+        };
+      };
+      this.recordBrowserError(
+        `Runtime exception: ${
+          event.exceptionDetails?.exception?.description ??
+          event.exceptionDetails?.text ??
+          "unknown exception"
+        }`,
+      );
+    });
+    this.client.on("Runtime.consoleAPICalled", (params) => {
+      const event = params as {
+        readonly type?: string;
+        readonly args?: readonly {
+          readonly value?: unknown;
+          readonly description?: string;
+        }[];
+      };
+      if (event.type === "error") {
+        const message = event.args
+          ?.map((argument) =>
+            argument.description ??
+            (typeof argument.value === "string"
+              ? argument.value
+              : JSON.stringify(argument.value)),
+          )
+          .filter(Boolean)
+          .join(" ");
+        this.recordBrowserError(
+          `Console error: ${message || "unknown error"}`,
+        );
+      }
+    });
+    this.client.on("Log.entryAdded", (params) => {
+      const event = params as {
+        readonly entry?: {
+          readonly level?: string;
+          readonly text?: string;
+          readonly url?: string;
+        };
+      };
+      if (event.entry?.level === "error") {
+        this.recordBrowserError(
+          `Browser log: ${event.entry.text ?? "unknown error"}${event.entry.url ? ` (${event.entry.url})` : ""}`,
+        );
+      }
+    });
+
+    await Promise.all([
+      this.client.call("Network.enable"),
+      this.client.call("Runtime.enable"),
+      this.client.call("Log.enable"),
+    ]);
+  }
+
+  private recordBrowserError(message: string): void {
+    this.recentBrowserErrors.push(message);
+    if (this.recentBrowserErrors.length > 20) {
+      this.recentBrowserErrors.splice(
+        0,
+        this.recentBrowserErrors.length - 20,
+      );
+    }
+  }
+
+  private async navigationDiagnostic(
+    attempt: number,
+    failure: unknown,
+  ): Promise<string> {
+    let documentState: NavigationDocumentState | undefined;
+    let diagnosticFailure: string | undefined;
+
+    try {
+      documentState = await this.evaluate<NavigationDocumentState>(`({
+        bodyText: (document.body?.innerText ?? "")
+          .replace(/\\s+/g, " ")
+          .trim()
+          .slice(0, 500),
+        heading:
+          document.querySelector("h1, h2")?.textContent?.trim() ?? "",
+        readyState: document.readyState,
+        rootChildCount:
+          document.querySelector("#root")?.childElementCount ?? -1,
+        title: document.title,
+        url: location.href
+      })`);
+    } catch (error) {
+      diagnosticFailure =
+        error instanceof Error ? error.message : String(error);
+    }
+
+    return JSON.stringify({
+      attempt,
+      failure:
+        failure instanceof Error ? failure.message : String(failure),
+      document: documentState,
+      diagnosticFailure,
+      browserErrors: this.recentBrowserErrors,
+    });
   }
 
   resolveUrl(pathname: string): string {
@@ -414,16 +610,57 @@ class BrowserWorkflow {
     pathname: string,
     heading: string,
     headingSelector = "h1",
+    options: NavigationOptions = {},
   ): Promise<void> {
     const destination = this.resolveUrl(pathname);
     const destinationPath = new URL(destination).pathname;
+    const attempts = options.attempts ?? 1;
+    const diagnostics: string[] = [];
 
-    await this.client.call("Page.navigate", {
-      url: destination,
-    });
-    await this.waitFor(
-      `location.pathname === ${JSON.stringify(destinationPath)} && document.querySelector(${JSON.stringify(headingSelector)})?.textContent?.trim() === ${JSON.stringify(heading)}`,
-      `${pathname} to render “${heading}”`,
+    invariant(
+      Number.isInteger(attempts) && attempts >= 1 && attempts <= 3,
+      "Browser navigation attempts must be an integer between 1 and 3.",
+    );
+
+    for (let attempt = 1; attempt <= attempts; attempt += 1) {
+      this.recentBrowserErrors.length = 0;
+
+      if (attempt > 1) {
+        await delay(1_000 * 2 ** (attempt - 2));
+        await this.client.call("Network.clearBrowserCache");
+      }
+
+      const attemptUrl = new URL(destination);
+      if (attempt > 1) {
+        attemptUrl.searchParams.set(
+          "__teamlab_navigation_attempt",
+          String(attempt),
+        );
+      }
+
+      try {
+        await this.client.call("Page.navigate", {
+          url: attemptUrl.href,
+        });
+        await this.waitFor(
+          `location.pathname === ${JSON.stringify(destinationPath)} && document.querySelector(${JSON.stringify(headingSelector)})?.textContent?.trim() === ${JSON.stringify(heading)}`,
+          `${pathname} to render “${heading}”`,
+        );
+        return;
+      } catch (error) {
+        diagnostics.push(
+          await this.navigationDiagnostic(attempt, error),
+        );
+        if (attempt < attempts) {
+          console.warn(
+            `[browser-workflows] navigation attempt ${attempt}/${attempts} failed; retrying ${pathname}: ${diagnostics.at(-1)}`,
+          );
+        }
+      }
+    }
+
+    throw new Error(
+      `Failed waiting for ${pathname} to render “${heading}” after ${attempts} attempt(s).\n${diagnostics.join("\n")}`,
     );
   }
 
@@ -1317,12 +1554,18 @@ async function runCriticalWorkflows(
   downloadDirectory: string,
   visual: VisualRegression,
   buildTarget: BrowserTestTarget,
+  initialNavigationAttempts: number,
   expectedCommitSha?: string,
 ): Promise<BrowserWorkflowReport> {
   const responsiveStates: string[] = [];
 
   await browser.setViewport(1440, 1_000);
-  await browser.navigate("/", "Turn your roster into a battle plan.");
+  await browser.navigate(
+    "/",
+    "Turn your roster into a battle plan.",
+    "h1",
+    { attempts: initialNavigationAttempts },
+  );
   await browser.waitFor(
     `document.querySelector("#pvpoke-data-title")?.textContent?.trim() === "Ready"`,
     "bundled PvPoke data",
@@ -2239,12 +2482,14 @@ async function main(): Promise<void> {
     );
     client = await DevToolsClient.connect(webSocketUrl);
     const browser = new BrowserWorkflow(client, appUrl);
+    await browser.initializeDiagnostics();
     const report = await runCriticalWorkflows(
       browser,
       client,
       downloadDirectory,
       visual,
       buildTarget,
+      deploymentBaseUrl ? 3 : 1,
       expectedCommitSha,
     );
 
