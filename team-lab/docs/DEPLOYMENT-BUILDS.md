@@ -76,7 +76,8 @@ The verified build uses `VITE_BASE_PATH=/` for the `pages.dev` site. Production
 apply its native SPA fallback and return HTTP 200 on direct application routes.
 The deployment:
 
-- uses the `cloudflare-pages` GitHub environment;
+- uses the workflow-owned `cloudflare-pages` GitHub environment as its only
+  GitHub deployment record;
 - requires scoped `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` repository
   secrets;
 - publishes only after the complete public release gate succeeds;
@@ -84,6 +85,12 @@ The deployment:
 - rejects a provider-specific `404.html`, any `_worker.js`, and `dist-admin/`;
 - reports the unique deployed URL without generating a second build;
 - runs the reusable deployed-origin browser workflow against the exact commit.
+
+Wrangler does not receive its optional `gitHubToken`; enabling that integration
+would duplicate the workflow environment's deployment record under GitHub's
+default `production` environment. The environment URL is the unique immutable
+Cloudflare URL for traceability, while the custom domain continues to serve the
+current production deployment.
 
 Pull requests and manual release-gate runs verify artifacts but never deploy.
 The application remains static-only and configures no Functions, Workers, D1,

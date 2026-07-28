@@ -43,6 +43,13 @@ The deployment uses the `cloudflare-pages` GitHub environment. Add required
 reviewers there later if production deployment approvals are wanted. No domain,
 billing method, Pages Function, or storage binding is required.
 
+The workflow-owned environment is the only GitHub deployment record for a
+release. Wrangler intentionally receives no `gitHubToken`: that optional input
+would register the same Cloudflare upload a second time under GitHub's default
+`production` environment. The `cloudflare-pages` environment URL remains
+Wrangler's unique immutable deployment URL rather than the custom domain so
+each GitHub deployment identifies the exact uploaded artifact.
+
 ## Release pipeline
 
 Pull requests run the complete **Verify public artifact** gate but never
@@ -78,6 +85,8 @@ HTTP failures, network load failures, runtime exceptions, and console errors.
 Verification intentionally targets the immutable URL returned by Wrangler, not
 `pvpoke-team-lab.pages.dev` or a custom domain such as `pogoteamlab.com`. This
 proves the exact new deployment before production aliases or DNS are involved.
+The custom domain still routes to the current production deployment and is not
+duplicated by this verification URL.
 
 The workflow intentionally fails on `master` if the project or either
 credential is missing. This prevents a release commit from appearing successful
