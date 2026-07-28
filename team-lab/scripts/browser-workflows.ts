@@ -1321,6 +1321,13 @@ async function runCriticalWorkflows(
     buildTarget,
     expectedCommitSha,
   );
+  await browser.waitFor(
+    `document.querySelectorAll(".dashboard-meta-watch li").length === 3 &&
+      document.querySelectorAll(
+        ".dashboard-meta-watch li .pokemon-sprite img"
+      ).length === 3`,
+    "dashboard meta watch",
+  );
   const dashboardContent = await browser.evaluate<{
     readonly hasBattleProtocol: boolean;
     readonly hasDisclaimer: boolean;
