@@ -34,6 +34,45 @@ inventory, teams, backup/restore, simulations, and recommendations. When CI
 already has the artifact, `npm run test:production:artifact` tests the existing
 `dist/` without rebuilding it.
 
+## Automated release gate
+
+`.github/workflows/team-lab-release.yml` runs on every pull request, push, and
+manual dispatch. Its stable required-check name is **Verify public artifact**.
+Configure the protected release branch or repository ruleset to require that
+check before merging or deploying.
+
+The job uses a read-only GitHub token and performs this sequence from a fresh
+checkout:
+
+1. install `package-lock.json` exactly with `npm ci`;
+2. run lint, typechecking, unit tests, and bundled-data validation;
+3. build only the public `dist/`;
+4. run the real-Chrome workflow against that exact artifact;
+5. fail if `dist-admin/` exists;
+6. upload `dist/` as `team-lab-public-<commit SHA>`.
+
+Artifacts are retained for 30 days. GitHub records a SHA-256 artifact digest,
+and the job exposes the artifact ID, URL, and digest as outputs for a future
+provider-specific deployment job.
+
+### Deployment handoff contract
+
+A hosting integration must consume the artifact produced by a successful
+**Verify public artifact** job. It must not check out the source and rebuild
+TeamLab independently. This keeps the tested bytes identical to the deployed
+bytes and prevents a hosting provider from accidentally selecting the admin
+target.
+
+The hosting adapter remains intentionally separate from the release gate. Once
+a provider is selected, add a dependent deployment job that:
+
+- downloads `team-lab-public-<commit SHA>` from the successful workflow run;
+- deploys those files as a static single-page application;
+- maps unknown application routes to `index.html`;
+- preserves `release.json` at the origin root;
+- reports the deployed origin and artifact digest without generating a second
+  build.
+
 ## Maintainer diagnostics build
 
 ```bash

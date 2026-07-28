@@ -50,6 +50,13 @@ served locally or behind deployment-level access control. Development mode
 keeps diagnostics enabled. See
 [deployment build targets](docs/DEPLOYMENT-BUILDS.md).
 
+GitHub Actions runs the **Verify public artifact** release gate on pull
+requests, pushes, and manual dispatches. It installs the locked dependencies,
+runs the complete static/unit/data checks, builds and browser-tests the exact
+public artifact, rejects `dist-admin/`, and uploads
+`team-lab-public-<commit SHA>`. Future hosting jobs must deploy that verified
+artifact without rebuilding it.
+
 Inventory and saved teams live only in IndexedDB for the current browser
 profile and origin. Download JSON backups regularly.
 
