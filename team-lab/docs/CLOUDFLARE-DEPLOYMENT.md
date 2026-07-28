@@ -1,6 +1,6 @@
 # Cloudflare Pages deployment
 
-TeamLab 0.0.3 is prepared for a static-only Cloudflare Pages deployment. The
+TeamLab 0.0.4 uses a hardened static-only Cloudflare Pages deployment. The
 application does not use Pages Functions, Workers, D1, KV, R2, authentication,
 or any other metered server-side service. PvPoke data and simulation code ship
 inside the public artifact, while inventory and teams remain in browser
@@ -54,13 +54,30 @@ deploy. A push to `master`:
 4. uploads it as `team-lab-public-<commit SHA>`;
 5. downloads the verified artifact in the deployment job;
 6. deploys it to the `pvpoke-team-lab` production branch with pinned Wrangler;
-7. browser-tests the returned HTTPS deployment URL and exact commit metadata.
+7. polls the returned immutable HTTPS URL until its public release metadata
+   identifies the expected commit and every entry asset is available;
+8. browser-tests that exact URL, with bounded retries for only the initial
+   remote navigation.
 
 The deployment job rejects `404.html`, `_worker.js`, and `dist-admin/`. Without
 a top-level `404.html`, Cloudflare Pages applies its native SPA fallback, so
 direct routes such as `/catalog` return HTTP 200. The verified artifact remains
 available in GitHub Actions for 30 days and Cloudflare keeps deployment history
 for rollback.
+
+The readiness poll uses cache-busting requests for `release.json`, `index.html`,
+and each same-origin JavaScript or stylesheet referenced by the index. It waits
+for the expected commit rather than accepting a healthy stale deployment. If
+Chrome still encounters a transient first-load failure, the browser check clears
+its cache and retries that initial navigation up to two times with backoff.
+Later workflow navigation and application assertions remain single-attempt so
+the retries cannot conceal product regressions. A terminal navigation failure
+reports the current URL, document state, rendered heading and body excerpt,
+HTTP failures, network load failures, runtime exceptions, and console errors.
+
+Verification intentionally targets the immutable URL returned by Wrangler, not
+`pvpoke-team-lab.pages.dev` or a custom domain such as `pogoteamlab.com`. This
+proves the exact new deployment before production aliases or DNS are involved.
 
 The workflow intentionally fails on `master` if the project or either
 credential is missing. This prevents a release commit from appearing successful

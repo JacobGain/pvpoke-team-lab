@@ -98,10 +98,14 @@ not.
 
 ## Post-deployment verification
 
-Run the real browser suite against an HTTPS deployment after the hosting layer
-publishes the verified artifact:
+Wait for the expected immutable artifact and then run the real browser suite
+against it after the hosting layer publishes the verified files:
 
 ```bash
+npm run wait:deployment -- \
+  --origin=https://pvpoke-team-lab.pages.dev/ \
+  --expected-commit=<commit SHA>
+
 TEAMLAB_EXPECTED_COMMIT_SHA=<commit SHA> \
   npm run test:deployment -- \
     --origin=https://pvpoke-team-lab.pages.dev/
@@ -112,8 +116,13 @@ parameters, or a fragment. A path is supported for static project sites. HTTP
 is supported for local infrastructure testing; the GitHub workflow requires
 HTTPS.
 
-Deployment mode does not build or start TeamLab locally. It opens the supplied
-origin in a temporary Chrome profile and verifies:
+`wait:deployment` polls cache-busted `release.json`, root HTML, and every
+same-origin script or stylesheet referenced by that HTML. It succeeds only when
+the public, diagnostics-disabled release identifies the expected commit and all
+entry assets return non-empty responses.
+
+Deployment browser mode does not build or start TeamLab locally. It opens the
+supplied origin in a temporary Chrome profile and verifies:
 
 - `release.json` identifies a public, diagnostics-disabled artifact;
 - the deployed source commit matches `TEAMLAB_EXPECTED_COMMIT_SHA` when set;
@@ -126,6 +135,12 @@ origin in a temporary Chrome profile and verifies:
 The temporary browser profile is deleted after the check, so the fixture data
 does not enter an existing user profile.
 
+Only the first navigation to a deployed origin receives bounded retries. A
+failed attempt clears Chrome's cache and backs off before trying again. All
+subsequent route and workflow assertions remain strict and single-attempt.
+Terminal navigation errors include a document snapshot plus recent HTTP,
+network, runtime, browser-log, and console failures.
+
 ### GitHub workflow
 
 `.github/workflows/team-lab-deployment-check.yml` provides:
@@ -134,6 +149,7 @@ does not enter an existing user profile.
   `expected_commit` inputs;
 - a reusable workflow for the final job in a provider-specific deployment
   pipeline;
+- an immutable-artifact readiness boundary before Chrome starts;
 - a stable **Verify deployed origin** status name.
 
 The release workflow calls it after Cloudflare Pages deployment:
@@ -148,7 +164,9 @@ verify-deployment:
 ```
 
 The reusable form requires an explicit expected commit. This prevents a
-successful check against a healthy but stale deployment.
+successful check against a healthy but stale deployment. The release workflow
+passes Wrangler's immutable deployment URL so the check proves the exact files
+that were just uploaded instead of relying on an alias or custom-domain DNS.
 
 ## Maintainer diagnostics build
 
