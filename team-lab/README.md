@@ -55,9 +55,10 @@ requests, pushes to `master`, and manual dispatches. Feature-branch pushes with
 an open pull request produce only the pull-request run. The gate installs the
 locked dependencies, runs the complete static/unit/data checks, builds and
 browser-tests the exact public artifact, rejects `dist-admin/`, and uploads
-`team-lab-public-<commit SHA>`. After a successful push to `master`, the same
-verified bytes deploy to GitHub Pages and the live application is browser-tested
-at `https://jacobgain.github.io/pvpoke-team-lab/`. Pull requests never deploy.
+`team-lab-public-<commit SHA>`. After a successful push to `master`, those exact
+verified bytes deploy to the static-only Cloudflare Pages project and the
+returned HTTPS deployment is browser-tested against the expected commit. Pull
+requests never deploy.
 
 Verify the live application and its release
 identity with:
@@ -65,7 +66,7 @@ identity with:
 ```bash
 TEAMLAB_EXPECTED_COMMIT_SHA=<commit SHA> \
   npm run test:deployment -- \
-    --origin=https://jacobgain.github.io/pvpoke-team-lab/
+    --origin=https://pvpoke-team-lab.pages.dev/
 ```
 
 The **Team Lab deployment check** GitHub workflow exposes the same verification
@@ -141,6 +142,7 @@ the performance budget.
 
 - [Local user guide](docs/USER-GUIDE.md)
 - [Deployment build targets](docs/DEPLOYMENT-BUILDS.md)
+- [Cloudflare Pages deployment and cutover](docs/CLOUDFLARE-DEPLOYMENT.md)
 - [PvPoke asset maintenance](docs/PVPOKE-DATA.md)
 - [Product scope and project plan](docs/PROJECT-PLAN.md)
 - [Implementation records](docs/implementation/README.md)
