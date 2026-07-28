@@ -73,6 +73,58 @@ a provider is selected, add a dependent deployment job that:
 - reports the deployed origin and artifact digest without generating a second
   build.
 
+## Post-deployment verification
+
+Run the real browser suite against an HTTPS deployment after the hosting layer
+publishes the verified artifact:
+
+```bash
+TEAMLAB_EXPECTED_COMMIT_SHA=<commit SHA> \
+  npm run test:deployment -- --origin=https://teamlab.example
+```
+
+The origin must be the HTTP or HTTPS origin root without credentials, a path,
+query parameters, or a fragment. HTTP is supported for local infrastructure
+testing; the GitHub workflow requires HTTPS.
+
+Deployment mode does not build or start TeamLab locally. It opens the supplied
+origin in a temporary Chrome profile and verifies:
+
+- `release.json` identifies a public, diagnostics-disabled artifact;
+- the deployed source commit matches `TEAMLAB_EXPECTED_COMMIT_SHA` when set;
+- diagnostics navigation is absent and its direct route renders TeamLab's 404;
+- bundled PvPoke data reaches the ready state;
+- inventory, teams, simulations, recommendations, backup/reset/restore, SPA
+  route fallback, and responsive routes work through the deployed hosting
+  layer.
+
+The temporary browser profile is deleted after the check, so the fixture data
+does not enter an existing user profile.
+
+### GitHub workflow
+
+`.github/workflows/team-lab-deployment-check.yml` provides:
+
+- a manual **Team Lab deployment check** action with `origin` and optional
+  `expected_commit` inputs;
+- a reusable workflow for the final job in a provider-specific deployment
+  pipeline;
+- a stable **Verify deployed origin** status name.
+
+A hosting workflow can call it after deployment:
+
+```yaml
+verify-deployment:
+  needs: deploy
+  uses: ./.github/workflows/team-lab-deployment-check.yml
+  with:
+    origin: ${{ needs.deploy.outputs.origin }}
+    expected_commit: ${{ github.sha }}
+```
+
+The reusable form requires an explicit expected commit. This prevents a
+successful check against a healthy but stale deployment.
+
 ## Maintainer diagnostics build
 
 ```bash

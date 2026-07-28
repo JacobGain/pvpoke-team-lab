@@ -57,6 +57,17 @@ public artifact, rejects `dist-admin/`, and uploads
 `team-lab-public-<commit SHA>`. Future hosting jobs must deploy that verified
 artifact without rebuilding it.
 
+Once an HTTPS deployment exists, verify the live origin and its release
+identity with:
+
+```bash
+TEAMLAB_EXPECTED_COMMIT_SHA=<commit SHA> \
+  npm run test:deployment -- --origin=https://teamlab.example
+```
+
+The **Team Lab deployment check** GitHub workflow exposes the same verification
+as both a manual action and a reusable post-deployment job.
+
 Inventory and saved teams live only in IndexedDB for the current browser
 profile and origin. Download JSON backups regularly.
 
