@@ -17,6 +17,7 @@
     "sync:sprites": "node --experimental-strip-types scripts/sync-pokemon-sprites.ts",
     "test": "vitest run",
     "test:browser": "node --experimental-strip-types scripts/browser-workflows.ts",
+    "test:deployment": "node --experimental-strip-types scripts/browser-workflows.ts --production --deployment",
     "test:production": "npm run build && npm run test:production:artifact",
     "test:production:artifact": "node --experimental-strip-types scripts/browser-workflows.ts --production",
     "test:visual": "node --experimental-strip-types scripts/browser-workflows.ts --visual=verify",

@@ -785,9 +785,62 @@ function resolveBrowserTestTarget(): BrowserTestTarget {
     : "development";
 }
 
+function resolveDeploymentOrigin(): string | undefined {
+  const deploymentMode = process.argv.includes("--deployment");
+  const argument = process.argv.find((value) =>
+    value.startsWith("--origin="),
+  );
+
+  if (!deploymentMode) {
+    invariant(
+      !argument,
+      "--origin requires the --deployment browser-test mode.",
+    );
+    return undefined;
+  }
+
+  invariant(
+    argument,
+    "Deployment browser tests require --origin=https://deployed.example.",
+  );
+  const value = argument.slice("--origin=".length);
+  const origin = new URL(value);
+
+  invariant(
+    (origin.protocol === "https:" || origin.protocol === "http:") &&
+      !origin.username &&
+      !origin.password &&
+      !origin.search &&
+      !origin.hash &&
+      origin.pathname === "/",
+    "The deployment origin must be an HTTP(S) origin root without credentials, a path, query, or fragment.",
+  );
+
+  return origin.origin;
+}
+
+function resolveExpectedCommitSha(
+  deploymentOrigin: string | undefined,
+): string | undefined {
+  const expectedCommitSha =
+    process.env.TEAMLAB_EXPECTED_COMMIT_SHA?.trim().toLowerCase();
+
+  invariant(
+    deploymentOrigin || !expectedCommitSha,
+    "TEAMLAB_EXPECTED_COMMIT_SHA is only valid for deployment browser tests.",
+  );
+  invariant(
+    !expectedCommitSha || /^[a-f0-9]{7,64}$/.test(expectedCommitSha),
+    "TEAMLAB_EXPECTED_COMMIT_SHA must be a 7-64 character hexadecimal Git commit ID.",
+  );
+
+  return expectedCommitSha || undefined;
+}
+
 async function assertBuildTarget(
   browser: BrowserWorkflow,
   target: BrowserTestTarget,
+  expectedCommitSha?: string,
 ): Promise<string> {
   if (target === "development") {
     const diagnosticsAvailable = await browser.evaluate<boolean>(
@@ -812,6 +865,7 @@ async function assertBuildTarget(
       readonly formatVersion?: number;
       readonly releaseId?: string;
       readonly target?: string;
+      readonly source?: { readonly commitSha?: string };
       readonly capabilities?: { readonly diagnostics?: boolean };
       readonly schemas?: {
         readonly database?: number;
@@ -849,6 +903,7 @@ async function assertBuildTarget(
     release.formatVersion === 1 &&
       Boolean(release.releaseId) &&
       release.target === "public" &&
+      Boolean(release.source?.commitSha) &&
       release.capabilities?.diagnostics === false &&
       Boolean(release.schemas?.database) &&
       Boolean(release.schemas?.backup) &&
@@ -857,6 +912,11 @@ async function assertBuildTarget(
       Boolean(release.pvpoke?.dataVersion) &&
       /^[a-f0-9]{64}$/.test(release.pvpoke?.manifestSha256 ?? ""),
     `Production release metadata is incomplete: ${JSON.stringify(release)}.`,
+  );
+  invariant(
+    !expectedCommitSha ||
+      release.source!.commitSha!.toLowerCase().startsWith(expectedCommitSha),
+    `Deployment commit mismatch: expected ${expectedCommitSha}, received ${release.source?.commitSha ?? "missing"}.`,
   );
   await browser.navigate(
     "/diagnostics/simulation",
@@ -1206,6 +1266,7 @@ async function runCriticalWorkflows(
   downloadDirectory: string,
   visual: VisualRegression,
   buildTarget: BrowserTestTarget,
+  expectedCommitSha?: string,
 ): Promise<BrowserWorkflowReport> {
   const responsiveStates: string[] = [];
 
@@ -1215,7 +1276,11 @@ async function runCriticalWorkflows(
     `document.querySelector("#pvpoke-data-title")?.textContent?.trim() === "Ready"`,
     "bundled PvPoke data",
   );
-  const releaseId = await assertBuildTarget(browser, buildTarget);
+  const releaseId = await assertBuildTarget(
+    browser,
+    buildTarget,
+    expectedCommitSha,
+  );
   const dashboardContent = await browser.evaluate<{
     readonly hasBattleProtocol: boolean;
     readonly hasDisclaimer: boolean;
@@ -2040,6 +2105,8 @@ async function main(): Promise<void> {
   const projectRoot = process.cwd();
   const visualMode = resolveVisualMode();
   const buildTarget = resolveBrowserTestTarget();
+  const deploymentOrigin = resolveDeploymentOrigin();
+  const expectedCommitSha = resolveExpectedCommitSha(deploymentOrigin);
   const visual = new VisualRegression(visualMode, projectRoot);
   const temporaryRoot = await mkdtemp(
     resolve(tmpdir(), "teamlab-browser-workflows-"),
@@ -2063,35 +2130,42 @@ async function main(): Promise<void> {
   }, GLOBAL_TIMEOUT_MS);
 
   try {
-    const [appPort, debuggingPort] = await Promise.all([
-      availablePort(),
-      availablePort(),
-    ]);
-    if (buildTarget === "production") {
+    const debuggingPort = await availablePort();
+    const appPort = deploymentOrigin
+      ? undefined
+      : await availablePort();
+    let appUrl = deploymentOrigin;
+
+    if (!deploymentOrigin && buildTarget === "production") {
       viteServer = await createVitePreviewServer({
         configFile: resolve(projectRoot, "vite.config.ts"),
         logLevel: "error",
         mode: "production",
         preview: {
           host: HOST,
-          port: appPort,
+          port: appPort!,
           strictPort: true,
         },
       });
-    } else {
+    } else if (!deploymentOrigin) {
       viteServer = await createViteServer({
         configFile: resolve(projectRoot, "vite.config.ts"),
         logLevel: "error",
         server: {
           host: HOST,
-          port: appPort,
+          port: appPort!,
           strictPort: true,
         },
       });
       await viteServer.listen();
     }
 
-    const appUrl = `http://${HOST}:${appPort}`;
+    appUrl ??= `http://${HOST}:${appPort!}`;
+    if (deploymentOrigin) {
+      console.log(
+        `[browser-workflows] testing deployed origin ${deploymentOrigin}`,
+      );
+    }
     const chromeExecutable = await resolveChromeExecutable();
     const chrome = startChrome(
       chromeExecutable,
@@ -2113,6 +2187,7 @@ async function main(): Promise<void> {
       downloadDirectory,
       visual,
       buildTarget,
+      expectedCommitSha,
     );
 
     console.log(
