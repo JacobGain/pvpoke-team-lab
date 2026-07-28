@@ -104,26 +104,20 @@ TEAMLAB_EXPECTED_COMMIT_SHA=$(git rev-parse HEAD) \
 The local Pages emulator should return HTTP 200 for both `/` and direct
 application routes. Local verification does not require a Cloudflare account.
 
-## Cutover from GitHub Pages
+## Supported production host
 
-The 0.0.3 workflow no longer updates GitHub Pages. The existing 0.0.2 site stays
-available during the first Cloudflare deployment, providing a recoverable
-cutover instead of switching both systems at once.
+Cloudflare Pages is TeamLab's only supported production host. GitHub Pages was
+retired after the 0.0.3 cutover, and the repository no longer contains a
+provider-specific GitHub Pages build target or fallback artifact generator.
 
-IndexedDB is isolated by web origin. Inventory and teams stored at the
-`github.io` address cannot automatically appear at the new `pages.dev` address.
-Before switching bookmarks or links:
+The application remains deployment-neutral static output. `VITE_BASE_PATH`
+continues to support a path-based static host when intentionally configured,
+but release CI always builds TeamLab at `/` and deploys only through Cloudflare.
 
-1. open **Backups & reset** on the GitHub Pages deployment;
-2. download a full-data JSON backup;
-3. open the verified Cloudflare deployment;
-4. restore that backup and confirm inventory and saved teams;
-5. update public links to the Cloudflare production URL;
-6. disable GitHub Pages in **Repository Settings → Pages**.
-
-After Pages is disabled, only Cloudflare hosts the production application. Keep
-the `build:github-pages` script solely as an emergency compatibility target; it
-is not used by release CI.
+IndexedDB remains isolated by web origin. The canonical
+`https://pogoteamlab.com` origin does not share inventory or saved teams with
+the `pages.dev` alias, so users should consistently use the custom domain and
+move data between origins with a full-data JSON backup when necessary.
 
 ## Future changes
 

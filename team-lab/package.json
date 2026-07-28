@@ -9,7 +9,6 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build && node --experimental-strip-types scripts/validate-build-capabilities.ts dist diagnostics-disabled && npm run validate:cloudflare",
-    "build:github-pages": "npm run build && node --experimental-strip-types scripts/prepare-github-pages-artifact.ts dist",
     "build:admin": "tsc -b && vite build --mode admin && node --experimental-strip-types scripts/validate-build-capabilities.ts dist-admin diagnostics-enabled",
     "lint": "eslint .",
     "preview": "vite preview",

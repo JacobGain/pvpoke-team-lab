@@ -81,7 +81,7 @@ The deployment:
   secrets;
 - publishes only after the complete public release gate succeeds;
 - preserves `release.json` at the application base;
-- rejects GitHub's `404.html`, any `_worker.js`, and `dist-admin/`;
+- rejects a provider-specific `404.html`, any `_worker.js`, and `dist-admin/`;
 - reports the unique deployed URL without generating a second build;
 - runs the reusable deployed-origin browser workflow against the exact commit.
 
@@ -89,12 +89,9 @@ Pull requests and manual release-gate runs verify artifacts but never deploy.
 The application remains static-only and configures no Functions, Workers, D1,
 KV, R2, authentication, or server-side persistence. See
 [Cloudflare Pages deployment](CLOUDFLARE-DEPLOYMENT.md) for account bootstrap,
-credential setup, local emulation, and the GitHub Pages cutover checklist.
-
-For emergency GitHub Pages compatibility, set
-`VITE_BASE_PATH=/pvpoke-team-lab/` and run `npm run build:github-pages`. That
-explicit target copies `index.html` to `404.html`; normal production builds do
-not.
+credential setup, local emulation, and production-host details. GitHub Pages is
+not a supported deployment target; GitHub remains the source, CI, artifact, and
+release-orchestration platform for the Cloudflare deployment.
 
 ## Post-deployment verification
 
