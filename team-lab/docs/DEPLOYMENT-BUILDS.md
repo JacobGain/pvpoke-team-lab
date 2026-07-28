@@ -82,6 +82,7 @@ The deployment:
   secrets;
 - publishes only after the complete public release gate succeeds;
 - preserves `release.json` at the application base;
+- requires the browser security and alias-indexing policy in `_headers`;
 - rejects a provider-specific `404.html`, any `_worker.js`, and `dist-admin/`;
 - reports the unique deployed URL without generating a second build;
 - runs the reusable deployed-origin browser workflow against the exact commit.

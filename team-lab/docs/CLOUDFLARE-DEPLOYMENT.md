@@ -72,6 +72,13 @@ direct routes such as `/catalog` return HTTP 200. The verified artifact remains
 available in GitHub Actions for 30 days and Cloudflare keeps deployment history
 for rollback.
 
+The public artifact also contains a required `_headers` policy. It restricts
+scripts, network requests, frames, browser capabilities, and cross-origin
+resource use; enables HSTS and MIME protections; and prevents the default and
+immutable `pages.dev` aliases from competing with `pogoteamlab.com` in search
+results. `validate:cloudflare` fails the build if the policy is absent,
+incomplete, or permits inline or evaluated scripts.
+
 The readiness poll uses cache-busting requests for `release.json`, `index.html`,
 and each same-origin JavaScript or stylesheet referenced by the index. It waits
 for the expected commit rather than accepting a healthy stale deployment. If
