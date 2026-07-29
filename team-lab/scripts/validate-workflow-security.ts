@@ -15,6 +15,7 @@ const workflowNames = (await readdir(workflowsDirectory))
   .sort();
 const mutableActions: string[] = [];
 const unsafeTriggers: string[] = [];
+const codeqlWorkflowNames = new Set<string>();
 let actionCount = 0;
 
 for (const workflowName of workflowNames) {
@@ -47,6 +48,10 @@ for (const workflowName of workflowNames) {
       `${workflowName} enables Wrangler's duplicate GitHub deployment integration.`,
     );
   }
+
+  if (workflow.includes("github/codeql-action/init@")) {
+    codeqlWorkflowNames.add(workflowName);
+  }
 }
 
 if (actionCount === 0) {
@@ -62,6 +67,35 @@ if (mutableActions.length > 0) {
 if (unsafeTriggers.length > 0) {
   throw new Error(
     `Privileged untrusted-code triggers are not allowed:\n${unsafeTriggers.join("\n")}`,
+  );
+}
+
+const expectedCodeqlWorkflowName = "team-lab-codeql.yml";
+if (
+  codeqlWorkflowNames.size !== 1 ||
+  !codeqlWorkflowNames.has(expectedCodeqlWorkflowName)
+) {
+  throw new Error(
+    `CodeQL must have exactly one workflow (${expectedCodeqlWorkflowName}); found: ${[...codeqlWorkflowNames].join(", ") || "none"}.`,
+  );
+}
+
+const codeqlWorkflow = await readFile(
+  resolve(workflowsDirectory, expectedCodeqlWorkflowName),
+  "utf8",
+);
+if (
+  (codeqlWorkflow.match(/github\/codeql-action\/init@/g)?.length ?? 0) !== 2 ||
+  (codeqlWorkflow.match(/github\/codeql-action\/analyze@/g)?.length ?? 0) !==
+    2 ||
+  !/languages:\s*actions\b/.test(codeqlWorkflow) ||
+  !/languages:\s*javascript-typescript\b/.test(codeqlWorkflow) ||
+  !codeqlWorkflow.includes(
+    "config-file: ./.github/codeql/codeql-config.yml",
+  )
+) {
+  throw new Error(
+    "The single CodeQL workflow must contain distinct GitHub Actions and TeamLab JavaScript/TypeScript analyses.",
   );
 }
 
@@ -90,6 +124,7 @@ const requiredChecks =
 const requiredReleaseChecks = [
   "Verify public artifact",
   "Analyze TeamLab (javascript-typescript)",
+  "Analyze workflows (actions)",
 ] as const;
 
 if (
@@ -114,5 +149,5 @@ if (
 }
 
 process.stdout.write(
-  `Workflow security check passed: ${actionCount} external Action references are immutable, no privileged untrusted-code triggers are present, and the artifact and TeamLab CodeQL release checks are enforced.\n`,
+  `Workflow security check passed: ${actionCount} external Action references are immutable, no privileged untrusted-code triggers are present, one CodeQL workflow covers TeamLab and GitHub Actions, and all release checks are enforced.\n`,
 );

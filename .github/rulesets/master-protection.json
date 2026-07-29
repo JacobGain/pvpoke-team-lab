@@ -44,6 +44,9 @@
           },
           {
             "context": "Analyze TeamLab (javascript-typescript)"
+          },
+          {
+            "context": "Analyze workflows (actions)"
           }
         ],
         "strict_required_status_checks_policy": true

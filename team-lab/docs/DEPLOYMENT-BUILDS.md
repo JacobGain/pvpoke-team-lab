@@ -71,27 +71,24 @@ weekly for maintainable updates.
 `master` ruleset. It prevents deletion and force-push, requires changes through
 a pull request with resolved review threads, and requires the up-to-date
 **Verify public artifact** and **Analyze TeamLab (javascript-typescript)**
-checks before merge. `validate:workflows` also rejects a local ruleset that
-drops either check, weakens strictness, or adds a bypass actor.
+checks, plus **Analyze workflows (actions)**, before merge.
+`validate:workflows` also rejects a local ruleset that drops any check, weakens
+strictness, or adds a bypass actor.
 
 The `cloudflare-pages` GitHub environment accepts only protected branches, so
 the deployment job cannot be reused from an unprotected ref. GitHub secret
 scanning and push protection cover repository history and new pushes;
 Dependabot security updates provide dependency analysis. The advanced CodeQL
-workflow scans only `team-lab/`, the application that is built and deployed.
-It intentionally excludes the preserved upstream PvPoke tree at the repository
-root, keeping upstream source untouched and preventing unrelated legacy
-findings from obscuring TeamLab release findings. Repository Actions retain
-read-only default permissions, with `security-events: write` granted only to
-CodeQL and `deployments: write` granted only to the deployment job.
-
-For the one-time transition from GitHub's repository-wide default setup, first
-push the branch that contains `.github/workflows/team-lab-codeql.yml`. Then use
-**Settings → Advanced Security → CodeQL analysis → Switch to advanced** to
-disable default setup before opening the release pull request to `master`.
-Default setup blocks advanced-analysis uploads, while the required
-**Analyze TeamLab (javascript-typescript)** check prevents the release from
-merging until the scoped replacement succeeds.
+workflow has two non-overlapping analyses: GitHub Actions workflow security and
+JavaScript/TypeScript under `team-lab/`, the application that is built and
+deployed. It intentionally excludes the preserved upstream PvPoke tree at the
+repository root, keeping upstream source untouched and preventing unrelated
+legacy findings from obscuring TeamLab release findings. Workflow validation
+requires exactly this one CodeQL workflow, preventing GitHub's generic advanced
+setup scaffold or another duplicate scanner from being committed alongside it.
+Repository Actions retain read-only default permissions, with
+`security-events: write` granted only to CodeQL and `deployments: write`
+granted only to the deployment job.
 
 Artifacts are retained for 30 days. GitHub records a SHA-256 artifact digest,
 and the job exposes the generic artifact ID, URL, and digest as outputs.
