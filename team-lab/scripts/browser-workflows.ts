@@ -23,6 +23,7 @@ import sharp from "sharp";
 const HOST = "127.0.0.1";
 const GLOBAL_TIMEOUT_MS = 120_000;
 const STEP_TIMEOUT_MS = 20_000;
+const PERSISTENCE_TIMEOUT_MS = 45_000;
 const ENGINE_TIMEOUT_MS = 45_000;
 const MAX_MAIN_THREAD_GAP_MS = 500;
 const MAX_VISUAL_CHANGED_PIXEL_RATIO = 0.01;
@@ -1326,10 +1327,39 @@ async function createInventory(
       "textarea",
     );
     await browser.clickButton("Add to inventory");
-    await browser.waitFor(
-      `location.pathname.endsWith("/inventory") && document.querySelectorAll(".inventory-card").length === ${index + 1}`,
-      `${speciesId} to persist`,
-    );
+    try {
+      await browser.waitFor(
+        `location.pathname.endsWith("/inventory") && document.querySelectorAll(".inventory-card").length === ${index + 1}`,
+        `${speciesId} to persist`,
+        PERSISTENCE_TIMEOUT_MS,
+      );
+    } catch (error) {
+      const persistenceState = await browser.evaluate<{
+        readonly alert: string;
+        readonly cardCount: number;
+        readonly pathname: string;
+        readonly submitText: string;
+      }>(`(() => {
+        const submit = [...document.querySelectorAll("button")].find(
+          (button) =>
+            button instanceof HTMLButtonElement &&
+            (button.name === "save-intent" || button.type === "submit")
+        );
+        return {
+          alert:
+            document.querySelector('[role="alert"]')?.textContent?.trim() ?? "",
+          cardCount: document.querySelectorAll(".inventory-card").length,
+          pathname: location.pathname,
+          submitText: submit?.textContent?.trim() ?? ""
+        };
+      })()`);
+      const message =
+        error instanceof Error ? error.message : String(error);
+      throw new Error(
+        `${message} Inventory persistence state: ${JSON.stringify(persistenceState)}.`,
+        { cause: error },
+      );
+    }
     if (index === 0) {
       const inventoryBadges = await browser.evaluate<boolean>(`(() => {
         const card = document.querySelector(".inventory-card");

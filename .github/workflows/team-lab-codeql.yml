@@ -34,12 +34,12 @@ jobs:
           persist-credentials: false
 
       - name: Initialize workflow analysis
-        uses: github/codeql-action/init@adfda868f108ac4222129de456ea554034a27db7 # v4
+        uses: github/codeql-action/init@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81 # v4.37.3
         with:
           languages: actions
 
       - name: Analyze workflows
-        uses: github/codeql-action/analyze@adfda868f108ac4222129de456ea554034a27db7 # v4
+        uses: github/codeql-action/analyze@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81 # v4.37.3
         with:
           category: /language:actions
 
@@ -58,12 +58,12 @@ jobs:
           persist-credentials: false
 
       - name: Initialize TeamLab analysis
-        uses: github/codeql-action/init@adfda868f108ac4222129de456ea554034a27db7 # v4
+        uses: github/codeql-action/init@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81 # v4.37.3
         with:
           languages: javascript-typescript
           config-file: ./.github/codeql/codeql-config.yml
 
       - name: Analyze TeamLab
-        uses: github/codeql-action/analyze@adfda868f108ac4222129de456ea554034a27db7 # v4
+        uses: github/codeql-action/analyze@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81 # v4.37.3
         with:
           category: /language:javascript-typescript

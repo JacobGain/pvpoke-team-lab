@@ -2,18 +2,44 @@ version: 2
 updates:
   - package-ecosystem: npm
     directory: /team-lab
+    target-branch: staging
     schedule:
       interval: weekly
       day: monday
       time: "09:00"
       timezone: America/Toronto
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3
+    groups:
+      npm-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+    ignore:
+      # typescript-eslint 8.x currently requires TypeScript below 6.1.
+      - dependency-name: typescript
+        update-types:
+          - version-update:semver-major
 
   - package-ecosystem: github-actions
     directory: /
+    target-branch: staging
     schedule:
       interval: weekly
       day: monday
       time: "09:00"
       timezone: America/Toronto
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3
+    groups:
+      codeql-action:
+        patterns:
+          - "github/codeql-action/*"
+      actions-minor-patch:
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "github/codeql-action/*"
+        update-types:
+          - minor
+          - patch
