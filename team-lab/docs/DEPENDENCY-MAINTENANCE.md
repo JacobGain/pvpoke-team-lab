@@ -22,6 +22,10 @@ TypeScript 7 is temporarily ignored because `typescript-eslint` 8.x declares
 support only through TypeScript 6.0. Remove that ignore only after the installed
 lint toolchain supports the newer major.
 
+Workflow validation also requires every CodeQL `init` and `analyze` reference
+to use the same immutable commit. This complements the Dependabot grouping rule
+and prevents a partial CodeQL update from passing the release gate.
+
 ## Reviewing updates
 
 Never merge a dependency pull request only because CodeQL succeeds. The

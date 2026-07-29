@@ -88,10 +88,16 @@ const codeqlWorkflow = await readFile(
   resolve(workflowsDirectory, expectedCodeqlWorkflowName),
   "utf8",
 );
+const codeqlActionShas = [
+  ...codeqlWorkflow.matchAll(
+    /github\/codeql-action\/(?:init|analyze)@([0-9a-f]{40})/g,
+  ),
+].map((match) => match[1]);
 if (
   (codeqlWorkflow.match(/github\/codeql-action\/init@/g)?.length ?? 0) !== 2 ||
   (codeqlWorkflow.match(/github\/codeql-action\/analyze@/g)?.length ?? 0) !==
     2 ||
+  new Set(codeqlActionShas).size !== 1 ||
   !/languages:\s*actions\b/.test(codeqlWorkflow) ||
   !/languages:\s*javascript-typescript\b/.test(codeqlWorkflow) ||
   !codeqlWorkflow.includes(
@@ -99,7 +105,7 @@ if (
   )
 ) {
   throw new Error(
-    "The single CodeQL workflow must contain distinct GitHub Actions and TeamLab JavaScript/TypeScript analyses.",
+    "The single CodeQL workflow must contain distinct GitHub Actions and TeamLab JavaScript/TypeScript analyses pinned to one synchronized CodeQL release.",
   );
 }
 
