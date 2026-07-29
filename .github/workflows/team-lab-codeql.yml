@@ -1,0 +1,69 @@
+name: TeamLab CodeQL
+
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+  schedule:
+    - cron: "31 7 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze-workflows:
+    name: Analyze workflows (actions)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Initialize workflow analysis
+        uses: github/codeql-action/init@adfda868f108ac4222129de456ea554034a27db7 # v4
+        with:
+          languages: actions
+
+      - name: Analyze workflows
+        uses: github/codeql-action/analyze@adfda868f108ac4222129de456ea554034a27db7 # v4
+        with:
+          category: /language:actions
+
+  analyze-teamlab:
+    name: Analyze TeamLab (javascript-typescript)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Initialize TeamLab analysis
+        uses: github/codeql-action/init@adfda868f108ac4222129de456ea554034a27db7 # v4
+        with:
+          languages: javascript-typescript
+          config-file: ./.github/codeql/codeql-config.yml
+
+      - name: Analyze TeamLab
+        uses: github/codeql-action/analyze@adfda868f108ac4222129de456ea554034a27db7 # v4
+        with:
+          category: /language:javascript-typescript

@@ -5,7 +5,7 @@ import {
   useNavigate,
   useParams,
   useSearchParams,
-} from "react-router-dom";
+} from "react-router";
 
 import { PageHeader } from "@/components/PageHeader";
 import { PokemonSprite } from "@/components/PokemonSprite";

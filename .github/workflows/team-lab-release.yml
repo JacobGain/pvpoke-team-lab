@@ -35,19 +35,25 @@ jobs:
 
     steps:
       - name: Check out source
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
 
       - name: Use Node.js 22
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: "22"
           cache: npm
           cache-dependency-path: team-lab/package-lock.json
 
+      - name: Validate workflow security
+        run: npm run validate:workflows
+
       - name: Install locked dependencies
         run: npm ci
+
+      - name: Audit locked dependencies
+        run: npm run audit:security
 
       - name: Lint
         run: npm run lint
@@ -75,7 +81,7 @@ jobs:
 
       - name: Upload verified public artifact
         id: upload_public_artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: team-lab-public-${{ github.sha }}
           path: team-lab/dist/
@@ -101,12 +107,12 @@ jobs:
 
     steps:
       - name: Check out deployment configuration
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
 
       - name: Download exact verified public artifact
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: team-lab-public-${{ github.sha }}
           path: team-lab/dist
@@ -122,11 +128,10 @@ jobs:
 
       - name: Deploy exact public artifact to Cloudflare Pages
         id: deploy
-        uses: cloudflare/wrangler-action@v3
+        uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
           workingDirectory: team-lab
           wranglerVersion: "4.114.0"
           command: >-

@@ -46,17 +46,49 @@ deploying.
 The job uses a read-only GitHub token and performs this sequence from a fresh
 checkout:
 
-1. install `package-lock.json` exactly with `npm ci`;
-2. run lint, typechecking, and the deterministic unit suite;
-3. run the MVP scale characterization alone, using the median of three
+1. reject mutable Action references and privileged untrusted-code triggers;
+2. install `package-lock.json` exactly with `npm ci`;
+3. reject high-severity advisories across runtime and build dependencies;
+4. run lint, typechecking, and the deterministic unit suite;
+5. run the MVP scale characterization alone, using the median of three
    cache-cold recommendation samples;
-4. validate the bundled PvPoke data;
-5. build only the public `dist/`;
-6. run the real-Chrome workflow against that exact artifact;
-7. fail if `dist-admin/` exists;
-8. upload `dist/` as `team-lab-public-<commit SHA>`;
-9. on `master`, make those same files available to the Cloudflare deployment
+6. validate the bundled PvPoke data;
+7. build only the public `dist/`;
+8. run the real-Chrome workflow against that exact artifact;
+9. fail if `dist-admin/` exists;
+10. upload `dist/` as `team-lab-public-<commit SHA>`;
+11. on `master`, make those same files available to the Cloudflare deployment
    job.
+
+Every external Action is pinned to a full commit SHA with its release line
+recorded as a comment. `validate:workflows` makes immutable references a release
+invariant, while Dependabot checks both GitHub Actions and the npm lockfile
+weekly for maintainable updates.
+
+### Repository release protections
+
+`.github/rulesets/master-protection.json` is the auditable source for the active
+`master` ruleset. It prevents deletion and force-push, requires changes through
+a pull request with resolved review threads, and requires the up-to-date
+**Verify public artifact** and **Analyze TeamLab (javascript-typescript)**
+checks, plus **Analyze workflows (actions)**, before merge.
+`validate:workflows` also rejects a local ruleset that drops any check, weakens
+strictness, or adds a bypass actor.
+
+The `cloudflare-pages` GitHub environment accepts only protected branches, so
+the deployment job cannot be reused from an unprotected ref. GitHub secret
+scanning and push protection cover repository history and new pushes;
+Dependabot security updates provide dependency analysis. The advanced CodeQL
+workflow has two non-overlapping analyses: GitHub Actions workflow security and
+JavaScript/TypeScript under `team-lab/`, the application that is built and
+deployed. It intentionally excludes the preserved upstream PvPoke tree at the
+repository root, keeping upstream source untouched and preventing unrelated
+legacy findings from obscuring TeamLab release findings. Workflow validation
+requires exactly this one CodeQL workflow, preventing GitHub's generic advanced
+setup scaffold or another duplicate scanner from being committed alongside it.
+Repository Actions retain read-only default permissions, with
+`security-events: write` granted only to CodeQL and `deployments: write`
+granted only to the deployment job.
 
 Artifacts are retained for 30 days. GitHub records a SHA-256 artifact digest,
 and the job exposes the generic artifact ID, URL, and digest as outputs.
@@ -76,32 +108,41 @@ The verified build uses `VITE_BASE_PATH=/` for the `pages.dev` site. Production
 apply its native SPA fallback and return HTTP 200 on direct application routes.
 The deployment:
 
-- uses the `cloudflare-pages` GitHub environment;
+- uses the workflow-owned `cloudflare-pages` GitHub environment as its only
+  GitHub deployment record;
 - requires scoped `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` repository
   secrets;
 - publishes only after the complete public release gate succeeds;
 - preserves `release.json` at the application base;
-- rejects GitHub's `404.html`, any `_worker.js`, and `dist-admin/`;
+- requires the browser security and alias-indexing policy in `_headers`;
+- rejects a provider-specific `404.html`, any `_worker.js`, and `dist-admin/`;
 - reports the unique deployed URL without generating a second build;
 - runs the reusable deployed-origin browser workflow against the exact commit.
+
+Wrangler does not receive its optional `gitHubToken`; enabling that integration
+would duplicate the workflow environment's deployment record under GitHub's
+default `production` environment. The environment URL is the unique immutable
+Cloudflare URL for traceability, while the custom domain continues to serve the
+current production deployment.
 
 Pull requests and manual release-gate runs verify artifacts but never deploy.
 The application remains static-only and configures no Functions, Workers, D1,
 KV, R2, authentication, or server-side persistence. See
 [Cloudflare Pages deployment](CLOUDFLARE-DEPLOYMENT.md) for account bootstrap,
-credential setup, local emulation, and the GitHub Pages cutover checklist.
-
-For emergency GitHub Pages compatibility, set
-`VITE_BASE_PATH=/pvpoke-team-lab/` and run `npm run build:github-pages`. That
-explicit target copies `index.html` to `404.html`; normal production builds do
-not.
+credential setup, local emulation, and production-host details. GitHub Pages is
+not a supported deployment target; GitHub remains the source, CI, artifact, and
+release-orchestration platform for the Cloudflare deployment.
 
 ## Post-deployment verification
 
-Run the real browser suite against an HTTPS deployment after the hosting layer
-publishes the verified artifact:
+Wait for the expected immutable artifact and then run the real browser suite
+against it after the hosting layer publishes the verified files:
 
 ```bash
+npm run wait:deployment -- \
+  --origin=https://pvpoke-team-lab.pages.dev/ \
+  --expected-commit=<commit SHA>
+
 TEAMLAB_EXPECTED_COMMIT_SHA=<commit SHA> \
   npm run test:deployment -- \
     --origin=https://pvpoke-team-lab.pages.dev/
@@ -112,8 +153,13 @@ parameters, or a fragment. A path is supported for static project sites. HTTP
 is supported for local infrastructure testing; the GitHub workflow requires
 HTTPS.
 
-Deployment mode does not build or start TeamLab locally. It opens the supplied
-origin in a temporary Chrome profile and verifies:
+`wait:deployment` polls cache-busted `release.json`, root HTML, and every
+same-origin script or stylesheet referenced by that HTML. It succeeds only when
+the public, diagnostics-disabled release identifies the expected commit and all
+entry assets return non-empty responses.
+
+Deployment browser mode does not build or start TeamLab locally. It opens the
+supplied origin in a temporary Chrome profile and verifies:
 
 - `release.json` identifies a public, diagnostics-disabled artifact;
 - the deployed source commit matches `TEAMLAB_EXPECTED_COMMIT_SHA` when set;
@@ -126,6 +172,12 @@ origin in a temporary Chrome profile and verifies:
 The temporary browser profile is deleted after the check, so the fixture data
 does not enter an existing user profile.
 
+Only the first navigation to a deployed origin receives bounded retries. A
+failed attempt clears Chrome's cache and backs off before trying again. All
+subsequent route and workflow assertions remain strict and single-attempt.
+Terminal navigation errors include a document snapshot plus recent HTTP,
+network, runtime, browser-log, and console failures.
+
 ### GitHub workflow
 
 `.github/workflows/team-lab-deployment-check.yml` provides:
@@ -134,6 +186,7 @@ does not enter an existing user profile.
   `expected_commit` inputs;
 - a reusable workflow for the final job in a provider-specific deployment
   pipeline;
+- an immutable-artifact readiness boundary before Chrome starts;
 - a stable **Verify deployed origin** status name.
 
 The release workflow calls it after Cloudflare Pages deployment:
@@ -148,7 +201,9 @@ verify-deployment:
 ```
 
 The reusable form requires an explicit expected commit. This prevents a
-successful check against a healthy but stale deployment.
+successful check against a healthy but stale deployment. The release workflow
+passes Wrangler's immutable deployment URL so the check proves the exact files
+that were just uploaded instead of relying on an alias or custom-domain DNS.
 
 ## Maintainer diagnostics build
 

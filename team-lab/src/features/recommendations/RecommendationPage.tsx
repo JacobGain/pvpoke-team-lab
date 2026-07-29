@@ -10,7 +10,7 @@ import {
   Save,
   Sparkles,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 
 import { PageHeader } from "@/components/PageHeader";
 import { PokemonSprite } from "@/components/PokemonSprite";
