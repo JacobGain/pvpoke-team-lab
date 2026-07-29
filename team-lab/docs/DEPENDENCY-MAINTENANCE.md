@@ -27,6 +27,10 @@ lint toolchain supports the newer major.
 Never merge a dependency pull request only because CodeQL succeeds. The
 **Verify public artifact** check must also pass: it installs the exact lockfile,
 audits dependencies, builds the public artifact, and exercises it in Chrome.
+The browser workflow allows IndexedDB persistence additional time on a loaded
+CI runner while retaining the exact saved-record assertion. A persistence
+failure reports the current route, rendered record count, submit state, and
+visible application error for triage.
 
 For grouped routine updates:
 
