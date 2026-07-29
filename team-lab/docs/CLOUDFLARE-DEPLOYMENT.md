@@ -1,6 +1,6 @@
 # Cloudflare Pages deployment
 
-TeamLab 0.0.4 uses a hardened static-only Cloudflare Pages deployment. The
+TeamLab 0.0.5 uses a hardened static-only Cloudflare Pages deployment. The
 application does not use Pages Functions, Workers, D1, KV, R2, authentication,
 or any other metered server-side service. PvPoke data and simulation code ship
 inside the public artifact, while inventory and teams remain in browser
