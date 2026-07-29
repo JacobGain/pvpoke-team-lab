@@ -10,6 +10,10 @@ const codeqlConfigPath = resolve(
   process.cwd(),
   "../.github/codeql/codeql-config.yml",
 );
+const dependabotConfigPath = resolve(
+  process.cwd(),
+  "../.github/dependabot.yml",
+);
 const workflowNames = (await readdir(workflowsDirectory))
   .filter((name) => name.endsWith(".yml") || name.endsWith(".yaml"))
   .sort();
@@ -148,6 +152,37 @@ if (
   );
 }
 
+const dependabotConfig = await readFile(dependabotConfigPath, "utf8");
+const ecosystemCount = [
+  ...dependabotConfig.matchAll(/^ {2}- package-ecosystem:/gm),
+].length;
+const stagingTargetCount = [
+  ...dependabotConfig.matchAll(/^ {4}target-branch: staging$/gm),
+].length;
+const pullRequestLimitCount = [
+  ...dependabotConfig.matchAll(/^ {4}open-pull-requests-limit: 3$/gm),
+].length;
+const requiredDependabotPolicies = [
+  "npm-minor-patch:",
+  "codeql-action:",
+  "actions-minor-patch:",
+  '- "github/codeql-action/*"',
+  "version-update:semver-major",
+] as const;
+
+if (
+  ecosystemCount !== 2 ||
+  stagingTargetCount !== 2 ||
+  pullRequestLimitCount !== 2 ||
+  requiredDependabotPolicies.some(
+    (policy) => !dependabotConfig.includes(policy),
+  )
+) {
+  throw new Error(
+    "Dependabot must target staging, cap both ecosystems at three PRs, group routine npm and Action updates, keep CodeQL actions together, and defer incompatible TypeScript major updates.",
+  );
+}
+
 process.stdout.write(
-  `Workflow security check passed: ${actionCount} external Action references are immutable, no privileged untrusted-code triggers are present, one CodeQL workflow covers TeamLab and GitHub Actions, and all release checks are enforced.\n`,
+  `Workflow security check passed: ${actionCount} external Action references are immutable, no privileged untrusted-code triggers are present, one CodeQL workflow covers TeamLab and GitHub Actions, dependency maintenance is bounded, and all release checks are enforced.\n`,
 );

@@ -63,7 +63,11 @@ checkout:
 Every external Action is pinned to a full commit SHA with its release line
 recorded as a comment. `validate:workflows` makes immutable references a release
 invariant, while Dependabot checks both GitHub Actions and the npm lockfile
-weekly for maintainable updates.
+weekly for maintainable updates. Routine updates target `staging`; compatible
+minor and patch changes are grouped, CodeQL actions remain synchronized, and
+major upgrades stay isolated. See
+[`DEPENDENCY-MAINTENANCE.md`](./DEPENDENCY-MAINTENANCE.md) for the review
+policy.
 
 ### Repository release protections
 
