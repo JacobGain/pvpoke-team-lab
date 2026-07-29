@@ -47,12 +47,12 @@ jobs:
 
     steps:
       - name: Check out verification source
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
 
       - name: Use Node.js 22
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: "22"
           cache: npm
@@ -70,6 +70,9 @@ jobs:
               exit 1
               ;;
           esac
+
+      - name: Wait for immutable deployment readiness
+        run: npm run wait:deployment
 
       - name: Exercise deployed public artifact
         run: npm run test:deployment -- --origin="$TEAMLAB_DEPLOYMENT_ORIGIN"

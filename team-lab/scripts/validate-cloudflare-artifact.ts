@@ -16,10 +16,52 @@ const indexHtml = await readFile(
   resolve(outputDirectory, "index.html"),
   "utf8",
 );
+const headersPolicy = await readFile(
+  resolve(outputDirectory, "_headers"),
+  "utf8",
+);
 
 if (!indexHtml.includes('<div id="root"></div>')) {
   throw new Error(
     `${outputDirectory} does not contain the TeamLab application entry point.`,
+  );
+}
+
+const requiredHeaderPolicyFragments = [
+  "Content-Security-Policy:",
+  "default-src 'self'",
+  "connect-src 'self'",
+  "frame-ancestors 'none'",
+  "object-src 'none'",
+  "script-src 'self'",
+  "Cross-Origin-Opener-Policy: same-origin",
+  "Cross-Origin-Resource-Policy: same-origin",
+  "Permissions-Policy:",
+  "Referrer-Policy: strict-origin-when-cross-origin",
+  "Strict-Transport-Security: max-age=31536000",
+  "X-Content-Type-Options: nosniff",
+  "X-Frame-Options: DENY",
+  "X-Permitted-Cross-Domain-Policies: none",
+  "https://pvpoke-team-lab.pages.dev/*",
+  "https://:deployment.pvpoke-team-lab.pages.dev/*",
+  "X-Robots-Tag: noindex",
+];
+const missingHeaderPolicyFragments = requiredHeaderPolicyFragments.filter(
+  (fragment) => !headersPolicy.includes(fragment),
+);
+
+if (missingHeaderPolicyFragments.length > 0) {
+  throw new Error(
+    `The Cloudflare Pages security policy is incomplete: ${missingHeaderPolicyFragments.join(", ")}.`,
+  );
+}
+
+if (
+  headersPolicy.includes("script-src 'self' 'unsafe-inline'") ||
+  headersPolicy.includes("'unsafe-eval'")
+) {
+  throw new Error(
+    "The Cloudflare Pages script policy must not permit inline or evaluated scripts.",
   );
 }
 
@@ -73,5 +115,5 @@ const largestFile = fileSizes.reduce(
 );
 
 process.stdout.write(
-  `Cloudflare Pages artifact check passed: ${files.length} files; largest ${largestFile.size} bytes; SPA fallback delegated to Pages; no Functions entry point.\n`,
+  `Cloudflare Pages artifact check passed: ${files.length} files; largest ${largestFile.size} bytes; security headers enforced; SPA fallback delegated to Pages; no Functions entry point.\n`,
 );

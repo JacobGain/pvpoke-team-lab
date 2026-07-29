@@ -7,7 +7,7 @@ import {
   Target,
   Users,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 
 import { PokemonSprite } from "@/components/PokemonSprite";
 import { useInventoryList } from "@/features/inventory/inventoryQueries";

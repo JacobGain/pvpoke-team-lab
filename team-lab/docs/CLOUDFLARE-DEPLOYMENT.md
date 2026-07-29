@@ -1,6 +1,6 @@
 # Cloudflare Pages deployment
 
-TeamLab 0.0.3 is prepared for a static-only Cloudflare Pages deployment. The
+TeamLab 0.0.4 uses a hardened static-only Cloudflare Pages deployment. The
 application does not use Pages Functions, Workers, D1, KV, R2, authentication,
 or any other metered server-side service. PvPoke data and simulation code ship
 inside the public artifact, while inventory and teams remain in browser
@@ -43,6 +43,13 @@ The deployment uses the `cloudflare-pages` GitHub environment. Add required
 reviewers there later if production deployment approvals are wanted. No domain,
 billing method, Pages Function, or storage binding is required.
 
+The workflow-owned environment is the only GitHub deployment record for a
+release. Wrangler intentionally receives no `gitHubToken`: that optional input
+would register the same Cloudflare upload a second time under GitHub's default
+`production` environment. The `cloudflare-pages` environment URL remains
+Wrangler's unique immutable deployment URL rather than the custom domain so
+each GitHub deployment identifies the exact uploaded artifact.
+
 ## Release pipeline
 
 Pull requests run the complete **Verify public artifact** gate but never
@@ -54,13 +61,39 @@ deploy. A push to `master`:
 4. uploads it as `team-lab-public-<commit SHA>`;
 5. downloads the verified artifact in the deployment job;
 6. deploys it to the `pvpoke-team-lab` production branch with pinned Wrangler;
-7. browser-tests the returned HTTPS deployment URL and exact commit metadata.
+7. polls the returned immutable HTTPS URL until its public release metadata
+   identifies the expected commit and every entry asset is available;
+8. browser-tests that exact URL, with bounded retries for only the initial
+   remote navigation.
 
 The deployment job rejects `404.html`, `_worker.js`, and `dist-admin/`. Without
 a top-level `404.html`, Cloudflare Pages applies its native SPA fallback, so
 direct routes such as `/catalog` return HTTP 200. The verified artifact remains
 available in GitHub Actions for 30 days and Cloudflare keeps deployment history
 for rollback.
+
+The public artifact also contains a required `_headers` policy. It restricts
+scripts, network requests, frames, browser capabilities, and cross-origin
+resource use; enables HSTS and MIME protections; and prevents the default and
+immutable `pages.dev` aliases from competing with `pogoteamlab.com` in search
+results. `validate:cloudflare` fails the build if the policy is absent,
+incomplete, or permits inline or evaluated scripts.
+
+The readiness poll uses cache-busting requests for `release.json`, `index.html`,
+and each same-origin JavaScript or stylesheet referenced by the index. It waits
+for the expected commit rather than accepting a healthy stale deployment. If
+Chrome still encounters a transient first-load failure, the browser check clears
+its cache and retries that initial navigation up to two times with backoff.
+Later workflow navigation and application assertions remain single-attempt so
+the retries cannot conceal product regressions. A terminal navigation failure
+reports the current URL, document state, rendered heading and body excerpt,
+HTTP failures, network load failures, runtime exceptions, and console errors.
+
+Verification intentionally targets the immutable URL returned by Wrangler, not
+`pvpoke-team-lab.pages.dev` or a custom domain such as `pogoteamlab.com`. This
+proves the exact new deployment before production aliases or DNS are involved.
+The custom domain still routes to the current production deployment and is not
+duplicated by this verification URL.
 
 The workflow intentionally fails on `master` if the project or either
 credential is missing. This prevents a release commit from appearing successful
@@ -87,26 +120,20 @@ TEAMLAB_EXPECTED_COMMIT_SHA=$(git rev-parse HEAD) \
 The local Pages emulator should return HTTP 200 for both `/` and direct
 application routes. Local verification does not require a Cloudflare account.
 
-## Cutover from GitHub Pages
+## Supported production host
 
-The 0.0.3 workflow no longer updates GitHub Pages. The existing 0.0.2 site stays
-available during the first Cloudflare deployment, providing a recoverable
-cutover instead of switching both systems at once.
+Cloudflare Pages is TeamLab's only supported production host. GitHub Pages was
+retired after the 0.0.3 cutover, and the repository no longer contains a
+provider-specific GitHub Pages build target or fallback artifact generator.
 
-IndexedDB is isolated by web origin. Inventory and teams stored at the
-`github.io` address cannot automatically appear at the new `pages.dev` address.
-Before switching bookmarks or links:
+The application remains deployment-neutral static output. `VITE_BASE_PATH`
+continues to support a path-based static host when intentionally configured,
+but release CI always builds TeamLab at `/` and deploys only through Cloudflare.
 
-1. open **Backups & reset** on the GitHub Pages deployment;
-2. download a full-data JSON backup;
-3. open the verified Cloudflare deployment;
-4. restore that backup and confirm inventory and saved teams;
-5. update public links to the Cloudflare production URL;
-6. disable GitHub Pages in **Repository Settings → Pages**.
-
-After Pages is disabled, only Cloudflare hosts the production application. Keep
-the `build:github-pages` script solely as an emergency compatibility target; it
-is not used by release CI.
+IndexedDB remains isolated by web origin. The canonical
+`https://pogoteamlab.com` origin does not share inventory or saved teams with
+the `pages.dev` alias, so users should consistently use the custom domain and
+move data between origins with a full-data JSON backup when necessary.
 
 ## Future changes
 

@@ -56,9 +56,11 @@ an open pull request produce only the pull-request run. The gate installs the
 locked dependencies, runs the complete static/unit/data checks, builds and
 browser-tests the exact public artifact, rejects `dist-admin/`, and uploads
 `team-lab-public-<commit SHA>`. After a successful push to `master`, those exact
-verified bytes deploy to the static-only Cloudflare Pages project and the
-returned HTTPS deployment is browser-tested against the expected commit. Pull
-requests never deploy.
+verified bytes deploy to the static-only Cloudflare Pages project. The
+post-deployment gate waits for the immutable release metadata and entry assets,
+then browser-tests that URL against the expected commit. Its initial remote
+navigation has bounded retries and reports document, network, console, and
+runtime evidence on failure. Pull requests never deploy.
 
 Verify the live application and its release
 identity with:

@@ -1,15 +1,15 @@
 {
   "name": "team-lab",
   "private": true,
-  "version": "0.0.3",
+  "version": "0.0.4",
   "type": "module",
   "engines": {
-    "node": ">=22.12.0"
+    "node": ">=22.22.0"
   },
   "scripts": {
+    "audit:security": "npm audit --audit-level=high",
     "dev": "vite",
     "build": "tsc -b && vite build && node --experimental-strip-types scripts/validate-build-capabilities.ts dist diagnostics-disabled && npm run validate:cloudflare",
-    "build:github-pages": "npm run build && node --experimental-strip-types scripts/prepare-github-pages-artifact.ts dist",
     "build:admin": "tsc -b && vite build --mode admin && node --experimental-strip-types scripts/validate-build-capabilities.ts dist-admin diagnostics-enabled",
     "lint": "eslint .",
     "preview": "vite preview",
@@ -27,7 +27,9 @@
     "typecheck": "tsc -b --pretty false",
     "update:visual": "node --experimental-strip-types scripts/browser-workflows.ts --visual=update",
     "validate:cloudflare": "node --experimental-strip-types scripts/validate-cloudflare-artifact.ts dist",
-    "validate:data": "node --experimental-strip-types scripts/validate-pvpoke-data.ts"
+    "validate:data": "node --experimental-strip-types scripts/validate-pvpoke-data.ts",
+    "validate:workflows": "node --experimental-strip-types scripts/validate-workflow-security.ts",
+    "wait:deployment": "node --experimental-strip-types scripts/wait-for-deployment.ts"
   },
   "dependencies": {
     "@fontsource/barlow-condensed": "^5.3.0",
@@ -39,7 +41,7 @@
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-hook-form": "7.82.0",
-    "react-router-dom": "7.18.1",
+    "react-router": "8.3.0",
     "zod": "4.4.3",
     "zustand": "5.0.14"
   },
