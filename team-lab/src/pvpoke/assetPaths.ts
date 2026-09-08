@@ -2,6 +2,8 @@ export const PVPOKE_BUNDLED_DATA_PATHS = [
   "data/gamemaster.json",
   "data/gamemaster.min.json",
   "data/groups/great.json",
+  "data/groups/ultra.json",
+  "data/rankings/all/overall/rankings-2500.json",
   "data/rankings/all/overall/rankings-1500.json",
 ] as const;
 

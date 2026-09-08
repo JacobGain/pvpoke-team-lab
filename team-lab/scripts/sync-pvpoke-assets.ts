@@ -77,6 +77,8 @@ async function main(): Promise<void> {
   metaGroupSchema.parse(
     JSON.parse(byPath.get("data/groups/great.json")!.toString("utf8")),
   );
+  rankingCollectionSchema.parse(JSON.parse(byPath.get("data/rankings/all/overall/rankings-2500.json")!.toString("utf8")));
+  metaGroupSchema.parse(JSON.parse(byPath.get("data/groups/ultra.json")!.toString("utf8")));
   JSON.parse(byPath.get("data/gamemaster.json")!.toString("utf8"));
 
   for (const file of preparedFiles) {
