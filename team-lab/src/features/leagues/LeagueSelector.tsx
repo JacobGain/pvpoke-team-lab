@@ -23,7 +23,7 @@ export function LeagueSelector({ onSelect }: { readonly onSelect?: () => void })
         >
           {Object.values(LEAGUES).map((league) => (
             <option key={league.id} value={league.id}>
-              {league.shortTitle} · {league.cp === 10000 ? "No CP limit" : `${league.cp.toLocaleString()} CP`}
+              {league.shortTitle.replace(" League", "")} · {league.cp === 10000 ? "No CP limit" : `${league.cp.toLocaleString()} CP`}
             </option>
           ))}
         </select>

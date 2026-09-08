@@ -24,21 +24,28 @@ function MetricCard({
   value,
   detail,
   icon,
+  to,
 }: {
   readonly label: string;
   readonly value: number;
   readonly detail: string;
   readonly icon: React.ReactNode;
+  readonly to: string;
 }) {
   return (
-    <article className="metric-card">
+    <Link
+      aria-label={`${label}: ${value.toLocaleString()}. ${detail}`}
+      className="metric-card"
+      to={to}
+    >
       <div className="metric-card__icon">{icon}</div>
       <div>
         <span>{label}</span>
         <strong>{value.toLocaleString()}</strong>
         <small>{detail}</small>
       </div>
-    </article>
+      <ArrowRight aria-hidden="true" className="metric-card__arrow" size={15} />
+    </Link>
   );
 }
 
@@ -183,24 +190,28 @@ export function HomePage() {
           detail="Exact inventory records"
           icon={<Boxes size={21} />}
           label="Inventory"
+          to="/inventory"
           value={inventory.length}
         />
         <MetricCard
           detail={`${plannedCount} planned`}
           icon={<CircleCheckBig size={21} />}
           label="Ready now"
+          to="/inventory?status=current"
           value={currentCount}
         />
         <MetricCard
           detail="Ordered lineups"
           icon={<Users size={21} />}
           label="Saved teams"
+          to="/teams"
           value={teams.length}
         />
         <MetricCard
           detail="Worth reviewing"
           icon={<Target size={21} />}
           label="Assumed IVs"
+          to="/inventory?ivs=assumed"
           value={assumedCount}
         />
       </section>

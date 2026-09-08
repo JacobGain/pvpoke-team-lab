@@ -1307,6 +1307,25 @@ async function createInventory(
       );
       await browser.setLabeledCheckbox("Favorite", true);
     }
+    if (speciesId === "altaria") {
+      const assumedIvsSelected = await browser.evaluate<boolean>(`(() => {
+        const label = [...document.querySelectorAll("label")].find(
+          (candidate) =>
+            candidate.textContent?.trim() ===
+            "Use PvPoke’s default rank-one spread"
+        );
+        const control = label?.querySelector('input[type="radio"]');
+        if (!(control instanceof HTMLInputElement) || control.disabled) {
+          return false;
+        }
+        control.click();
+        return control.checked;
+      })()`);
+      invariant(
+        assumedIvsSelected,
+        "The Altaria fixture could not select assumed rank-one IVs.",
+      );
+    }
     await browser.clickButton("Continue");
     await browser.waitFor(
       `document.querySelector(".guided-form-panel h2")?.textContent?.trim() === "Current or planned"`,
@@ -1600,6 +1619,24 @@ async function runCriticalWorkflows(
     await browser.evaluate(`document.querySelector(".format-card")?.textContent?.includes("Season 28 · Twilight Trails")`),
     "The dashboard did not identify Season 28 as active.",
   );
+  const homeSeo = await browser.evaluate<{
+    readonly canonical: string;
+    readonly description: string;
+    readonly robots: string;
+    readonly title: string;
+  }>(`({
+    canonical: document.querySelector('link[rel="canonical"]')?.href ?? "",
+    description: document.querySelector('meta[name="description"]')?.content ?? "",
+    robots: document.querySelector('meta[name="robots"]')?.content ?? "",
+    title: document.title
+  })`);
+  invariant(
+    homeSeo.canonical === "https://pogoteamlab.com/" &&
+      homeSeo.description.includes("Great, Ultra, and Master League") &&
+      homeSeo.robots === "index, follow" &&
+      homeSeo.title.includes("Pokémon GO PvP Team Builder"),
+    `The public home metadata was incomplete: ${JSON.stringify(homeSeo)}.`,
+  );
   const releaseId = await assertBuildTarget(
     browser,
     buildTarget,
@@ -1663,10 +1700,23 @@ async function runCriticalWorkflows(
     rankingsInDesktopNavigation,
     "The desktop command rail did not expose Rankings and format context.",
   );
+  const leagueSelectorCopy = await browser.evaluate<string>(
+    `document.querySelector(".app-rail select")?.selectedOptions[0]?.textContent?.trim() ?? ""`,
+  );
+  invariant(
+    leagueSelectorCopy === "Great · 1,500 CP",
+    `The desktop league selector did not use compact copy: ${leagueSelectorCopy}.`,
+  );
   await browser.navigate("/catalog", "Rankings");
   await browser.waitFor(
     `document.querySelectorAll(".ranking-row").length > 0`,
     "ranking rows",
+  );
+  invariant(
+    await browser.evaluate(
+      `document.querySelector('link[rel="canonical"]')?.href === "https://pogoteamlab.com/catalog"`,
+    ),
+    "The rankings page did not expose its canonical URL.",
   );
   const rankingPagination = await browser.evaluate<{
     readonly count: number;
@@ -1864,6 +1914,55 @@ async function runCriticalWorkflows(
   invariant(
     inventoryTimestampLabels,
     "Inventory records did not distinguish created and updated timestamps.",
+  );
+  await browser.navigate("/", "Turn your roster into a battle plan.");
+  const glanceNavigation = await browser.evaluate<{
+    readonly assumedCount: number;
+    readonly assumedHref: string;
+    readonly destinations: number;
+  }>(`(() => {
+    const cards = [...document.querySelectorAll("a.metric-card")];
+    const assumed = cards.find((card) =>
+      card.textContent?.includes("Assumed IVs")
+    );
+    return {
+      assumedCount: Number(
+        assumed?.querySelector("strong")?.textContent?.replaceAll(",", "") ?? -1
+      ),
+      assumedHref: assumed?.getAttribute("href") ?? "",
+      destinations: new Set(cards.map((card) => card.getAttribute("href"))).size
+    };
+  })()`);
+  invariant(
+    glanceNavigation.assumedCount > 0 &&
+      glanceNavigation.assumedHref.endsWith("/inventory?ivs=assumed") &&
+      glanceNavigation.destinations === 4,
+    `Dashboard glance cards were not useful links: ${JSON.stringify(glanceNavigation)}.`,
+  );
+  await browser.navigate("/inventory?ivs=assumed", "Your inventory");
+  const assumedInventoryFilter = await browser.evaluate<{
+    readonly checked: boolean;
+    readonly count: number;
+    readonly robots: string;
+  }>(`(() => {
+    const checkbox = [...document.querySelectorAll('input[type="checkbox"]')]
+      .find((control) => control.closest("label")?.textContent?.includes("Assumed IVs only"));
+    return {
+      checked: checkbox instanceof HTMLInputElement && checkbox.checked,
+      count: document.querySelectorAll(".inventory-card").length,
+      robots: document.querySelector('meta[name="robots"]')?.content ?? ""
+    };
+  })()`);
+  invariant(
+    assumedInventoryFilter.checked &&
+      assumedInventoryFilter.count === glanceNavigation.assumedCount &&
+      assumedInventoryFilter.robots === "noindex, nofollow",
+    `The assumed-IV dashboard link did not open its filtered inventory view: ${JSON.stringify(assumedInventoryFilter)}.`,
+  );
+  await browser.navigate("/inventory", "Your inventory");
+  await browser.waitFor(
+    `document.querySelectorAll(".inventory-card").length === ${INVENTORY_SPECIES.length}`,
+    "complete inventory after clearing the assumed-IV URL filter",
   );
   await assertStickyControls(browser, ".inventory-controls", 1440);
   await assertStickyControls(browser, ".inventory-controls", 768);

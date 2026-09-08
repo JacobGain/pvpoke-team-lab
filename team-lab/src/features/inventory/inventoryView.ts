@@ -8,6 +8,7 @@ export interface InventoryViewOptions {
   readonly search: string;
   readonly status: InventoryViewStatus;
   readonly favoriteOnly: boolean;
+  readonly assumedIvsOnly: boolean;
   readonly sort: InventoryViewSort;
 }
 
@@ -29,6 +30,8 @@ export function filterAndSortInventory(
         (options.status === "all" ||
           record.buildStatus === options.status) &&
         (!options.favoriteOnly || record.favorite) &&
+        (!options.assumedIvsOnly ||
+          record.currentBuild.ivProfile.source === "assumed-rank-1") &&
         (!normalizedSearch ||
           record.speciesId.toLocaleLowerCase().includes(normalizedSearch) ||
           pokemon?.speciesName

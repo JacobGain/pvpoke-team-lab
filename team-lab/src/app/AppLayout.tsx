@@ -52,6 +52,63 @@ const utilityNavigation: readonly NavigationItem[] = [
   },
 ];
 
+const SITE_ORIGIN = "https://pogoteamlab.com";
+const publicSeo = {
+  home: {
+    title: "Pokémon GO PvP Team Builder & Roster Planner | TeamLab",
+    description:
+      "Track your Pokémon GO PvP roster, compare current Great, Ultra, and Master League rankings, and build teams from the Pokémon you own.",
+  },
+  rankings: {
+    title: "Pokémon GO PvP Rankings | TeamLab",
+    description:
+      "Explore current Pokémon GO PvP rankings, recommended moves, matchups, and optimal IVs for Great, Ultra, and Master League.",
+  },
+} as const;
+
+function setMeta(name: string, content: string, attribute = "name") {
+  let element = document.head.querySelector<HTMLMetaElement>(
+    `meta[${attribute}="${name}"]`,
+  );
+  if (!element) {
+    element = document.createElement("meta");
+    element.setAttribute(attribute, name);
+    document.head.append(element);
+  }
+  element.content = content;
+}
+
+function updateSeoMetadata(pathname: string) {
+  const isHome = pathname === "/";
+  const isRankings = pathname === "/catalog";
+  const seo = isRankings ? publicSeo.rankings : publicSeo.home;
+  const isPublic = isHome || isRankings;
+  const canonicalPath = isRankings ? "/catalog" : "/";
+
+  document.title = isPublic ? seo.title : `TeamLab | Pokémon GO PvP`;
+  setMeta("description", seo.description);
+  setMeta("robots", isPublic ? "index, follow" : "noindex, nofollow");
+  setMeta("og:title", document.title, "property");
+  setMeta("og:description", seo.description, "property");
+  setMeta("og:url", `${SITE_ORIGIN}${canonicalPath}`, "property");
+  setMeta("twitter:title", document.title);
+  setMeta("twitter:description", seo.description);
+
+  let canonical = document.head.querySelector<HTMLLinkElement>(
+    'link[rel="canonical"]',
+  );
+  if (!isPublic) {
+    canonical?.remove();
+    return;
+  }
+  if (!canonical) {
+    canonical = document.createElement("link");
+    canonical.rel = "canonical";
+    document.head.append(canonical);
+  }
+  canonical.href = `${SITE_ORIGIN}${canonicalPath}`;
+}
+
 function NavigationLink({
   to,
   label,
@@ -87,6 +144,7 @@ export function AppLayout() {
 
   useEffect(() => {
     window.scrollTo({ left: 0, top: 0, behavior: "instant" });
+    updateSeoMetadata(location.pathname);
   }, [location.pathname]);
 
   return (
@@ -106,7 +164,7 @@ export function AppLayout() {
           </span>
           <span className="brand-mark__copy">
             <strong>TeamLab</strong>
-            <small>Battle dossier</small>
+            <small>Pokémon GO PvP</small>
           </span>
         </NavLink>
 
