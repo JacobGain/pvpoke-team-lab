@@ -166,6 +166,45 @@ h3 {
   background: rgb(255 255 255 / 3.5%);
 }
 
+.league-selector__control {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.league-selector select {
+  min-height: 3rem;
+  appearance: none;
+  border: 1px solid #40555d;
+  border-radius: 2px;
+  color: #f6f8f4;
+  background: #10262d;
+  padding: 0.65rem 2.25rem 0.65rem 0.75rem;
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.league-selector select:hover {
+  border-color: #64818a;
+}
+
+.league-selector select:focus-visible {
+  border-color: var(--dossier-cyan);
+  outline: 2px solid rgb(0 184 198 / 35%);
+  outline-offset: 2px;
+}
+
+.league-selector__control svg {
+  position: absolute;
+  right: 0.7rem;
+  color: var(--dossier-cyan);
+  pointer-events: none;
+}
+
 .app-rail__format span,
 .app-rail__format small,
 .app-rail__label,
@@ -293,7 +332,7 @@ h3 {
 
 .page-header {
   position: relative;
-  min-height: 9.5rem;
+  min-height: 8.5rem;
   align-items: end;
   margin: 0 0 1.35rem;
   padding: 1.45rem 1.5rem 1.3rem;
@@ -312,18 +351,6 @@ h3 {
   height: 0.28rem;
   background: var(--dossier-cyan);
   content: "";
-}
-
-.page-header::after {
-  position: absolute;
-  top: 0.8rem;
-  right: 1rem;
-  color: var(--ink-500);
-  content: "TEAMLAB / FIELD RECORD";
-  font-family: var(--font-display);
-  font-size: 0.63rem;
-  font-weight: 700;
-  letter-spacing: 0.15em;
 }
 
 .page-header h1,
@@ -930,6 +957,47 @@ h3 {
 
 .next-action-card {
   border-left: 4px solid var(--dossier-lime);
+}
+
+.format-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.9rem 1rem;
+  min-height: 100%;
+  padding: 1.4rem;
+  border: 1px solid var(--line-strong);
+  border-left: 4px solid var(--dossier-cyan);
+  border-radius: 2px;
+  background: var(--dossier-panel);
+}
+
+.format-card__icon {
+  display: grid;
+  width: 2.9rem;
+  height: 2.9rem;
+  place-items: center;
+  border: 1px solid #9ec9ca;
+  color: var(--lab-700);
+}
+
+.format-card h2 {
+  margin: 0.08rem 0 0;
+  font-size: 1.45rem;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.format-card p:not(.eyebrow) {
+  margin: 0.45rem 0 0;
+  color: var(--ink-600);
+  font-size: 0.82rem;
+}
+
+.format-card > .text-link {
+  grid-column: 2;
+  justify-self: start;
 }
 
 .next-action-card h2,
@@ -1632,12 +1700,6 @@ h3 {
     background: rgb(255 253 247 / 80%);
   }
 
-  .page-header::after {
-    top: 0.55rem;
-    right: 0.5rem;
-    font-size: 0.48rem;
-  }
-
   .page-header h1 {
     font-size: clamp(2.65rem, 15vw, 4rem);
   }
@@ -1734,6 +1796,20 @@ h3 {
 
   .next-action-card {
     border-left-width: 3px;
+  }
+
+  .format-card {
+    padding: 1rem;
+    border-left-width: 3px;
+  }
+
+  .mobile-menu .league-selector {
+    padding: 0.8rem;
+    border-bottom: 1px solid #41545a;
+  }
+
+  .mobile-menu .league-selector__label {
+    color: #a8b8bc;
   }
 
   .ranking-row:hover,

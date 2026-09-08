@@ -19,6 +19,7 @@ import {
 import { inventoryListQueryOptions } from "@/features/inventory/inventoryQueries";
 import { usePokemonCatalog } from "@/features/meta/usePokemonCatalog";
 import { savedTeamListQueryOptions } from "@/features/teams/savedTeamQueries";
+import { formatCalendarDate } from "@/utils/formatters";
 
 function formatError(error: unknown): string {
   return error instanceof Error
@@ -275,8 +276,8 @@ export function InventoryBackupPage() {
               <span>
                 {inspection.backup.inventory.length} inventory records ·{" "}
                 {inspection.backup.savedTeams.length} saved teams · schema{" "}
-                {inspection.backup.sourceSchemaVersion} · exported{" "}
-                {new Date(inspection.backup.exportedAt).toLocaleString()}
+                {inspection.backup.sourceSchemaVersion} · Exported:{" "}
+                {formatCalendarDate(inspection.backup.exportedAt)}
               </span>
               {inspection.backup.sourceSchemaVersion === 1 ? (
                 <small>

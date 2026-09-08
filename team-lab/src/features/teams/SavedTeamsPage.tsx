@@ -13,7 +13,7 @@ import {
   useDeleteSavedTeam,
   useSavedTeamList,
 } from "@/features/teams/savedTeamQueries";
-import { formatTeamPosition } from "@/utils/formatters";
+import { formatCalendarDate, formatTeamPosition } from "@/utils/formatters";
 
 function formatError(error: unknown): string {
   return error instanceof Error ? error.message : "Unable to load saved teams.";
@@ -153,7 +153,7 @@ export function SavedTeamsPage() {
             </ol>
             {team.notes ? <p className="inventory-notes">{team.notes}</p> : null}
             <small>
-              Updated {new Date(team.updatedAt).toLocaleString()}
+              Last updated: {formatCalendarDate(team.updatedAt)}
               {team.lastAnalyzedDataVersion
                 ? ` · analyzed with ${team.lastAnalyzedDataVersion}`
                 : " · not yet analyzed"}

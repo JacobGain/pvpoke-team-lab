@@ -26,6 +26,7 @@ import {
 } from "@/features/inventory/inventoryView";
 import { usePokemonCatalog } from "@/features/meta/usePokemonCatalog";
 import {
+  formatCalendarDate,
   formatIdentifier,
   formatMoveList,
   formatMoveName,
@@ -301,8 +302,8 @@ export function InventoryPage() {
                   <p className="inventory-notes">{record.notes}</p>
                 ) : null}
                 <small>
-                  Created {new Date(record.createdAt).toLocaleString()} · updated{" "}
-                  {new Date(record.updatedAt).toLocaleString()}
+                  Created: {formatCalendarDate(record.createdAt)} · Last updated:{" "}
+                  {formatCalendarDate(record.updatedAt)}
                 </small>
               </div>
               <div className="inventory-card__actions">

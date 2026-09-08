@@ -7,15 +7,16 @@ import {
   Plus,
   Sparkles,
   Target,
+  Trophy,
   Users,
 } from "lucide-react";
 import { Link } from "react-router";
 
 import { PokemonSprite } from "@/components/PokemonSprite";
 import { useInventoryList } from "@/features/inventory/inventoryQueries";
-import { PvpokeDataStatusCard } from "@/features/meta/PvpokeDataStatusCard";
 import { usePokemonCatalog } from "@/features/meta/usePokemonCatalog";
 import { useSavedTeamList } from "@/features/teams/savedTeamQueries";
+import { ACTIVE_SEASON } from "@/pvpoke/season";
 import { formatMoveList } from "@/utils/formatters";
 
 function MetricCard({
@@ -220,7 +221,21 @@ export function HomePage() {
           </Link>
         </section>
 
-        <PvpokeDataStatusCard />
+        <section className="format-card" aria-labelledby="current-format-title">
+          <div className="format-card__icon">
+            <Trophy aria-hidden="true" size={22} />
+          </div>
+          <div>
+            <p className="eyebrow">Current battle format</p>
+            <h2 id="current-format-title">{league.title}</h2>
+            <p>
+              Season {ACTIVE_SEASON.number} · {ACTIVE_SEASON.title}
+            </p>
+          </div>
+          <Link className="text-link" to="/catalog">
+            View rankings <ArrowRight size={16} />
+          </Link>
+        </section>
       </div>
 
       <section className="dashboard-section">

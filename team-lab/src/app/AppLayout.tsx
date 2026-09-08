@@ -5,10 +5,8 @@ import {
   BookOpen,
   Boxes,
   FlaskConical,
-  HeartPulse,
   Home,
   Menu,
-  ShieldCheck,
   Sparkles,
   Users,
   X,
@@ -16,8 +14,6 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router";
-
-import { usePvpokeDataStatus } from "@/features/meta/usePvpokeDataStatus";
 
 interface NavigationItem {
   readonly to: string;
@@ -54,16 +50,6 @@ const utilityNavigation: readonly NavigationItem[] = [
     icon: Archive,
     end: false,
   },
-  ...(__TEAMLAB_DIAGNOSTICS__
-    ? [
-        {
-          to: "/diagnostics/simulation",
-          label: "Engine diagnostics",
-          icon: HeartPulse,
-          end: false,
-        },
-      ]
-    : []),
 ];
 
 function NavigationLink({
@@ -94,64 +80,14 @@ function NavigationLink({
   );
 }
 
-function DataHealthIndicator({
-  dataState,
-  gameMasterTitle,
-  compact = false,
-}: {
-  readonly dataState: "loading" | "ready" | "error";
-  readonly gameMasterTitle?: string;
-  readonly compact?: boolean;
-}) {
-  const className = `data-health data-health--${dataState}`;
-  const title =
-    dataState === "ready"
-      ? `Bundled PvPoke data · ${gameMasterTitle}`
-      : "Check bundled battle data";
-  const content = (
-    <>
-      <span aria-hidden="true" />
-      <ShieldCheck size={16} />
-      <strong>
-        {dataState === "loading"
-          ? "Loading"
-          : dataState === "ready"
-            ? compact
-              ? "Data ready"
-              : "Battle data ready"
-            : compact
-              ? "Data issue"
-              : "Bundled data issue"}
-      </strong>
-    </>
-  );
-
-  return __TEAMLAB_DIAGNOSTICS__ ? (
-    <NavLink
-      className={className}
-      title={title}
-      to="/diagnostics/simulation"
-    >
-      {content}
-    </NavLink>
-  ) : (
-    <div className={className} role="status" title={title}>
-      {content}
-    </div>
-  );
-}
-
 export function AppLayout() {
   const league = useLeague();
   const location = useLocation();
-  const { data, error, isLoading } = usePvpokeDataStatus();
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     window.scrollTo({ left: 0, top: 0, behavior: "instant" });
   }, [location.pathname]);
-
-  const dataState = isLoading ? "loading" : error || !data ? "error" : "ready";
 
   return (
     <div className="app-frame">
@@ -186,17 +122,13 @@ export function AppLayout() {
         </nav>
 
         <nav className="app-nav app-nav--rail app-nav--utility" aria-label="Tools">
-          <p className="app-rail__label">System</p>
+          <p className="app-rail__label">Manage</p>
           {utilityNavigation.slice(1).map((item) => (
             <NavigationLink key={item.to} {...item} />
           ))}
         </nav>
 
         <div className="app-rail__footer">
-          <DataHealthIndicator
-            dataState={dataState}
-            gameMasterTitle={data?.gameMasterTitle}
-          />
           <small>Inventory and team-planning workspace</small>
         </div>
       </aside>
@@ -214,11 +146,6 @@ export function AppLayout() {
           </NavLink>
 
           <div className="app-topbar__tools">
-            <DataHealthIndicator
-              compact
-              dataState={dataState}
-              gameMasterTitle={data?.gameMasterTitle}
-            />
             <button
               aria-controls="mobile-menu"
               aria-expanded={menuOpen}
