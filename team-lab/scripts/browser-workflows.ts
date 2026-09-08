@@ -1260,8 +1260,9 @@ async function setFileInput(
 
 async function createInventory(
   browser: BrowserWorkflow,
+  species: readonly string[] = INVENTORY_SPECIES,
 ): Promise<void> {
-  for (const [index, speciesId] of INVENTORY_SPECIES.entries()) {
+  for (const [index, speciesId] of species.entries()) {
     await browser.navigate("/inventory/new", "Add Pokémon");
     await browser.setLabeledControl(
       "Species, form, and Shadow state",
@@ -1274,7 +1275,7 @@ async function createInventory(
       `document.querySelector('[data-selected-species-id="${speciesId}"]') && document.querySelector(".level-result")?.textContent?.includes("Level") && !document.querySelector(".level-result .invalid-value")`,
       `${speciesId} to resolve to a legal build`,
     );
-    if (index === 0) {
+    if (index === 0 && speciesId === "azumarill") {
       const radioSizes = await browser.evaluate<
         readonly { readonly width: number; readonly height: number }[]
       >(`[
@@ -1360,7 +1361,7 @@ async function createInventory(
         { cause: error },
       );
     }
-    if (index === 0) {
+    if (index === 0 && speciesId === "azumarill") {
       const inventoryBadges = await browser.evaluate<boolean>(`(() => {
         const card = document.querySelector(".inventory-card");
         return (
@@ -2416,6 +2417,36 @@ async function runCriticalWorkflows(
     mobileAuditIssues.length === 0,
     `Mobile route audit found issues:\n${mobileAuditIssues.join("\n")}`,
   );
+
+  await browser.setViewport(1440, 1_000);
+  await browser.setLabeledControl("Active league", "ultra-league", "select");
+  await browser.waitFor(`document.querySelector("#pvpoke-data-title")?.textContent?.trim() === "Ready" && document.body.textContent?.includes("Open Ultra League")`, "Ultra League data");
+  await browser.navigate("/inventory", "Your inventory");
+  invariant(await browser.evaluate(`document.querySelectorAll(".inventory-card").length === 0`), "Great League records leaked into Ultra League.");
+  await createInventory(browser, ["feraligatr", "giratina_altered", "registeel"]);
+  await browser.navigate("/teams/new", "Create saved team");
+  await browser.setLabeledControl("Team name", "Ultra Browser Team", "input");
+  await browser.clickButton("Save team");
+  await browser.waitFor(`document.querySelector(".team-card h2")?.textContent === "Ultra Browser Team"`, "Ultra League team persistence");
+  invariant(await browser.evaluate(`document.querySelector(".team-card .context-badge")?.textContent?.trim() === "Ultra League"`), "Ultra League team badge is incorrect.");
+  const ultraSimulationHref = await browser.evaluate<string>(`[...document.querySelectorAll(".team-card a")].find((link) => link.textContent?.trim() === "Simulate")?.getAttribute("href")`);
+  await browser.navigate(ultraSimulationHref, "Ultra Browser Team");
+  await browser.setLabeledControl("Meta target count", "5", "select");
+  await browser.clickButton("Run exact team matrix");
+  await browser.waitFor(`(() => {
+    const alert = document.querySelector('[role="alert"]');
+    if (alert) throw new Error(alert.textContent);
+    return document.querySelector(".team-scorecard")?.textContent?.includes("35,000");
+  })()`, "Ultra League exact matrix and bulk goal", ENGINE_TIMEOUT_MS);
+  await browser.navigate("/catalog", "Rankings");
+  invariant(await browser.evaluate(`localStorage.getItem("team-lab-league") === "ultra-league" && document.body.textContent?.includes("Ultra League")`), "League selection did not survive reload.");
+  await browser.setViewport(320);
+  await browser.assertNoHorizontalOverflow("Ultra League rankings");
+  await browser.evaluate(`document.querySelector('[aria-label="Open navigation menu"]')?.click()`);
+  await browser.setLabeledControl("Active league", "great-league", "select", 1);
+  await browser.navigate("/inventory", "Your inventory");
+  invariant(await browser.evaluate(`document.querySelectorAll(".inventory-card").length === ${INVENTORY_SPECIES.length}`), "Great League inventory did not survive switching leagues.");
+  console.log("[browser-workflows] Ultra League creation, simulation, persistence, and mobile switching passed");
 
   return {
     buildTarget,
