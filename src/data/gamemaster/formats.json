@@ -10,29 +10,29 @@
 		"hideRankings": true
 	},
 	{
-		"title": "Retro Cup",
-		"cup": "retro",
+		"title": "Mega Great League",
+		"cup": "mega",
 		"cp": 1500,
-		"meta": "retro",
+		"meta": "megagreat",
+		"showCup": true,
+		"showFormat": true,
+		"showMeta": true,
+		"rules": [
+			"Pokémon must be at or below 1,500 CP to enter.",
+			"Mega Evolutions are eligible."
+		]
+	},
+	{
+		"title": "Mega Ultra League",
+		"cup": "mega",
+		"cp": 2500,
+		"meta": "megaultra",
 		"showCup": true,
 		"showFormat": true,
 		"showMeta": true,
 		"rules": [
 			"Pokémon must be at or below 2,500 CP to enter.",
-			"Dark-, Steel-, and Fairy-type Pokémon are not eligible."
-		]
-	},
-	{
-		"title": "Master Premier Cup",
-		"cup": "premier",
-		"cp": 10000,
-		"meta": "premiermaster",
-		"showCup": true,
-		"showFormat": true,
-		"showMeta": true,
-		"rules": [
-			"No CP limit.",
-			"Legendary Pokémon, Mythical Pokémon, and Ultra Beasts are not eligible."
+			"Mega Evolutions are eligible."
 		]
 	},
 	{
@@ -40,6 +40,19 @@
 		"cup": "mega",
 		"cp": 10000,
 		"meta": "mega",
+		"showCup": true,
+		"showFormat": true,
+		"showMeta": true,
+		"rules": [
+			"No CP limit.",
+			"Mega Evolutions are eligible."
+		]
+	},
+	{
+		"title": "Master Premier Cup",
+		"cup": "premier",
+		"cp": 10000,
+		"meta": "premiermaster",
 		"showCup": true,
 		"showFormat": false,
 		"showMeta": true,

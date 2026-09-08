@@ -14,6 +14,8 @@ import type {
   Ranking,
 } from "../types/schemas.ts";
 
+const MISSING_MOVE_ID = "none";
+
 export class CatalogIdentityError extends Error {
   readonly diagnostics: PokemonCatalogDiagnostics;
 
@@ -93,7 +95,9 @@ function createRanking(
     rank,
     score: ranking.score,
     rating: ranking.rating,
-    recommendedMoveIds: Object.freeze([...ranking.moveset]),
+    recommendedMoveIds: Object.freeze(
+      ranking.moveset.filter((moveId) => moveId !== MISSING_MOVE_ID),
+    ),
     moveUsage: ranking.moves
       ? Object.freeze({
           fastMoves: Object.freeze(
@@ -192,7 +196,7 @@ export function buildPokemonCatalog(
     }
 
     for (const moveId of ranking.moveset) {
-      if (!moveMap.has(moveId)) {
+      if (moveId !== MISSING_MOVE_ID && !moveMap.has(moveId)) {
         rankingMoveIdsNotInGameMaster.add(moveId);
       }
     }

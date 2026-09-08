@@ -202,6 +202,11 @@ export const pokemonSpriteManifest: Readonly<
     "pokeApiId": 304,
     "match": "exact"
   },
+  "arrokuda": {
+    "path": "/assets/pokemon/846.webp",
+    "pokeApiId": 846,
+    "match": "exact"
+  },
   "articuno": {
     "path": "/assets/pokemon/144.webp",
     "pokeApiId": 144,
@@ -285,6 +290,11 @@ export const pokemonSpriteManifest: Readonly<
   "barboach": {
     "path": "/assets/pokemon/339.webp",
     "pokeApiId": 339,
+    "match": "exact"
+  },
+  "barraskewda": {
+    "path": "/assets/pokemon/847.webp",
+    "pokeApiId": 847,
     "match": "exact"
   },
   "basculin": {
@@ -712,6 +722,11 @@ export const pokemonSpriteManifest: Readonly<
     "pokeApiId": 652,
     "match": "exact"
   },
+  "chesnaught_mega": {
+    "path": "/assets/pokemon/10292.webp",
+    "pokeApiId": 10292,
+    "match": "exact"
+  },
   "chespin": {
     "path": "/assets/pokemon/650.webp",
     "pokeApiId": 650,
@@ -887,6 +902,11 @@ export const pokemonSpriteManifest: Readonly<
     "pokeApiId": 346,
     "match": "base-fallback"
   },
+  "cramorant": {
+    "path": "/assets/pokemon/845.webp",
+    "pokeApiId": 845,
+    "match": "exact"
+  },
   "cranidos": {
     "path": "/assets/pokemon/408.webp",
     "pokeApiId": 408,
@@ -1030,6 +1050,11 @@ export const pokemonSpriteManifest: Readonly<
   "delphox": {
     "path": "/assets/pokemon/655.webp",
     "pokeApiId": 655,
+    "match": "exact"
+  },
+  "delphox_mega": {
+    "path": "/assets/pokemon/10293.webp",
+    "pokeApiId": 10293,
     "match": "exact"
   },
   "deoxys": {
@@ -1955,6 +1980,11 @@ export const pokemonSpriteManifest: Readonly<
   "greninja": {
     "path": "/assets/pokemon/658.webp",
     "pokeApiId": 658,
+    "match": "exact"
+  },
+  "greninja_mega": {
+    "path": "/assets/pokemon/10294.webp",
+    "pokeApiId": 10294,
     "match": "exact"
   },
   "grimer": {
@@ -4645,6 +4675,11 @@ export const pokemonSpriteManifest: Readonly<
   "starmie": {
     "path": "/assets/pokemon/121.webp",
     "pokeApiId": 121,
+    "match": "exact"
+  },
+  "starmie_mega": {
+    "path": "/assets/pokemon/10280.webp",
+    "pokeApiId": 10280,
     "match": "exact"
   },
   "staryu": {

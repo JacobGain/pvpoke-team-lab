@@ -1,27 +1,27 @@
 {
   "formatVersion": 1,
-  "dataVersion": "2026-07-27 01:52:24",
+  "dataVersion": "2026-09-01 18:36:39",
   "source": "PvPoke upstream checkout",
   "files": {
     "data/gamemaster.json": {
       "source": "data/gamemaster.json",
-      "bytes": 1682070,
-      "sha256": "83dc07dae0ea37f3809c72d6ac58665927e12399b32aa5627377b36234e7af0f"
+      "bytes": 1698442,
+      "sha256": "77242b80948ced4622f46e0fa9e9a75f2abed1130efd7f55fb86b60888c8fd45"
     },
     "data/gamemaster.min.json": {
       "source": "data/gamemaster.min.json",
-      "bytes": 921182,
-      "sha256": "66779c3d647a72ddc911bc88482cbd4758b00d0f93caa0edfa7bbae4cc4bd627"
+      "bytes": 930381,
+      "sha256": "b7db691e661e09a98e2aef69e999a04a60f6a694208a8808709691f494a468f9"
     },
     "data/groups/great.json": {
       "source": "data/groups/great.json",
-      "bytes": 6670,
-      "sha256": "4f033cc95972b5cbeccf44cbfbca2339d45d4b57d8958eca9b18898aa574ada5"
+      "bytes": 6925,
+      "sha256": "403eb90b6f6121e40cc781a4fd81048b8c055765635c324f1adfa51a6e3b3a58"
     },
     "data/rankings/all/overall/rankings-1500.json": {
       "source": "data/rankings/all/overall/rankings-1500.json",
-      "bytes": 1180882,
-      "sha256": "c6421842994d4dd7738a9ea8b3529f818500b0cc3fd9d724567ec9553a7314f4"
+      "bytes": 1183266,
+      "sha256": "645a6725597bfe68e13d9c87199bd2c08890dfcb860505d080d85fb63b32c60f"
     },
     "js/libs/jquery-3.3.1.min.js": {
       "source": "js/libs/jquery-3.3.1.min.js",
@@ -30,18 +30,18 @@
     },
     "js/battle/DamageCalculator.js": {
       "source": "js/battle/DamageCalculator.js",
-      "bytes": 7295,
-      "sha256": "724ff8a0a46a526d78976a87ad68a026b2dd59b2d6ac04e75e1bb730aac6c4aa"
+      "bytes": 8221,
+      "sha256": "557b9345367a272e7822b47d346b67ae05d4124050e9d3876fb2446246915f31"
     },
     "js/battle/actions/ActionLogic.js": {
       "source": "js/battle/actions/ActionLogic.js",
-      "bytes": 46567,
-      "sha256": "12b61887b7e2db8278dd4a4ab98c70189e6e436ec86f404efa7fa7e68c6fce22"
+      "bytes": 49128,
+      "sha256": "3847c2329c86b6bfe843f06d4b1c3b680155eb2ef8bdce65706727712cdf94e4"
     },
     "js/battle/timeline/TimelineEvent.js": {
       "source": "js/battle/timeline/TimelineEvent.js",
-      "bytes": 897,
-      "sha256": "d28925ee33934f82c92b3c9ecd641693cc35ee11a6d7d789c58ca8e404473a5a"
+      "bytes": 933,
+      "sha256": "a7793ddbc398769cfb6d8a0f539aa96f597eac3127f5cb594cf94eab7bf70f37"
     },
     "js/battle/timeline/TimelineAction.js": {
       "source": "js/battle/timeline/TimelineAction.js",
@@ -55,23 +55,23 @@
     },
     "js/battle/Battle.js": {
       "source": "js/battle/Battle.js",
-      "bytes": 49835,
-      "sha256": "5d57c5b2b3a83ce81362909d1488ca111d23e3e9f59e31fdb0e8d2fd6f289204"
+      "bytes": 53748,
+      "sha256": "cf2bfbbfd5e769549a3427733f3006f2cad115aa58711553bb16f22e075bd825"
     },
     "js/GameMaster.js": {
       "source": "js/GameMaster.js",
-      "bytes": 47479,
-      "sha256": "18ed155dea7ed31d09eec3bbd6c5f2b69984051ffc0e3098e2f23d0d68702ba5"
+      "bytes": 49199,
+      "sha256": "2dfe69ef3544437b554c90e3da2f03f323489020ecaff26491a9b1c740efa7c0"
     },
     "js/pokemon/Pokemon.js": {
       "source": "js/pokemon/Pokemon.js",
-      "bytes": 73081,
-      "sha256": "eaa4fcfc5f521525453768d8ab516f47b456176a1760264ce95db5e936f076ff"
+      "bytes": 77473,
+      "sha256": "3270783ce337ba748a2596a5ae9ae71d9fe07c2a6b6facfe32ffbd6c14139927"
     },
     "js/battle/rankers/TeamRanker.js": {
       "source": "js/battle/rankers/TeamRanker.js",
-      "bytes": 13035,
-      "sha256": "67c1ea0f7c79dd9c0d85673dc4b62a697897b4e0894acc38a8ae037cceacff4c"
+      "bytes": 12994,
+      "sha256": "e5e7b41014a1db8e46bebd0ab52f406670904f6d0c5495a11229dfed99eac42e"
     },
     "LICENSE": {
       "source": "../LICENSE",
