@@ -1,47 +1,53 @@
 {
   "formatVersion": 1,
-  "dataVersion": "2026-09-01 18:36:39",
-  "source": "PvPoke upstream checkout",
+  "dataVersion": "2026-09-07 22:36:29",
+  "source": "PvPoke pinned season revision",
+  "season": {
+    "number": 28,
+    "title": "Twilight Trails",
+    "upstreamBranch": "twilight-trails",
+    "upstreamCommit": "d4c5b76a76fbd13194b72113d7ecdd495dc805be"
+  },
   "files": {
     "data/gamemaster.json": {
       "source": "data/gamemaster.json",
-      "bytes": 1698442,
-      "sha256": "77242b80948ced4622f46e0fa9e9a75f2abed1130efd7f55fb86b60888c8fd45"
+      "bytes": 921735,
+      "sha256": "7d06fc472e91cb78df43d15aa8c1216350957988bad976627def6e0999b476a6"
     },
     "data/gamemaster.min.json": {
       "source": "data/gamemaster.min.json",
-      "bytes": 930381,
-      "sha256": "b7db691e661e09a98e2aef69e999a04a60f6a694208a8808709691f494a468f9"
+      "bytes": 921735,
+      "sha256": "7d06fc472e91cb78df43d15aa8c1216350957988bad976627def6e0999b476a6"
     },
     "data/groups/great.json": {
       "source": "data/groups/great.json",
-      "bytes": 6925,
-      "sha256": "403eb90b6f6121e40cc781a4fd81048b8c055765635c324f1adfa51a6e3b3a58"
+      "bytes": 6333,
+      "sha256": "6bd28b47100af0fa1882a06f2d9d9581fc9b0cb13a730d8a3c42123470bd825e"
     },
     "data/groups/ultra.json": {
       "source": "data/groups/ultra.json",
-      "bytes": 6387,
-      "sha256": "84189ad4f641feb3428d04bb1ec7bff7917a9fac64aedc6448e9950cf778c5fd"
+      "bytes": 6234,
+      "sha256": "fc0b4f37035e2b6079d4587e718e143967156e34ace47549b51cbd4aa41f6cd2"
     },
     "data/groups/master.json": {
       "source": "data/groups/master.json",
-      "bytes": 4836,
-      "sha256": "04dc34983a2a08ba372f76db31107b1553e43051067d3bd3f18b0f8ae297e3f7"
+      "bytes": 4696,
+      "sha256": "10ab0e6cc3355e65310413a20db2baa5cf03e991d79f9e5016f7a333004a22bf"
     },
     "data/rankings/all/overall/rankings-10000.json": {
       "source": "data/rankings/all/overall/rankings-10000.json",
-      "bytes": 444963,
-      "sha256": "cbc24882975186ec6a57b0df2e7484431960f415f0fdeeabc9e4695355b6ebb0"
+      "bytes": 443716,
+      "sha256": "7ce8a9692d7fab1dcf4535750433746aa7045c4adbd3fe6b3e7c2647875ba7a5"
     },
     "data/rankings/all/overall/rankings-2500.json": {
       "source": "data/rankings/all/overall/rankings-2500.json",
-      "bytes": 876790,
-      "sha256": "09852440eeb67c5aab5f1d14b46e48d499216ba30d72870814fa4d071abc4143"
+      "bytes": 879914,
+      "sha256": "cd9516916a694f9bd8935f8042089f91b1e4c05c88b3a6a2d1dce2a3795b12a8"
     },
     "data/rankings/all/overall/rankings-1500.json": {
       "source": "data/rankings/all/overall/rankings-1500.json",
-      "bytes": 1183266,
-      "sha256": "645a6725597bfe68e13d9c87199bd2c08890dfcb860505d080d85fb63b32c60f"
+      "bytes": 1192965,
+      "sha256": "516f748b9c148851f71391abe5c72be326393d0b1575342b0a34504f06c7f7bc"
     },
     "js/libs/jquery-3.3.1.min.js": {
       "source": "js/libs/jquery-3.3.1.min.js",
@@ -75,13 +81,13 @@
     },
     "js/battle/Battle.js": {
       "source": "js/battle/Battle.js",
-      "bytes": 53748,
-      "sha256": "cf2bfbbfd5e769549a3427733f3006f2cad115aa58711553bb16f22e075bd825"
+      "bytes": 52194,
+      "sha256": "52e423ab0d876ac265c61b68b33cce4cc6781ff97e6c58743486472e59437a63"
     },
     "js/GameMaster.js": {
       "source": "js/GameMaster.js",
-      "bytes": 49199,
-      "sha256": "2dfe69ef3544437b554c90e3da2f03f323489020ecaff26491a9b1c740efa7c0"
+      "bytes": 49240,
+      "sha256": "31a5b8859cacc6c1f0ae443321e5cd4e6976ac4f9df65fc51b64811be155e622"
     },
     "js/pokemon/Pokemon.js": {
       "source": "js/pokemon/Pokemon.js",

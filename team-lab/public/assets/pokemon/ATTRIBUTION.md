@@ -7,7 +7,7 @@ Generated from PokeAPI/sprites revision `8dfa3d97e953caaafaafd4963eff7621811af08
 - The source license states that image contents are Copyright The Pokémon Company.
 - Pokémon and Pokémon character names are trademarks of Nintendo.
 
-Manifest SHA-256: `72b255c78ebce790cf7295f14bbedf5e79b2f0a4e2cb99310baf6b3321a6489e`
+Manifest SHA-256: `5c378c4fe5ea4a4a5b723a8a1ba2f93daa4bfd1729f536e61d588f305c0e7e9d`
 
 ## Base-art fallbacks
 
@@ -20,7 +20,6 @@ use their National Dex base artwork while retaining their exact TeamLab label.
 - burmy_trash (Burmy (Trash)) -> National Dex 412
 - cherrim_overcast (Cherrim (Overcast)) -> National Dex 421
 - cherrim_sunny (Cherrim (Sunshine)) -> National Dex 421
-- cradily_b (Cradily) -> National Dex 346
 - darmanitan_galarian_standard (Darmanitan (Galarian)) -> National Dex 555
 - deoxys (Deoxys) -> National Dex 386
 - dudunsparce (Dudunsparce) -> National Dex 982

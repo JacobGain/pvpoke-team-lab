@@ -897,11 +897,6 @@ export const pokemonSpriteManifest: Readonly<
     "pokeApiId": 346,
     "match": "exact"
   },
-  "cradily_b": {
-    "path": "/assets/pokemon/346.webp",
-    "pokeApiId": 346,
-    "match": "base-fallback"
-  },
   "cramorant": {
     "path": "/assets/pokemon/845.webp",
     "pokeApiId": 845,
@@ -2777,6 +2772,11 @@ export const pokemonSpriteManifest: Readonly<
     "pokeApiId": 10126,
     "match": "exact"
   },
+  "mabosstiff": {
+    "path": "/assets/pokemon/943.webp",
+    "pokeApiId": 943,
+    "match": "exact"
+  },
   "machamp": {
     "path": "/assets/pokemon/68.webp",
     "pokeApiId": 68,
@@ -2920,6 +2920,11 @@ export const pokemonSpriteManifest: Readonly<
   "marshtomp": {
     "path": "/assets/pokemon/259.webp",
     "pokeApiId": 259,
+    "match": "exact"
+  },
+  "maschiff": {
+    "path": "/assets/pokemon/942.webp",
+    "pokeApiId": 942,
     "match": "exact"
   },
   "masquerain": {
