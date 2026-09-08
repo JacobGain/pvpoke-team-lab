@@ -1,3 +1,4 @@
+import { ACTIVE_SEASON } from "../src/pvpoke/season.ts";
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
@@ -42,6 +43,7 @@ export interface TeamLabReleaseMetadata {
   readonly pvpoke: {
     readonly dataVersion: string;
     readonly manifestSha256: string;
+    readonly season: typeof ACTIVE_SEASON;
   };
 }
 
@@ -122,6 +124,7 @@ export async function createReleaseMetadata(
     pvpoke: {
       dataVersion: pvpokeManifest.dataVersion,
       manifestSha256,
+      season: ACTIVE_SEASON,
     },
   };
 }

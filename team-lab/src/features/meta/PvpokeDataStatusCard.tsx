@@ -1,3 +1,4 @@
+import { ACTIVE_SEASON } from "@/pvpoke/season";
 import { LeagueName } from "@/features/leagues/LeagueSelector";
 import { usePvpokeDataStatus } from "@/features/meta/usePvpokeDataStatus";
 
@@ -45,8 +46,8 @@ export function PvpokeDataStatusCard() {
 
       <dl className="data-grid">
         <div>
-          <dt>Game Master</dt>
-          <dd>{data.gameMasterTitle}</dd>
+          <dt>Active season</dt>
+          <dd>Season {ACTIVE_SEASON.number} · {ACTIVE_SEASON.title}</dd>
         </div>
         <div>
           <dt>Updated</dt>
