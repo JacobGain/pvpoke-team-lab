@@ -1,5 +1,11 @@
 # TeamLab Local User Guide
 
+TeamLab 0.0.9 treats **Season 28 — Twilight Trails** as the active season for
+rankings, recommended moves, meta opponents, and simulations. The dashboard
+identifies the active season. Existing inventory and saved teams remain stored;
+re-run analyses to evaluate them against the new season. There is no preview
+mode or season selector.
+
 ## Choosing a league
 
 Use **Active league** in the desktop sidebar or the mobile navigation menu to
