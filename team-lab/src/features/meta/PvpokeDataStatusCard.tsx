@@ -1,3 +1,4 @@
+import { LeagueName } from "@/features/leagues/LeagueSelector";
 import { usePvpokeDataStatus } from "@/features/meta/usePvpokeDataStatus";
 
 function formatError(error: unknown): string {
@@ -14,7 +15,7 @@ export function PvpokeDataStatusCard() {
       <section className="data-card" aria-live="polite">
         <p className="eyebrow">Bundled PvPoke data</p>
         <h2>Loading…</h2>
-        <p>Validating the bundled Game Master, rankings, and Great League meta.</p>
+        <p>Validating the bundled Game Master, rankings, and <LeagueName /> meta.</p>
       </section>
     );
   }

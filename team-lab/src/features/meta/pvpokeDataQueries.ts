@@ -1,7 +1,7 @@
 import { queryOptions } from "@tanstack/react-query";
 
 import { pvpokeRepositories } from "@/pvpoke/repositories";
-import { OPEN_GREAT_LEAGUE } from "@/pvpoke/types/models";
+import { LEAGUES, type League } from "@/domain/leagues";
 
 export const pvpokeDataQueryKeys = {
   all: ["pvpoke-data"] as const,
@@ -24,24 +24,27 @@ export const gameMasterQueryOptions = queryOptions({
   staleTime: Number.POSITIVE_INFINITY,
 });
 
-export const openGreatLeagueRankingQueryOptions = queryOptions({
+export const leagueRankingQueryOptions = (league: League) => queryOptions({
   queryKey: pvpokeDataQueryKeys.rankings(
-    OPEN_GREAT_LEAGUE.cup,
-    OPEN_GREAT_LEAGUE.rankingCategory,
-    OPEN_GREAT_LEAGUE.cp,
+    league.cup,
+    league.rankingCategory,
+    league.cp,
   ),
   queryFn: () =>
     pvpokeRepositories.rankings.load({
-      cup: OPEN_GREAT_LEAGUE.cup,
-      category: OPEN_GREAT_LEAGUE.rankingCategory,
-      cp: OPEN_GREAT_LEAGUE.cp,
+      cup: league.cup,
+      category: league.rankingCategory,
+      cp: league.cp,
     }),
   staleTime: Number.POSITIVE_INFINITY,
 });
 
-export const openGreatLeagueMetaQueryOptions = queryOptions({
-  queryKey: pvpokeDataQueryKeys.metaGroup(OPEN_GREAT_LEAGUE.metaGroup),
+export const leagueMetaQueryOptions = (league: League) => queryOptions({
+  queryKey: pvpokeDataQueryKeys.metaGroup(league.metaGroup),
   queryFn: () =>
-    pvpokeRepositories.metaGroups.load(OPEN_GREAT_LEAGUE.metaGroup),
+    pvpokeRepositories.metaGroups.load(league.metaGroup),
   staleTime: Number.POSITIVE_INFINITY,
 });
+
+export const openGreatLeagueRankingQueryOptions = leagueRankingQueryOptions(LEAGUES["great-league"]);
+export const openGreatLeagueMetaQueryOptions = leagueMetaQueryOptions(LEAGUES["great-league"]);

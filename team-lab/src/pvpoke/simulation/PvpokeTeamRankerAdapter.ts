@@ -44,6 +44,9 @@ function configureBuilds(
 }
 
 function validateRequest(request: TeamRankerRequest): void {
+  const cpCap = request.cpCap ?? 1500;
+  if (cpCap !== 1500 && cpCap !== 2500) throw new RangeError("Unsupported league CP limit.");
+  if ([...request.team, ...request.targets].some((build) => build.cp > cpCap)) throw new RangeError("A simulation build exceeds the league CP limit.");
   if (request.team.length < 1 || request.team.length > 3) {
     throw new RangeError("TeamRanker requires one to three team builds.");
   }
@@ -75,7 +78,7 @@ export class PvpokeTeamRankerAdapter implements TeamRankerAdapter {
     await this.runtime.ready();
     const stagingBattle = this.runtime.createBattle();
     stagingBattle.setLevelCap(50);
-    stagingBattle.setCP(1500);
+    stagingBattle.setCP(request.cpCap ?? 1500);
     stagingBattle.setCup("all");
     const team = configureBuilds(
       this.runtime,
@@ -104,7 +107,7 @@ export class PvpokeTeamRankerAdapter implements TeamRankerAdapter {
     try {
       const result = ranker.rank(
         team,
-        1500,
+        request.cpCap ?? 1500,
         { name: "all", include: [], exclude: [] },
         [],
         "matrix",

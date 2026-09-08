@@ -1,3 +1,4 @@
+import { useLeague } from "@/features/leagues/leagueStore";
 import { Pencil, Users } from "lucide-react";
 import { Link, useParams } from "react-router";
 
@@ -268,6 +269,7 @@ function Requirements({
 }
 
 export function InventoryAnalysisPage() {
+  const league = useLeague();
   const { inventoryId } = useParams();
   const inventoryResult = useInventoryPokemon(inventoryId);
   const catalogResult = usePokemonCatalog();
@@ -344,7 +346,7 @@ export function InventoryAnalysisPage() {
             data {analysis.current.dataVersion}.
           </p>
         }
-        eyebrow="Open Great League analysis"
+        eyebrow={`${league.title} analysis`}
         title={analysis.current.speciesName}
       />
 

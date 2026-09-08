@@ -89,3 +89,8 @@ console.log(
     `Non-fatal catalog diagnostics: ${diagnosticCount}`,
   ].join("\n"),
 );
+
+const ultraRankings = rankingCollectionSchema.parse(await readJson("rankings/all/overall/rankings-2500.json"));
+const ultraMeta = metaGroupSchema.parse(await readJson("groups/ultra.json"));
+const ultraCatalog = buildPokemonCatalog(gameMaster, ultraRankings, ultraMeta, 2500);
+console.log(`Open Ultra League rankings: ${ultraRankings.length}\nUltra League meta entries: ${ultraMeta.length}\nUltra catalog diagnostics: ${countCatalogDiagnostics(ultraCatalog.diagnostics)}`);

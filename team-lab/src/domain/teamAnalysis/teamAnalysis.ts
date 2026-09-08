@@ -1,3 +1,4 @@
+import { leagueForCp } from "@/domain/leagues";
 import type {
   TeamRankerRun,
   TeamRankerScope,
@@ -87,7 +88,7 @@ function percentage(value: number, total: number): number {
   return total === 0 ? 0 : (value / total) * 100;
 }
 
-const PVPOKE_GREAT_LEAGUE_GOALS = Object.freeze({
+const DEFAULT_GOALS = Object.freeze({
   coverage: 680,
   bulk: 22_000,
   safety: 98,
@@ -122,6 +123,8 @@ export function analyzeTeamRankerMatrix(
   run: TeamRankerRun,
   now: () => Date = () => new Date(),
 ): TeamRankerAnalysis {
+  const league = leagueForCp(run.request?.cpCap);
+  const goals = { ...DEFAULT_GOALS, bulk: league.bulkGoal };
   const positions = ["lead", "switch", "closer"] as const;
   const firstMatchups = run.result.rankings[0]?.matchups ?? [];
   const members = firstMatchups.map((matchup, index): TeamMemberCoverage => {
@@ -224,14 +227,14 @@ export function analyzeTeamRankerMatrix(
     coverage: {
       grade: pvpokeGrade(
         coverageValue,
-        PVPOKE_GREAT_LEAGUE_GOALS.coverage,
+        goals.coverage,
       ),
       score: goalPercentage(
         coverageValue,
-        PVPOKE_GREAT_LEAGUE_GOALS.coverage,
+        goals.coverage,
       ),
       pvpokeValue: coverageValue,
-      pvpokeGoal: PVPOKE_GREAT_LEAGUE_GOALS.coverage,
+      pvpokeGoal: goals.coverage,
       method:
         "PvPoke threat-score formula over the six most difficult selected targets",
       coveredTargets,
@@ -247,31 +250,31 @@ export function analyzeTeamRankerMatrix(
     bulk: {
       grade: pvpokeGrade(
         bulkValue,
-        PVPOKE_GREAT_LEAGUE_GOALS.bulk,
+        goals.bulk,
       ),
       score: goalPercentage(
         bulkValue,
-        PVPOKE_GREAT_LEAGUE_GOALS.bulk,
+        goals.bulk,
       ),
       pvpokeValue: bulkValue,
-      pvpokeGoal: PVPOKE_GREAT_LEAGUE_GOALS.bulk,
+      pvpokeGoal: goals.bulk,
       evidenceSource: "exact-effective-stats",
       method:
-        "PvPoke average effective Defense × HP against the Great League 22,000 goal",
+        `PvPoke average effective Defense × HP against the ${league.shortTitle} ${league.bulkGoal.toLocaleString("en-US")} goal`,
       evidenceCount: run.result.teamBulkValues.length,
       evidenceTotal: run.evidence.members.length,
     },
     safety: {
       grade: pvpokeGrade(
         safetyValue,
-        PVPOKE_GREAT_LEAGUE_GOALS.safety,
+        goals.safety,
       ),
       score: goalPercentage(
         safetyValue,
-        PVPOKE_GREAT_LEAGUE_GOALS.safety,
+        goals.safety,
       ),
       pvpokeValue: safetyValue,
-      pvpokeGoal: PVPOKE_GREAT_LEAGUE_GOALS.safety,
+      pvpokeGoal: goals.safety,
       evidenceSource: "pvpoke-static-role-scores",
       method:
         "PvPoke average published switch score against the 98-point goal",
@@ -281,14 +284,14 @@ export function analyzeTeamRankerMatrix(
     consistency: {
       grade: pvpokeGrade(
         consistencyValue,
-        PVPOKE_GREAT_LEAGUE_GOALS.consistency,
+        goals.consistency,
       ),
       score: goalPercentage(
         consistencyValue,
-        PVPOKE_GREAT_LEAGUE_GOALS.consistency,
+        goals.consistency,
       ),
       pvpokeValue: consistencyValue,
-      pvpokeGoal: PVPOKE_GREAT_LEAGUE_GOALS.consistency,
+      pvpokeGoal: goals.consistency,
       evidenceSource: "pvpoke-exact-moveset",
       method:
         "PvPoke exact-moveset consistency average against the 98-point goal",
@@ -312,7 +315,7 @@ export function analyzeTeamRankerMatrix(
       ...run.result.assumptions,
       "Ratings above 500 favor the meta target; ratings below 500 favor the team member",
       "A target is covered when at least one team member has a rating advantage",
-      "Letter grades use PvPoke's A–F thresholds and Open Great League goals",
+      "Letter grades use PvPoke's A–F thresholds and selected league goals",
       "Coverage uses PvPoke's threat-score formula over the selected simulation scope; select Greater Meta for the closest Team Builder comparison",
       "Bulk uses PvPoke's exact average Defense × HP formula, including Shadow modifiers",
       "Safety uses PvPoke's published switch-score average",

@@ -1,3 +1,4 @@
+import { LeagueName } from "@/features/leagues/LeagueSelector";
 import { useRef, useState, type SyntheticEvent } from "react";
 import {
   BarChart3,
@@ -286,7 +287,7 @@ function RankingDetail({
           <BarChart3 aria-hidden="true" size={19} />
           <div>
             <h3>Performance</h3>
-            <p>PvPoke role scores and Great League stat totals</p>
+            <p>PvPoke role scores and <LeagueName /> stat totals</p>
           </div>
         </div>
         {ranking ? (
@@ -424,7 +425,7 @@ export function RankingRow({
   const [isOpen, setIsOpen] = useState(false);
   const detailsRef = useRef<HTMLDetailsElement>(null);
   const summaryRef = useRef<HTMLElement>(null);
-  const optimalIvs = pokemon.defaultGreatLeagueIvs;
+  const optimalIvs = pokemon.defaultLeagueIvs;
 
   function handleToggle(event: SyntheticEvent<HTMLDetailsElement>) {
     setIsOpen(event.currentTarget.open);

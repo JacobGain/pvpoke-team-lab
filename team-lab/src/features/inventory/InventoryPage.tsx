@@ -1,3 +1,4 @@
+import { useLeague } from "@/features/leagues/leagueStore";
 import { useMemo, useState } from "react";
 import {
   Archive,
@@ -35,6 +36,7 @@ function formatError(error: unknown): string {
 }
 
 export function InventoryPage() {
+  const league = useLeague();
   const catalogResult = usePokemonCatalog();
   const inventoryResult = useInventoryList();
   const deleteMutation = useDeleteInventoryPokemon();
@@ -110,7 +112,7 @@ export function InventoryPage() {
             validated PvPoke catalog.
           </p>
         }
-        eyebrow="Open Great League roster"
+        eyebrow={`${league.title} roster`}
         title="Your inventory"
       />
 

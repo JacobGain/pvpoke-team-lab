@@ -70,7 +70,7 @@ export function getRankingStats(
     return pokemon.ranking.stats;
   }
 
-  const ivs = pokemon.defaultGreatLeagueIvs;
+  const ivs = pokemon.defaultLeagueIvs;
 
   if (!ivs) {
     return undefined;

@@ -1,3 +1,5 @@
+import { useLeague } from "@/features/leagues/leagueStore";
+import { LeagueName } from "@/features/leagues/LeagueSelector";
 import {
   ArrowRight,
   Boxes,
@@ -40,6 +42,7 @@ function MetricCard({
 }
 
 export function HomePage() {
+  const league = useLeague();
   const inventoryResult = useInventoryList();
   const teamsResult = useSavedTeamList();
   const catalogResult = usePokemonCatalog();
@@ -68,7 +71,7 @@ export function HomePage() {
     inventory.length === 0
       ? {
           eyebrow: "Start your lab",
-          title: "Add your first Great League Pokémon",
+          title: "Add your first Pokémon",
           description:
             "Record its CP, IVs, and moves to unlock exact build analysis.",
           label: "Add your first Pokémon",
@@ -106,8 +109,8 @@ export function HomePage() {
       <section className="dashboard-hero">
         <div className="dashboard-hero__copy">
           <div className="dashboard-hero__serial">
-            <span>TL–GL / 001</span>
-            <span>Open Great League</span>
+            <span>TL–{league.id === "ultra-league" ? "UL" : "GL"} / 001</span>
+            <span><LeagueName open /></span>
           </div>
           <p className="eyebrow">Competitive battle workspace</p>
           <h1>

@@ -167,10 +167,10 @@ export function analyzeNamedOpponent(
   pokemon: PokemonCatalogEntry,
   opponent: PokemonCatalogEntry,
 ): NamedOpponentAnalysis {
-  const opponentIvs = opponent.defaultGreatLeagueIvs;
+  const opponentIvs = opponent.defaultLeagueIvs;
 
   if (!opponentIvs) {
-    throw new Error(`${opponent.speciesName} has no default Great League build.`);
+    throw new Error(`${opponent.speciesName} has no default selected league build.`);
   }
 
   const opponentStats = calculateEffectiveStats(

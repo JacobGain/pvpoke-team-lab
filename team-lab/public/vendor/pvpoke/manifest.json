@@ -18,6 +18,16 @@
       "bytes": 6925,
       "sha256": "403eb90b6f6121e40cc781a4fd81048b8c055765635c324f1adfa51a6e3b3a58"
     },
+    "data/groups/ultra.json": {
+      "source": "data/groups/ultra.json",
+      "bytes": 6387,
+      "sha256": "84189ad4f641feb3428d04bb1ec7bff7917a9fac64aedc6448e9950cf778c5fd"
+    },
+    "data/rankings/all/overall/rankings-2500.json": {
+      "source": "data/rankings/all/overall/rankings-2500.json",
+      "bytes": 876790,
+      "sha256": "09852440eeb67c5aab5f1d14b46e48d499216ba30d72870814fa4d071abc4143"
+    },
     "data/rankings/all/overall/rankings-1500.json": {
       "source": "data/rankings/all/overall/rankings-1500.json",
       "bytes": 1183266,

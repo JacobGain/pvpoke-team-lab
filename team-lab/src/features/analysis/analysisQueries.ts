@@ -20,7 +20,7 @@ export function useInventoryBuildAnalysis(
     queryKey: analysisQueryKeys.inventoryBuild(
       record?.inventoryId ?? "",
       record?.updatedAt ?? "",
-      catalog?.dataVersion ?? "",
+      `${catalog?.dataVersion ?? ""}:${catalog?.cpCap ?? 1500}`,
     ),
     queryFn: () => analyzeInventoryBuild(record!, catalog!),
     enabled: record !== undefined && catalog !== undefined,

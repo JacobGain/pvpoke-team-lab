@@ -28,7 +28,7 @@ export interface OneOnOneSimulationCombatant {
 }
 
 export interface OneOnOneSimulationRequest {
-  readonly format: typeof OPEN_GREAT_LEAGUE_SIMULATION_FORMAT;
+  readonly format: { readonly id: "great-league" | "ultra-league"; readonly cpCap: 1500 | 2500; readonly levelCap: 50; readonly cup: "all" };
   readonly combatants: readonly [
     OneOnOneSimulationCombatant,
     OneOnOneSimulationCombatant,
@@ -65,6 +65,7 @@ export interface OneOnOneSimulationAdapter {
 }
 
 export interface TeamRankerRequest {
+  readonly cpCap?: number;
   readonly team: readonly ExactSimulationBuild[];
   readonly targets: readonly ExactSimulationBuild[];
   readonly teamShields: ShieldCount;

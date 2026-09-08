@@ -1,6 +1,6 @@
 # TeamLab
 
-TeamLab is a local-first Open Great League inventory and team-planning
+TeamLab is a local-first Open Great League and Open Ultra League inventory and team-planning
 application built on the data and simulation engine in this PvPoke fork.
 
 It supports exact owned and planned builds, IV/build analysis, ordered saved

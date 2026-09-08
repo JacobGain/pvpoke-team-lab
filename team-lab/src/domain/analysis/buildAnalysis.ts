@@ -1,3 +1,4 @@
+import { leagueForCp } from "@/domain/leagues";
 import type {
   InventoryIvs,
   InventoryMoveset,
@@ -137,7 +138,7 @@ function analyzeBuild(
 
   if (resolvedCp === undefined) {
     throw new Error(
-      `${pokemon.speciesName} cannot produce a Great League build with these IVs.`,
+      `${pokemon.speciesName} cannot produce a selected league build with these IVs.`,
     );
   }
 
@@ -354,6 +355,7 @@ export function analyzeInventoryBuild(
   record: InventoryPokemon,
   catalog: PokemonCatalog,
 ): InventoryBuildAnalysis {
+  if ((record.formatId ?? "great-league") !== leagueForCp(catalog.cpCap).id) throw new Error("Select the record’s league before analyzing it.");
   const currentPokemon = catalog.entries.find(
     (pokemon) => pokemon.speciesId === record.speciesId,
   );

@@ -1,3 +1,4 @@
+import { LeagueName } from "@/features/leagues/LeagueSelector";
 import { useMemo, useState } from "react";
 import {
   CircleCheck,
@@ -169,7 +170,7 @@ export function SavedTeamSimulationPage() {
         description={
           <p>
             Evaluate this exact ordered team against a selected slice of the
-            current PvPoke Open Great League meta.
+            current PvPoke <LeagueName open /> meta.
           </p>
         }
         eyebrow="Team experiment"

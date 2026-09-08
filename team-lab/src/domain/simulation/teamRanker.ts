@@ -86,7 +86,7 @@ export class TeamRankerPreparationError extends Error {
 export function createMetaDefaultBuild(
   pokemon: PokemonCatalogEntry,
 ): ExactSimulationBuild | undefined {
-  const ivs = pokemon.defaultGreatLeagueIvs;
+  const ivs = pokemon.defaultLeagueIvs;
   const recommendedMoveIds = pokemon.ranking?.recommendedMoveIds;
 
   if (!ivs || !recommendedMoveIds) {
@@ -136,6 +136,7 @@ export function prepareTeamRankerRequest(
     readonly targetShields: ShieldCount;
   },
 ): TeamRankerPreparedRequest {
+  if (team.some((build) => build.cp > (catalog.cpCap ?? 1500))) throw new TeamRankerPreparationError("A team build exceeds the selected league CP limit.");
   const catalogById = new Map(
     catalog.entries.map((pokemon) => [pokemon.speciesId, pokemon]),
   );
@@ -172,6 +173,7 @@ export function prepareTeamRankerRequest(
 
   return {
     request: {
+      cpCap: catalog.cpCap ?? 1500,
       team,
       targets,
       teamShields: options.teamShields,
