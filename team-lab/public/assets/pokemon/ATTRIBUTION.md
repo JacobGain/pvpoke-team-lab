@@ -7,7 +7,7 @@ Generated from PokeAPI/sprites revision `8dfa3d97e953caaafaafd4963eff7621811af08
 - The source license states that image contents are Copyright The Pokémon Company.
 - Pokémon and Pokémon character names are trademarks of Nintendo.
 
-Manifest SHA-256: `9add6d39c679b7a7ba84a92d2d7c4cb8e691f0cc142062a4f5ff45f8167411f6`
+Manifest SHA-256: `72b255c78ebce790cf7295f14bbedf5e79b2f0a4e2cb99310baf6b3321a6489e`
 
 ## Base-art fallbacks
 
