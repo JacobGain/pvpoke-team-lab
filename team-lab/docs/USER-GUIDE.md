@@ -3,19 +3,22 @@
 ## Choosing a league
 
 Use **Active league** in the desktop sidebar or the mobile navigation menu to
-switch between Great League (1500 CP) and Ultra League (2500 CP). The selection
-is remembered on this browser. Switching returns to the dashboard; save any
+switch between Great League (1500 CP), Ultra League (2500 CP), and Master League
+(no CP limit). The selection is remembered on this browser. Switching returns to the dashboard; save any
 form edits first.
 
 Rankings, default IVs, build analysis, teams, recommendations, and simulation
 opponents follow the selected league. Each inventory record and saved team
 belongs to one league. Records saved before 0.0.7 remain in Great League.
-Backups and reset tools cover both leagues together; switching leagues does
+Master League defaults use 15/15/15 IVs at level 50 (or a lower species level
+cap). Planned builds maximize level with the entered IVs. Existing support for
+exact Best Buddy builds remains available; default rankings use level 50.
+Backups and reset tools cover all three leagues together; switching leagues does
 not remove any records.
 
 ## What TeamLab does
 
-TeamLab is a local-first Open Great League and Open Ultra League inventory and team-planning
+TeamLab is a local-first Great, Ultra, and Master League inventory and team-planning
 application built on the data and simulation engine in this PvPoke fork.
 
 The MVP lets you:
@@ -414,8 +417,8 @@ inside TeamLab; recovery requires a previously downloaded backup.
 
 ## Data versions and refreshes
 
-TeamLab reads the Game Master, both leagues’ rankings and meta
-group, and simulation scripts from its checked-in
+TeamLab reads the Game Master, all three leagues’ rankings and meta
+groups, and simulation scripts from its checked-in
 `public/vendor/pvpoke/` directory.
 
 The loaded data version appears throughout analysis and simulation results.
@@ -447,7 +450,7 @@ jQuery, Battle, GameMaster, Pokémon, and TeamRanker classic scripts.
 
 Confirm:
 
-- CP is between 10 and the selected league’s cap (1500 or 2500);
+- CP is between 10 and the selected league’s cap (1500 or 2500); Master League has no CP limit;
 - every IV is between 0 and 15;
 - the CP is reachable for that exact species/form and IV spread;
 - the selected moves belong to that form.
@@ -486,7 +489,7 @@ export a new backup when possible.
 
 TeamLab currently supports:
 
-- Open Great League (1500 CP) and Open Ultra League (2500 CP);
+- Open Great League (1500 CP), Open Ultra League (2500 CP), and Open Master League (no CP limit);
 - manual inventory entry;
 - local browser persistence;
 - current and planned owned builds;
