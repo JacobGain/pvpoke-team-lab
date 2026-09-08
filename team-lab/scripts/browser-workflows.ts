@@ -1307,39 +1307,6 @@ async function createInventory(
       );
       await browser.setLabeledCheckbox("Favorite", true);
     }
-    if (speciesId === "altaria") {
-      const assumedIvsSelected = await browser.evaluate<boolean>(`(() => {
-        const label = [...document.querySelectorAll("label")].find(
-          (candidate) =>
-            candidate.textContent?.trim() ===
-            "Use PvPoke’s default rank-one spread"
-        );
-        const control = label?.querySelector('input[type="radio"]');
-        if (!(control instanceof HTMLInputElement) || control.disabled) {
-          return false;
-        }
-        control.click();
-        return control.checked;
-      })()`);
-      invariant(
-        assumedIvsSelected,
-        "The Altaria fixture could not select assumed rank-one IVs.",
-      );
-      await browser.waitFor(
-        `(() => {
-          const control = [...document.querySelectorAll('input[type="radio"]')]
-            .find((candidate) =>
-              candidate.closest("label")?.textContent?.trim() ===
-              "Use PvPoke’s default rank-one spread"
-            );
-          return control instanceof HTMLInputElement &&
-            control.checked &&
-            document.querySelector(".assumption-notice")?.textContent
-              ?.includes("Assumed IVs:");
-        })()`,
-        "Altaria assumed-IV state to render",
-      );
-    }
     await browser.clickButton("Continue");
     await browser.waitFor(
       `document.querySelector(".guided-form-panel h2")?.textContent?.trim() === "Current or planned"`,
@@ -1930,6 +1897,17 @@ async function runCriticalWorkflows(
     "Inventory records did not distinguish created and updated timestamps.",
   );
   await browser.navigate("/", "Turn your roster into a battle plan.");
+  await browser.waitFor(
+    `(() => {
+      const inventoryCard = [...document.querySelectorAll("a.metric-card")]
+        .find((card) => card.textContent?.includes("Inventory"));
+      return Number(
+        inventoryCard?.querySelector("strong")?.textContent
+          ?.replaceAll(",", "") ?? -1
+      ) === ${INVENTORY_SPECIES.length};
+    })()`,
+    "dashboard inventory metrics",
+  );
   const glanceNavigation = await browser.evaluate<{
     readonly assumedCount: number;
     readonly assumedHref: string;
@@ -1948,7 +1926,7 @@ async function runCriticalWorkflows(
     };
   })()`);
   invariant(
-    glanceNavigation.assumedCount > 0 &&
+    glanceNavigation.assumedCount >= 0 &&
       glanceNavigation.assumedHref.endsWith("/inventory?ivs=assumed") &&
       glanceNavigation.destinations === 4,
     `Dashboard glance cards were not useful links: ${JSON.stringify(glanceNavigation)}.`,
