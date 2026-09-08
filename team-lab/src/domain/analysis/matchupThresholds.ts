@@ -89,6 +89,11 @@ export function getTypeEffectiveness(
   defenderTypes: readonly string[],
 ): number {
   return defenderTypes.reduce((effectiveness, defenderType) => {
+    // PvPoke represents a missing secondary type with the `none` sentinel.
+    if (defenderType === "none") {
+      return effectiveness;
+    }
+
     const traits = TYPE_TRAITS[defenderType];
 
     if (!traits) {

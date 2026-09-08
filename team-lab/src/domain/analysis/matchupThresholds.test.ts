@@ -42,6 +42,12 @@ describe("named-opponent thresholds", () => {
     );
   });
 
+  it("treats PvPoke's missing secondary-type sentinel as neutral", () => {
+    expect(getTypeEffectiveness("fighting", ["normal", "none"])).toBeCloseTo(
+      1.600000023841858,
+    );
+  });
+
   it("compares an exact build with the named default meta build", () => {
     const analysis = createAnalysis();
     const azumarill = inventoryTestCatalog.entries.find(
