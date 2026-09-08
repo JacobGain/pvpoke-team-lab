@@ -28,7 +28,7 @@ export interface OneOnOneSimulationCombatant {
 }
 
 export interface OneOnOneSimulationRequest {
-  readonly format: { readonly id: "great-league" | "ultra-league"; readonly cpCap: 1500 | 2500; readonly levelCap: 50; readonly cup: "all" };
+  readonly format: { readonly id: "great-league" | "ultra-league" | "master-league"; readonly cpCap: 1500 | 2500 | 10000; readonly levelCap: 50; readonly cup: "all" };
   readonly combatants: readonly [
     OneOnOneSimulationCombatant,
     OneOnOneSimulationCombatant,

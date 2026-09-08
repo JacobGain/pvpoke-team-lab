@@ -19,10 +19,22 @@ export const LEAGUES = {
     metaGroup: "ultra",
     bulkGoal: 35_000,
   },
+  "master-league": {
+    id: "master-league",
+    title: "Open Master League",
+    shortTitle: "Master League",
+    // PvPoke's sentinel for the uncapped league.
+    cp: 10000,
+    cup: "all",
+    rankingCategory: "overall",
+    metaGroup: "master",
+    bulkGoal: 35_000,
+  },
 } as const;
 
 export type LeagueId = keyof typeof LEAGUES;
 export type League = (typeof LEAGUES)[LeagueId];
 export function leagueForCp(cp: number | undefined): League {
+  if (cp === 10000) return LEAGUES["master-league"];
   return cp === 2500 ? LEAGUES["ultra-league"] : LEAGUES["great-league"];
 }

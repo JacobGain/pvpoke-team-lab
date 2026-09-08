@@ -1,3 +1,4 @@
+import { LEAGUES } from "@/domain/leagues";
 import type {
   InventoryMoveset,
   InventoryPokemon,
@@ -107,7 +108,7 @@ export function validateInventoryPokemonAgainstCatalog(
 
   if (
     record.currentBuild.ivProfile.source === "assumed-rank-1" &&
-    !(currentPokemon.defaultIvsByCp ? currentPokemon.defaultIvsByCp[record.formatId === "ultra-league" ? 2500 : 1500] : currentPokemon.defaultLeagueIvs)
+    !(currentPokemon.defaultIvsByCp ? currentPokemon.defaultIvsByCp[LEAGUES[record.formatId ?? "great-league"].cp] : currentPokemon.defaultLeagueIvs)
   ) {
     issues.push({
       code: "assumed-ivs-unavailable",

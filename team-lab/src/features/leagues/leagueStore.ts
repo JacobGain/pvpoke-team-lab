@@ -6,8 +6,9 @@ const storageKey = "team-lab-league";
 
 function initialLeague(): LeagueId {
   try {
-    return localStorage.getItem(storageKey) === "ultra-league"
-      ? "ultra-league"
+    const saved = localStorage.getItem(storageKey);
+    return saved === "ultra-league" || saved === "master-league"
+      ? saved
       : "great-league";
   } catch {
     return "great-league";

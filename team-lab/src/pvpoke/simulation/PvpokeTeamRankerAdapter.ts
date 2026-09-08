@@ -45,7 +45,7 @@ function configureBuilds(
 
 function validateRequest(request: TeamRankerRequest): void {
   const cpCap = request.cpCap ?? 1500;
-  if (cpCap !== 1500 && cpCap !== 2500) throw new RangeError("Unsupported league CP limit.");
+  if (cpCap !== 1500 && cpCap !== 2500 && cpCap !== 10000) throw new RangeError("Unsupported league CP limit.");
   if ([...request.team, ...request.targets].some((build) => build.cp > cpCap)) throw new RangeError("A simulation build exceeds the league CP limit.");
   if (request.team.length < 1 || request.team.length > 3) {
     throw new RangeError("TeamRanker requires one to three team builds.");

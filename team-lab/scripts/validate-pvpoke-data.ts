@@ -94,3 +94,8 @@ const ultraRankings = rankingCollectionSchema.parse(await readJson("rankings/all
 const ultraMeta = metaGroupSchema.parse(await readJson("groups/ultra.json"));
 const ultraCatalog = buildPokemonCatalog(gameMaster, ultraRankings, ultraMeta, 2500);
 console.log(`Open Ultra League rankings: ${ultraRankings.length}\nUltra League meta entries: ${ultraMeta.length}\nUltra catalog diagnostics: ${countCatalogDiagnostics(ultraCatalog.diagnostics)}`);
+
+const masterRankings = rankingCollectionSchema.parse(await readJson("rankings/all/overall/rankings-10000.json"));
+const masterMeta = metaGroupSchema.parse(await readJson("groups/master.json"));
+const masterCatalog = buildPokemonCatalog(gameMaster, masterRankings, masterMeta, 10000);
+console.log(`Open Master League rankings: ${masterRankings.length}\nMaster League meta entries: ${masterMeta.length}\nMaster catalog diagnostics: ${countCatalogDiagnostics(masterCatalog.diagnostics)}`);
