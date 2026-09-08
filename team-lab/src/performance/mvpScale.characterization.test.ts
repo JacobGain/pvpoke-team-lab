@@ -199,6 +199,7 @@ it(
       search: "scale species",
       status: "all",
       favoriteOnly: true,
+      assumedIvsOnly: false,
       sort: "species",
     });
     const inventoryView = elapsedSince(inventoryViewStart);

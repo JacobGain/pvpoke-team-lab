@@ -12,6 +12,7 @@ import {
 } from "@/domain/pokemon/catalog";
 import { RankingRow } from "@/features/meta/RankingRow";
 import { usePokemonCatalog } from "@/features/meta/usePokemonCatalog";
+import { formatCalendarDate } from "@/utils/formatters";
 
 const PAGE_SIZE = 100;
 
@@ -117,8 +118,13 @@ export function PokemonCatalogPage() {
         aside={
           <div className="catalog-summary">
             <strong>{filteredPokemon.length.toLocaleString()}</strong>
-            <span>matching records</span>
-            <small>Data: {catalog.dataVersion}</small>
+            <span>ranked Pokémon</span>
+            <small>
+              Last updated:{" "}
+              <time dateTime={catalog.dataVersion}>
+                {formatCalendarDate(catalog.dataVersion)}
+              </time>
+            </small>
           </div>
         }
         description={

@@ -12,19 +12,41 @@ if (!outputArgument) {
 }
 
 const outputDirectory = resolve(outputArgument);
-const indexHtml = await readFile(
-  resolve(outputDirectory, "index.html"),
-  "utf8",
-);
-const headersPolicy = await readFile(
-  resolve(outputDirectory, "_headers"),
-  "utf8",
-);
+const [indexHtml, headersPolicy, robotsText, sitemapXml] = await Promise.all([
+  readFile(resolve(outputDirectory, "index.html"), "utf8"),
+  readFile(resolve(outputDirectory, "_headers"), "utf8"),
+  readFile(resolve(outputDirectory, "robots.txt"), "utf8"),
+  readFile(resolve(outputDirectory, "sitemap.xml"), "utf8"),
+]);
 
 if (!indexHtml.includes('<div id="root"></div>')) {
   throw new Error(
     `${outputDirectory} does not contain the TeamLab application entry point.`,
   );
+}
+
+const requiredSeoFragments = [
+  "Pokémon GO PvP Team Builder &amp; Roster Planner | TeamLab",
+  'name="description"',
+  'meta name="robots" content="index, follow"',
+  'property="og:title"',
+  'name="twitter:card"',
+];
+const missingSeoFragments = requiredSeoFragments.filter(
+  (fragment) => !indexHtml.includes(fragment),
+);
+if (missingSeoFragments.length > 0) {
+  throw new Error(
+    `The application entry point is missing SEO metadata: ${missingSeoFragments.join(", ")}.`,
+  );
+}
+
+if (
+  !robotsText.includes("Sitemap: https://pogoteamlab.com/sitemap.xml") ||
+  !sitemapXml.includes("https://pogoteamlab.com/") ||
+  !sitemapXml.includes("https://pogoteamlab.com/catalog")
+) {
+  throw new Error("The production robots.txt or sitemap.xml is incomplete.");
 }
 
 const requiredHeaderPolicyFragments = [
@@ -45,6 +67,10 @@ const requiredHeaderPolicyFragments = [
   "https://pvpoke-team-lab.pages.dev/*",
   "https://:deployment.pvpoke-team-lab.pages.dev/*",
   "X-Robots-Tag: noindex",
+  "/inventory*",
+  "/teams*",
+  "/recommend*",
+  "/diagnostics*",
 ];
 const missingHeaderPolicyFragments = requiredHeaderPolicyFragments.filter(
   (fragment) => !headersPolicy.includes(fragment),

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  formatCalendarDate,
   formatIdentifier,
   formatMoveList,
   formatMoveName,
@@ -20,5 +21,12 @@ describe("user-facing formatters", () => {
       "PvPoke static role scores",
     );
     expect(formatTeamPosition("switch")).toBe("Safe switch");
+  });
+
+  it("formats timestamps as calendar dates without exposing a time", () => {
+    expect(formatCalendarDate("2026-09-07 22:36:29")).toBe("Sep 7, 2026");
+    expect(formatCalendarDate("2026-07-25T23:30:00.000Z")).toBe(
+      "Jul 25, 2026",
+    );
   });
 });
