@@ -1325,6 +1325,20 @@ async function createInventory(
         assumedIvsSelected,
         "The Altaria fixture could not select assumed rank-one IVs.",
       );
+      await browser.waitFor(
+        `(() => {
+          const control = [...document.querySelectorAll('input[type="radio"]')]
+            .find((candidate) =>
+              candidate.closest("label")?.textContent?.trim() ===
+              "Use PvPoke’s default rank-one spread"
+            );
+          return control instanceof HTMLInputElement &&
+            control.checked &&
+            document.querySelector(".assumption-notice")?.textContent
+              ?.includes("Assumed IVs:");
+        })()`,
+        "Altaria assumed-IV state to render",
+      );
     }
     await browser.clickButton("Continue");
     await browser.waitFor(
