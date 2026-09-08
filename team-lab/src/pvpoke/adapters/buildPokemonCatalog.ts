@@ -68,8 +68,9 @@ function createMove(
 
 function createDefaultIvs(
   pokemon: PokemonData,
+  cpCap: number,
 ): CatalogIvSpread | undefined {
-  const spread = pokemon.defaultIVs?.cp1500;
+  const spread = pokemon.defaultIVs?.[`cp${cpCap}`];
 
   if (!spread) {
     return undefined;
@@ -159,6 +160,7 @@ export function buildPokemonCatalog(
   gameMaster: GameMasterData,
   rankings: readonly Ranking[],
   metaGroup: readonly MetaGroupEntry[],
+  cpCap = 1500,
 ): PokemonCatalog {
   const duplicatePokemonIds = findDuplicates(
     gameMaster.pokemon.map((pokemon) => pokemon.speciesId),
@@ -263,6 +265,7 @@ export function buildPokemonCatalog(
     }
 
     return Object.freeze({
+      cpCap,
       speciesId: pokemon.speciesId,
       speciesName: pokemon.speciesName,
       dex: pokemon.dex,
@@ -282,7 +285,8 @@ export function buildPokemonCatalog(
       evolutionIds: Object.freeze([...(pokemon.family?.evolutions ?? [])]),
       fastMoves: Object.freeze(fastMoves),
       chargedMoves: Object.freeze(chargedMoves),
-      defaultGreatLeagueIvs: createDefaultIvs(pokemon),
+      defaultLeagueIvs: createDefaultIvs(pokemon, cpCap),
+      defaultIvsByCp: Object.freeze({ 1500: createDefaultIvs(pokemon, 1500), 2500: createDefaultIvs(pokemon, 2500) }),
       ranking: createRanking(
         rankingData?.ranking,
         rankingData?.rank,
@@ -331,6 +335,7 @@ export function buildPokemonCatalog(
   }
 
   return Object.freeze({
+    cpCap,
     dataVersion: gameMaster.timestamp,
     entries: Object.freeze(entries),
     diagnostics,

@@ -150,7 +150,7 @@ export function deriveTeamAlternatives(
         if (
           ownedRecords.length === 0 &&
           unowned.length < alternativesPerSource &&
-          pokemon.defaultGreatLeagueIvs &&
+          pokemon.defaultLeagueIvs &&
           pokemon.ranking
         ) {
           unowned.push({
@@ -160,7 +160,7 @@ export function deriveTeamAlternatives(
             counterRating: counter.rating,
             alternativeRating: 1000 - counter.rating,
             recommendedMoveIds: pokemon.ranking.recommendedMoveIds,
-            defaultIvs: pokemon.defaultGreatLeagueIvs,
+            defaultIvs: pokemon.defaultLeagueIvs,
           });
         }
 

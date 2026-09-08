@@ -10,7 +10,8 @@ export interface SavedTeamValidationIssue {
   readonly code:
     | "inventory-record-not-found"
     | "species-not-found"
-    | "species-clause";
+    | "species-clause"
+    | "league-mismatch";
   readonly path: string;
   readonly message: string;
 }
@@ -71,6 +72,10 @@ export function validateSavedTeamLegality(
       continue;
     }
 
+    if ((record.formatId ?? "great-league") !== team.formatId) {
+      issues.push({ code: "league-mismatch", path, message: `The ${position} Pokémon belongs to a different league.` });
+      continue;
+    }
     const speciesId = resolveTeamSpeciesId(record);
     const pokemon = catalogById.get(speciesId);
 

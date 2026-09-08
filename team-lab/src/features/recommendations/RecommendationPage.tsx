@@ -1,3 +1,5 @@
+import { useLeague } from "@/features/leagues/leagueStore";
+import { LeagueName } from "@/features/leagues/LeagueSelector";
 import {
   useRef,
   useState,
@@ -301,6 +303,7 @@ function RecommendationResultCard({
 }
 
 export function RecommendationPage() {
+  const league = useLeague();
   const inventoryResult = useInventoryList();
   const catalogResult = usePokemonCatalog();
   const createTeamMutation = useCreateSavedTeam();
@@ -388,7 +391,7 @@ export function RecommendationPage() {
           : []),
       ];
       const request = recommendationRequestSchema.parse({
-        formatId: "great-league",
+        formatId: league.id,
         anchors,
         resultCount,
         buildStatusScope,
@@ -773,7 +776,7 @@ export function RecommendationPage() {
               <span>
                 <strong>Include ranked Pokémon not in my inventory</strong>
                 <small>
-                  Uses PvPoke’s recommended moves and default Great League IVs.
+                  Uses PvPoke’s recommended moves and default <LeagueName /> IVs.
                   These teams can be simulated now, but ranked picks must be
                   added to inventory before saving.
                 </small>

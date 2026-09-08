@@ -1,3 +1,5 @@
+import { useLeague } from "@/features/leagues/leagueStore";
+import { LeagueSelector, LeagueName } from "@/features/leagues/LeagueSelector";
 import {
   Archive,
   BookOpen,
@@ -140,6 +142,7 @@ function DataHealthIndicator({
 }
 
 export function AppLayout() {
+  const league = useLeague();
   const location = useLocation();
   const { data, error, isLoading } = usePvpokeDataStatus();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -172,9 +175,7 @@ export function AppLayout() {
         </NavLink>
 
         <div className="app-rail__format">
-          <span>Active format</span>
-          <strong>Open Great League</strong>
-          <small>CP limit 1,500</small>
+          <LeagueSelector />
         </div>
 
         <nav className="app-nav app-nav--rail" aria-label="Primary">
@@ -208,7 +209,7 @@ export function AppLayout() {
             </span>
             <span className="brand-mark__copy">
               <strong>TeamLab</strong>
-              <small>Open Great League</small>
+              <small><LeagueName open /></small>
             </span>
           </NavLink>
 
@@ -239,6 +240,7 @@ export function AppLayout() {
         id="mobile-menu"
       >
         <nav aria-label="More TeamLab destinations">
+          <LeagueSelector onSelect={() => setMenuOpen(false)} />
           <p className="mobile-menu__label">Explore and manage</p>
           {utilityNavigation.map((item) => (
             <NavigationLink
@@ -253,7 +255,7 @@ export function AppLayout() {
       </div>
 
       <div className="app-content" id="main-content">
-        <Outlet />
+        <Outlet key={league.id} />
         <footer className="app-footer">
           <div className="app-footer__inner">
             <div className="app-footer__identity">

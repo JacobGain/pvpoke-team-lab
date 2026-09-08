@@ -39,7 +39,7 @@ const pokemon: PokemonCatalogEntry = {
   evolutionIds: [],
   fastMoves: [],
   chargedMoves: [chargedMove],
-  defaultGreatLeagueIvs: {
+  defaultLeagueIvs: {
     level: 45.5,
     attack: 0,
     defense: 15,

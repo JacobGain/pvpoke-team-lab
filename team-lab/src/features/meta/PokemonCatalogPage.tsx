@@ -1,3 +1,5 @@
+import { LeagueName } from "@/features/leagues/LeagueSelector";
+import { useLeague } from "@/features/leagues/leagueStore";
 import { useMemo, useRef, useState } from "react";
 import { SearchX } from "lucide-react";
 import { Link } from "react-router";
@@ -41,6 +43,7 @@ function matchesSearch(
 }
 
 export function PokemonCatalogPage() {
+  const league = useLeague();
   const { data: catalog, error, isLoading } = usePokemonCatalog();
   const [search, setSearch] = useState("");
   const [showUnranked, setShowUnranked] = useState(false);
@@ -65,7 +68,7 @@ export function PokemonCatalogPage() {
   if (isLoading) {
     return (
       <main className="catalog-page">
-        <p>Building the Open Great League catalog…</p>
+        <p>Building the <LeagueName open /> catalog…</p>
       </main>
     );
   }
@@ -124,7 +127,7 @@ export function PokemonCatalogPage() {
             membership from PvPoke.
           </p>
         }
-        eyebrow="PvPoke Great League"
+        eyebrow={`PvPoke ${league.shortTitle}`}
         title="Rankings"
       />
 

@@ -72,6 +72,7 @@ export interface CatalogBaseStats {
 }
 
 export interface PokemonCatalogEntry {
+  readonly cpCap?: number;
   readonly speciesId: string;
   readonly speciesName: string;
   readonly dex: number;
@@ -86,7 +87,8 @@ export interface PokemonCatalogEntry {
   readonly evolutionIds: readonly string[];
   readonly fastMoves: readonly CatalogMove[];
   readonly chargedMoves: readonly CatalogMove[];
-  readonly defaultGreatLeagueIvs?: CatalogIvSpread;
+  readonly defaultLeagueIvs?: CatalogIvSpread;
+  readonly defaultIvsByCp?: Readonly<Record<number, CatalogIvSpread | undefined>>;
   readonly ranking?: CatalogRanking;
   readonly isMeta: boolean;
 }
@@ -103,6 +105,7 @@ export interface PokemonCatalogDiagnostics {
 }
 
 export interface PokemonCatalog {
+  readonly cpCap?: number;
   readonly dataVersion: string;
   readonly entries: readonly PokemonCatalogEntry[];
   readonly diagnostics: PokemonCatalogDiagnostics;

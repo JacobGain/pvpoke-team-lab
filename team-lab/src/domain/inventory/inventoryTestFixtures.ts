@@ -60,7 +60,7 @@ export const inventoryTestCatalog: PokemonCatalog = {
           isElite: false,
         },
       ],
-      defaultGreatLeagueIvs: {
+      defaultLeagueIvs: {
         level: 45.5,
         attack: 0,
         defense: 15,
@@ -143,7 +143,7 @@ export const inventoryTestCatalog: PokemonCatalog = {
           isElite: false,
         },
       ],
-      defaultGreatLeagueIvs: {
+      defaultLeagueIvs: {
         level: 27,
         attack: 4,
         defense: 15,
@@ -204,7 +204,7 @@ export const inventoryTestCatalog: PokemonCatalog = {
           isElite: false,
         },
       ],
-      defaultGreatLeagueIvs: {
+      defaultLeagueIvs: {
         level: 29,
         attack: 0,
         defense: 14,

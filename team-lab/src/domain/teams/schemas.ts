@@ -34,7 +34,7 @@ export const savedTeamSchema = z
     schemaVersion: z.literal(SAVED_TEAM_SCHEMA_VERSION),
     teamId: teamIdSchema,
     name: z.string().trim().min(1).max(100),
-    formatId: z.literal(GREAT_LEAGUE_FORMAT_ID),
+    formatId: z.enum(["great-league", "ultra-league"]),
     members: savedTeamMembersSchema,
     notes: z.string().trim().max(2000),
     lastAnalyzedDataVersion: z.string().trim().min(1).max(200).optional(),

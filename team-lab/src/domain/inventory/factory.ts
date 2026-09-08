@@ -1,3 +1,4 @@
+import { leagueForCp } from "@/domain/leagues";
 import {
   INVENTORY_RECORD_SCHEMA_VERSION,
   inventoryPokemonSchema,
@@ -62,7 +63,7 @@ function resolveBuild(
   const pokemon = catalog.entries.find(
     (entry) => entry.speciesId === speciesId,
   );
-  const defaultIvs = pokemon?.defaultGreatLeagueIvs;
+  const defaultIvs = pokemon?.defaultLeagueIvs;
 
   if (!pokemon || !defaultIvs) {
     throw new Error(
@@ -90,6 +91,7 @@ export function createInventoryPokemon(
 ): InventoryPokemon {
   const now = (dependencies.now ?? (() => new Date()))().toISOString();
   const metadata = {
+    formatId: leagueForCp(dependencies.catalog.cpCap).id,
     schemaVersion: INVENTORY_RECORD_SCHEMA_VERSION,
     inventoryId:
       dependencies.createId?.() ?? globalThis.crypto.randomUUID(),
@@ -140,6 +142,7 @@ export function updateInventoryPokemon(
   input: CreateInventoryPokemonInput,
   dependencies: InventoryFactoryDependencies,
 ): InventoryPokemon {
+  if ((existingRecord.formatId ?? "great-league") !== leagueForCp(dependencies.catalog.cpCap).id) throw new Error("Select the record’s league before editing it.");
   const updatedAt = (dependencies.now ?? (() => new Date()))().toISOString();
   const currentBuild = resolveBuild(
     input.currentBuild,
@@ -147,6 +150,7 @@ export function updateInventoryPokemon(
     dependencies.catalog,
   );
   const metadata = {
+    formatId: leagueForCp(dependencies.catalog.cpCap).id,
     schemaVersion: INVENTORY_RECORD_SCHEMA_VERSION,
     inventoryId: existingRecord.inventoryId,
     favorite: input.favorite ?? false,

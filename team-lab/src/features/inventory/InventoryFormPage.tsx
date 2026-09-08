@@ -1,3 +1,5 @@
+import { LeagueName } from "@/features/leagues/LeagueSelector";
+import { useLeague } from "@/features/leagues/leagueStore";
 import { useMemo, useState, type FormEvent } from "react";
 import {
   Check,
@@ -98,12 +100,13 @@ function InventoryFormFields({
   initialPokemon,
   pokemonOptions,
 }: InventoryFormFieldsProps) {
+  const league = useLeague();
   const navigate = useNavigate();
   const createMutation = useCreateInventoryPokemon();
   const updateMutation = useUpdateInventoryPokemon();
   const sourceRecord = existingRecord ?? initialRecord;
   const initialBuild = sourceRecord?.currentBuild;
-  const initialDefaultIvs = initialPokemon.defaultGreatLeagueIvs;
+  const initialDefaultIvs = initialPokemon.defaultLeagueIvs;
   const initialIvSource =
     initialBuild?.ivProfile.source ?? "user-entered";
   const initialIvs = initialBuild?.ivProfile.ivs ??
@@ -116,7 +119,7 @@ function InventoryFormFields({
           initialDefaultIvs,
           initialDefaultIvs.level,
         )
-      : 1500);
+      : league.cp);
   const initialDefaultMoves = getDefaultMoves(initialPokemon);
   const [speciesId, setSpeciesId] = useState(initialPokemon.speciesId);
   const [buildStatus, setBuildStatus] = useState<"current" | "planned">(
@@ -200,7 +203,7 @@ function InventoryFormFields({
     selectedPokemon;
   const effectiveIvs =
     ivSource === "assumed-rank-1"
-      ? selectedPokemon.defaultGreatLeagueIvs
+      ? selectedPokemon.defaultLeagueIvs
       : {
           attack: Number(attackIv),
           defense: Number(defenseIv),
@@ -211,7 +214,7 @@ function InventoryFormFields({
     effectiveIvs &&
     Number.isInteger(Number(cp)) &&
     Number(cp) >= 10 &&
-    Number(cp) <= 1500
+    Number(cp) <= league.cp
       ? inferCombatPowerLevel(selectedPokemon, effectiveIvs, Number(cp))
       : undefined;
 
@@ -407,10 +410,10 @@ function InventoryFormFields({
               setSpeciesId(pokemon.speciesId);
               resetMoves(pokemon);
               resetTarget(pokemon);
-              if (!pokemon.defaultGreatLeagueIvs) {
+              if (!pokemon.defaultLeagueIvs) {
                 setIvSource("user-entered");
               } else {
-                const defaultIvs = pokemon.defaultGreatLeagueIvs;
+                const defaultIvs = pokemon.defaultLeagueIvs;
                 setAttackIv(String(defaultIvs.attack));
                 setDefenseIv(String(defaultIvs.defense));
                 setHpIv(String(defaultIvs.hp));
@@ -437,7 +440,7 @@ function InventoryFormFields({
               required
               type="number"
               min="10"
-              max="1500"
+              max={league.cp}
               value={cp}
               onChange={(event) => {
                 setCp(event.target.value);
@@ -463,10 +466,10 @@ function InventoryFormFields({
                 type="radio"
                 name="iv-source"
                 checked={ivSource === "assumed-rank-1"}
-                disabled={!selectedPokemon.defaultGreatLeagueIvs}
+                disabled={!selectedPokemon.defaultLeagueIvs}
                 onChange={() => {
                   setIvSource("assumed-rank-1");
-                  const defaultIvs = selectedPokemon.defaultGreatLeagueIvs;
+                  const defaultIvs = selectedPokemon.defaultLeagueIvs;
                   if (defaultIvs) {
                     setAttackIv(String(defaultIvs.attack));
                     setDefenseIv(String(defaultIvs.defense));
@@ -592,7 +595,7 @@ function InventoryFormFields({
             </>
           ) : (
             <p className="form-helper form-field--wide">
-              Choose a suggestion to load its recommended Great League IVs and
+              Choose a suggestion to load its recommended <LeagueName /> IVs and
               moves.
             </p>
           )}
@@ -662,7 +665,7 @@ function InventoryFormFields({
               <input
                 type="number"
                 min="10"
-                max="1500"
+                max={league.cp}
                 value={targetCp}
                 onChange={(event) => {
                   setTargetCp(event.target.value);
@@ -866,7 +869,7 @@ function InventoryForm(props: InventoryFormProps) {
         (props.existingRecord ?? props.initialRecord)?.speciesId,
     ) ??
     pokemonOptions.find(
-      (pokemon) => pokemon.defaultGreatLeagueIvs !== undefined,
+      (pokemon) => pokemon.defaultLeagueIvs !== undefined,
     ) ??
     pokemonOptions[0];
 
@@ -884,6 +887,7 @@ function InventoryForm(props: InventoryFormProps) {
 }
 
 export function InventoryFormPage() {
+  const league = useLeague();
   const { inventoryId } = useParams();
   const [searchParams] = useSearchParams();
   const location = useLocation();
@@ -939,7 +943,7 @@ export function InventoryFormPage() {
             optional future plan.
           </p>
         }
-        eyebrow="Open Great League inventory"
+        eyebrow={`${league.title} inventory`}
         title={
           isEditing
             ? "Edit Pokémon"

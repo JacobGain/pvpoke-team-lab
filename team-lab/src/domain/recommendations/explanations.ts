@@ -45,7 +45,7 @@ export function explainRecommendation(
 
   if (analysis.safety.score < 60) {
     tradeoffs.push(
-      `Safety scores ${rounded(analysis.safety.score)} against PvPoke’s Great League goal because the team’s published switch scores are low.`,
+      `Safety scores ${rounded(analysis.safety.score)} against PvPoke’s selected league goal because the team’s published switch scores are low.`,
     );
   }
 
