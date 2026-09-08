@@ -53,6 +53,7 @@ jobs:
         run: npm ci
 
       - name: Audit locked dependencies
+        # Report high/critical findings without mutating the lockfile.
         run: npm run audit:security
 
       - name: Lint
@@ -133,7 +134,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: team-lab
-          wranglerVersion: "4.114.0"
+          wranglerVersion: "4.129.1"
           command: >-
             pages deploy dist
             --project-name=pvpoke-team-lab
