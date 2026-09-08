@@ -30,7 +30,7 @@ export const recommendationPartnerScopeSchema = z.enum([
 
 export const recommendationRequestSchema = z
   .object({
-    formatId: z.enum(["great-league", "ultra-league"]),
+    formatId: z.enum(["great-league", "ultra-league", "master-league"]),
     anchors: z.array(recommendationAnchorSchema).min(1).max(2),
     resultCount: z
       .number()

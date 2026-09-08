@@ -119,7 +119,7 @@ function InventoryFormFields({
           initialDefaultIvs,
           initialDefaultIvs.level,
         )
-      : league.cp);
+      : league.cp === 10000 ? 10 : league.cp);
   const initialDefaultMoves = getDefaultMoves(initialPokemon);
   const [speciesId, setSpeciesId] = useState(initialPokemon.speciesId);
   const [buildStatus, setBuildStatus] = useState<"current" | "planned">(
@@ -440,7 +440,7 @@ function InventoryFormFields({
               required
               type="number"
               min="10"
-              max={league.cp}
+              max={league.cp === 10000 ? undefined : league.cp}
               value={cp}
               onChange={(event) => {
                 setCp(event.target.value);
@@ -665,7 +665,7 @@ function InventoryFormFields({
               <input
                 type="number"
                 min="10"
-                max={league.cp}
+                max={league.cp === 10000 ? undefined : league.cp}
                 value={targetCp}
                 onChange={(event) => {
                   setTargetCp(event.target.value);

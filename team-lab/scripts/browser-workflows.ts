@@ -2448,6 +2448,46 @@ async function runCriticalWorkflows(
   invariant(await browser.evaluate(`document.querySelectorAll(".inventory-card").length === ${INVENTORY_SPECIES.length}`), "Great League inventory did not survive switching leagues.");
   console.log("[browser-workflows] Ultra League creation, simulation, persistence, and mobile switching passed");
 
+  await browser.setViewport(1440, 1_000);
+  await browser.setLabeledControl("Active league", "master-league", "select");
+  await browser.waitFor(`document.querySelector("#pvpoke-data-title")?.textContent?.trim() === "Ready" && document.body.textContent?.includes("Open Master League")`, "Master League data");
+  await browser.navigate("/inventory", "Your inventory");
+  invariant(await browser.evaluate(`document.querySelectorAll(".inventory-card").length === 0`), "Great League records leaked into Master League.");
+  await createInventory(browser, ["dragonite", "giratina_altered", "mewtwo"]);
+  await browser.navigate("/teams/new", "Create saved team");
+  await browser.setLabeledControl("Team name", "Master Browser Team", "input");
+  await browser.clickButton("Save team");
+  await browser.waitFor(`document.querySelector(".team-card h2")?.textContent === "Master Browser Team"`, "Master League team persistence");
+  invariant(await browser.evaluate(`document.querySelector(".team-card .context-badge")?.textContent?.trim() === "Master League"`), "Master League team badge is incorrect.");
+  const masterSimulationHref = await browser.evaluate<string>(`[...document.querySelectorAll(".team-card a")].find((link) => link.textContent?.trim() === "Simulate")?.getAttribute("href")`);
+  await browser.navigate(masterSimulationHref, "Master Browser Team");
+  await browser.setLabeledControl("Meta target count", "5", "select");
+  await browser.clickButton("Run exact team matrix");
+  await browser.waitFor(`(() => {
+    const alert = document.querySelector('[role="alert"]');
+    if (alert) throw new Error(alert.textContent);
+    return document.querySelector(".team-scorecard")?.textContent?.includes("35,000");
+  })()`, "Master League exact matrix and bulk goal", ENGINE_TIMEOUT_MS);
+  await browser.navigate("/recommend", "Build around your anchors");
+  await browser.clickButton("Continue to experiment");
+  await browser.setLabeledControl("Results", "1", "select");
+  await browser.setLabeledControl("Meta targets", "5", "select");
+  await browser.clickButton("Generate recommendations");
+  await browser.waitFor(`(() => {
+    const alert = document.querySelector('[role="alert"]');
+    if (alert) throw new Error(alert.textContent);
+    return document.querySelectorAll(".recommendation-result").length > 0;
+  })()`, "Master League exact recommendations", ENGINE_TIMEOUT_MS);
+  await browser.navigate("/catalog", "Rankings");
+  invariant(await browser.evaluate(`localStorage.getItem("team-lab-league") === "master-league" && document.body.textContent?.includes("Master League")`), "League selection did not survive reload.");
+  await browser.setViewport(320);
+  await browser.assertNoHorizontalOverflow("Master League rankings");
+  await browser.evaluate(`document.querySelector('[aria-label="Open navigation menu"]')?.click()`);
+  await browser.setLabeledControl("Active league", "great-league", "select", 1);
+  await browser.navigate("/inventory", "Your inventory");
+  invariant(await browser.evaluate(`document.querySelectorAll(".inventory-card").length === ${INVENTORY_SPECIES.length}`), "Great League inventory did not survive switching leagues.");
+  console.log("[browser-workflows] Master League creation, simulation, persistence, and mobile switching passed");
+
   return {
     buildTarget,
     releaseId,

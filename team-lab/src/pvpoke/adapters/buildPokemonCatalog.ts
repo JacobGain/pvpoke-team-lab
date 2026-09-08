@@ -70,6 +70,15 @@ function createDefaultIvs(
   pokemon: PokemonData,
   cpCap: number,
 ): CatalogIvSpread | undefined {
+  // Match Pokemon.js gamemaster defaults for the uncapped league.
+  if (cpCap === 10000) {
+    return Object.freeze({
+      level: Math.min(pokemon.levelCap ?? 50, 50),
+      attack: 15,
+      defense: 15,
+      hp: 15,
+    });
+  }
   const spread = pokemon.defaultIVs?.[`cp${cpCap}`];
 
   if (!spread) {
@@ -286,7 +295,11 @@ export function buildPokemonCatalog(
       fastMoves: Object.freeze(fastMoves),
       chargedMoves: Object.freeze(chargedMoves),
       defaultLeagueIvs: createDefaultIvs(pokemon, cpCap),
-      defaultIvsByCp: Object.freeze({ 1500: createDefaultIvs(pokemon, 1500), 2500: createDefaultIvs(pokemon, 2500) }),
+      defaultIvsByCp: Object.freeze({
+        1500: createDefaultIvs(pokemon, 1500),
+        2500: createDefaultIvs(pokemon, 2500),
+        10000: createDefaultIvs(pokemon, 10000),
+      }),
       ranking: createRanking(
         rankingData?.ranking,
         rankingData?.rank,

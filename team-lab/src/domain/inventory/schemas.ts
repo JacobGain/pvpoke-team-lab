@@ -1,3 +1,4 @@
+import { LEAGUES } from "@/domain/leagues";
 import { z } from "zod";
 
 import { INVENTORY_RECORD_SCHEMA_VERSION } from "@/domain/schemaVersions";
@@ -8,7 +9,7 @@ const inventoryIdSchema = z.string().uuid();
 const speciesIdSchema = z.string().trim().min(1).max(120);
 const moveIdSchema = z.string().trim().min(1).max(120);
 const ivValueSchema = z.number().int().min(0).max(15);
-const cpSchema = z.number().int().min(10).max(2500);
+const cpSchema = z.number().int().min(10).max(10000);
 
 export const inventoryIvsSchema = z.object({
   attack: ivValueSchema,
@@ -55,7 +56,7 @@ export const plannedInventoryBuildSchema = z.object({
 });
 
 const inventoryMetadataShape = {
-  formatId: z.enum(["great-league", "ultra-league"]).optional(),
+  formatId: z.enum(["great-league", "ultra-league", "master-league"]).optional(),
   schemaVersion: z.literal(INVENTORY_RECORD_SCHEMA_VERSION),
   inventoryId: inventoryIdSchema,
   favorite: z.boolean(),
@@ -86,7 +87,7 @@ export const inventoryPokemonSchema = z
     plannedInventoryPokemonSchema,
   ])
   .superRefine((record, context) => {
-    const cpCap = record.formatId === "ultra-league" ? 2500 : 1500;
+    const cpCap = LEAGUES[record.formatId ?? "great-league"].cp;
     if (record.currentBuild.cp > cpCap) {
       context.addIssue({
         code: "custom",
