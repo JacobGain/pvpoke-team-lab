@@ -1,3 +1,4 @@
+import { ACTIVE_SEASON } from "@/pvpoke/season";
 import {
   gameMasterSchema,
   metaGroupSchema,
@@ -21,7 +22,7 @@ class HttpGameMasterRepository implements GameMasterRepository {
 
   load() {
     return fetchValidatedJson(
-      `${this.baseUrl}/data/gamemaster.min.json`,
+      `${this.baseUrl}/data/gamemaster.min.json?v=${ACTIVE_SEASON.upstreamCommit}`,
       gameMasterSchema,
     );
   }
@@ -32,7 +33,7 @@ class HttpRankingRepository implements RankingRepository {
 
   load({ cup, category, cp }: RankingRequest) {
     return fetchValidatedJson(
-      `${this.baseUrl}/data/rankings/${encodeURIComponent(cup)}/${encodeURIComponent(category)}/rankings-${String(cp)}.json`,
+      `${this.baseUrl}/data/rankings/${encodeURIComponent(cup)}/${encodeURIComponent(category)}/rankings-${String(cp)}.json?v=${ACTIVE_SEASON.upstreamCommit}`,
       rankingCollectionSchema,
     );
   }
@@ -43,7 +44,7 @@ class HttpMetaGroupRepository implements MetaGroupRepository {
 
   load(groupId: string) {
     return fetchValidatedJson(
-      `${this.baseUrl}/data/groups/${encodeURIComponent(groupId)}.json`,
+      `${this.baseUrl}/data/groups/${encodeURIComponent(groupId)}.json?v=${ACTIVE_SEASON.upstreamCommit}`,
       metaGroupSchema,
     );
   }

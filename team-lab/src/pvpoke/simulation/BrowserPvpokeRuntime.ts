@@ -1,3 +1,4 @@
+import { ACTIVE_SEASON } from "@/pvpoke/season";
 import { PVPOKE_ENGINE_SCRIPT_PATHS } from "@/pvpoke/assetPaths";
 import type {
   PvpokeBattle,
@@ -221,7 +222,7 @@ export class BrowserPvpokeRuntime implements PvpokeBattleRuntime {
 
     try {
       for (const scriptPath of PVPOKE_ENGINE_SCRIPT_PATHS) {
-        await loadClassicScript(`${this.baseUrl}/${scriptPath}`);
+        await loadClassicScript(`${this.baseUrl}/${scriptPath}?v=${ACTIVE_SEASON.upstreamCommit}`);
       }
       await waitForGameMaster(globals, this.timeoutMs);
 

@@ -1,3 +1,6 @@
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+import { ACTIVE_SEASON } from "../src/pvpoke/season.ts";
 import { createHash } from "node:crypto";
 import {
   mkdir,
@@ -15,6 +18,9 @@ import {
   PVPOKE_BUNDLED_DATA_PATHS,
   PVPOKE_ENGINE_SCRIPT_PATHS,
 } from "../src/pvpoke/assetPaths.ts";
+
+const executeFile = promisify(execFile);
+const useCheckout = Boolean(process.env.PVPOKE_SOURCE_DIR);
 
 const projectRoot = resolve(import.meta.dirname, "..");
 const sourceDirectory = resolve(
@@ -39,13 +45,28 @@ function sha256(contents: Uint8Array): string {
   return createHash("sha256").update(contents).digest("hex");
 }
 
+async function readSource(path: string): Promise<Buffer> {
+  if (useCheckout) return readFile(resolve(sourceDirectory, path));
+  const gitPath = path === "../LICENSE" ? "LICENSE" : `src/${path}`;
+  try {
+    const result = await executeFile("git", ["show", `${ACTIVE_SEASON.upstreamCommit}:${gitPath}`], {
+      cwd: projectRoot,
+      encoding: "buffer",
+      maxBuffer: 20 * 1024 * 1024,
+    });
+    return result.stdout;
+  } catch (cause) {
+    throw new Error(`Cannot read pinned season source ${gitPath}. Fetch it with: git fetch https://github.com/pvpoke/pvpoke.git ${ACTIVE_SEASON.upstreamBranch}`, { cause });
+  }
+}
+
 async function prepareFile(relativePath: string): Promise<PreparedFile> {
   const sourcePath = resolve(sourceDirectory, relativePath);
   return {
     sourcePath,
     outputPath: resolve(outputDirectory, relativePath),
     relativePath,
-    contents: await readFile(sourcePath),
+    contents: await readSource(relativePath),
   };
 }
 
@@ -58,7 +79,7 @@ async function main(): Promise<void> {
     sourcePath: licensePath,
     outputPath: resolve(outputDirectory, "LICENSE"),
     relativePath: "LICENSE",
-    contents: await readFile(licensePath),
+    contents: await readSource("../LICENSE"),
   });
 
   const byPath = new Map(
@@ -81,7 +102,10 @@ async function main(): Promise<void> {
   metaGroupSchema.parse(JSON.parse(byPath.get("data/groups/ultra.json")!.toString("utf8")));
   rankingCollectionSchema.parse(JSON.parse(byPath.get("data/rankings/all/overall/rankings-10000.json")!.toString("utf8")));
   metaGroupSchema.parse(JSON.parse(byPath.get("data/groups/master.json")!.toString("utf8")));
-  JSON.parse(byPath.get("data/gamemaster.json")!.toString("utf8"));
+  const fullGameMaster = gameMasterSchema.parse(JSON.parse(byPath.get("data/gamemaster.json")!.toString("utf8")));
+  if (JSON.stringify(fullGameMaster) !== JSON.stringify(gameMaster)) {
+    throw new Error("Full and minified Game Master data must match.");
+  }
 
   for (const file of preparedFiles) {
     await mkdir(dirname(file.outputPath), { recursive: true });
@@ -91,7 +115,8 @@ async function main(): Promise<void> {
   const manifest = {
     formatVersion: 1,
     dataVersion: gameMaster.timestamp,
-    source: "PvPoke upstream checkout",
+    source: useCheckout ? "PvPoke source directory override" : "PvPoke pinned season revision",
+    season: useCheckout ? undefined : ACTIVE_SEASON,
     files: Object.fromEntries(
       preparedFiles.map((file) => [
         file.relativePath,

@@ -1601,6 +1601,10 @@ async function runCriticalWorkflows(
     `document.querySelector("#pvpoke-data-title")?.textContent?.trim() === "Ready"`,
     "bundled PvPoke data",
   );
+  invariant(
+    await browser.evaluate(`document.querySelector(".data-grid")?.textContent?.includes("Season 28 · Twilight Trails")`),
+    "The dashboard did not identify Season 28 as active.",
+  );
   const releaseId = await assertBuildTarget(
     browser,
     buildTarget,
@@ -2047,6 +2051,12 @@ async function runCriticalWorkflows(
     "Top-20 saved-team matrix",
     ENGINE_TIMEOUT_MS,
   );
+  invariant(await browser.evaluate(`(() => {
+    const moves = window.GameMaster?.getInstance()?.data?.moves ?? [];
+    const bite = moves.find((move) => move.moveId === "BITE");
+    const bodySlam = moves.find((move) => move.moveId === "BODY_SLAM");
+    return bite?.power === 2 && bite?.energyGain === 4 && bodySlam?.power === 65 && bodySlam?.energy === 40;
+  })()`), "The simulation engine loaded outgoing-season move stats.");
   const savedTeamSimulation = await browser.finishPulse(simulationText);
   invariant(
     savedTeamSimulation.maxMainThreadGapMs <= MAX_MAIN_THREAD_GAP_MS,

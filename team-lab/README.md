@@ -100,16 +100,19 @@ for its mapping and review contract.
 
 ## Updating PvPoke data and engine files
 
-After updating the upstream checkout, regenerate TeamLab’s owned copy:
+TeamLab 0.0.9 uses Season 28, Twilight Trails, as the active season.
+The bundle is pinned to the upstream revision in `src/pvpoke/season.ts`.
+Fetch that branch and regenerate TeamLab’s owned copy:
 
 ```bash
+git fetch https://github.com/pvpoke/pvpoke.git twilight-trails
 npm run sync:pvpoke
 npm run validate:data
 npm test
 npm run build
 ```
 
-The sync command reads `../src` by default, validates all JSON inputs before
+The sync command reads the pinned revision from Git by default, validates all JSON inputs before
 overwriting anything, and records file hashes in
 `public/vendor/pvpoke/manifest.json`. To import from another checkout, set
 `PVPOKE_SOURCE_DIR` to its `src` directory. The upstream source tree is never
