@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import {
   Archive,
   Boxes,
+  ListPlus,
   Plus,
   SearchX,
   Users,
@@ -104,6 +105,10 @@ export function InventoryPage() {
               <Plus size={18} />
               Add Pokémon
             </Link>
+            <Link className="secondary-link" to="/inventory/bulk-add">
+              <ListPlus size={18} />
+              Bulk add
+            </Link>
             <Link className="secondary-link" to="/teams">
               <Users size={18} />
               Saved teams
@@ -119,6 +124,9 @@ export function InventoryPage() {
             <strong>{inventoryResult.data?.length ?? 0}</strong>
             <span>Pokémon in inventory</span>
             <small>Exact builds and future plans</small>
+            <small>
+              Stored only in this browser until its site data is cleared.
+            </small>
           </div>
         }
         description={

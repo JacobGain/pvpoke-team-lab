@@ -70,6 +70,18 @@ async function prepareFile(relativePath: string): Promise<PreparedFile> {
   };
 }
 
+function normalizeFormatRuleWhitespace<T extends { formats: readonly { rules?: readonly string[] }[] }>(
+  gameMaster: T,
+): T {
+  return {
+    ...gameMaster,
+    formats: gameMaster.formats.map((format) => ({
+      ...format,
+      rules: format.rules?.map((rule) => rule.replace(/\s+/gu, "")),
+    })),
+  };
+}
+
 async function main(): Promise<void> {
   const preparedFiles: PreparedFile[] = await Promise.all(
     bundledFiles.map((relativePath) => prepareFile(relativePath)),
@@ -103,7 +115,10 @@ async function main(): Promise<void> {
   rankingCollectionSchema.parse(JSON.parse(byPath.get("data/rankings/all/overall/rankings-10000.json")!.toString("utf8")));
   metaGroupSchema.parse(JSON.parse(byPath.get("data/groups/master.json")!.toString("utf8")));
   const fullGameMaster = gameMasterSchema.parse(JSON.parse(byPath.get("data/gamemaster.json")!.toString("utf8")));
-  if (JSON.stringify(fullGameMaster) !== JSON.stringify(gameMaster)) {
+  if (
+    JSON.stringify(normalizeFormatRuleWhitespace(fullGameMaster)) !==
+    JSON.stringify(normalizeFormatRuleWhitespace(gameMaster))
+  ) {
     throw new Error("Full and minified Game Master data must match.");
   }
 

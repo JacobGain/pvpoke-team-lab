@@ -70,6 +70,13 @@ export class DexieInventoryRepository implements InventoryRepository {
     }
   }
 
+  async createMany(records: readonly InventoryPokemon[]): Promise<void> {
+    const validatedRecords = records.map((record) =>
+      inventoryPokemonSchema.parse(record),
+    );
+    await this.database.inventory.bulkAdd(validatedRecords);
+  }
+
   async update(record: InventoryPokemon): Promise<void> {
     const validatedRecord = inventoryPokemonSchema.parse(record);
     const updatedCount = await this.database.inventory.update(

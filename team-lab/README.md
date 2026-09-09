@@ -100,12 +100,12 @@ for its mapping and review contract.
 
 ## Updating PvPoke data and engine files
 
-TeamLab 1.0.1 uses Season 28, Twilight Trails, as the active season.
+TeamLab 1.0.2 uses Season 28, Twilight Trails, as the active season.
 The bundle is pinned to the upstream revision in `src/pvpoke/season.ts`.
 Fetch that branch and regenerate TeamLab’s owned copy:
 
 ```bash
-git fetch https://github.com/pvpoke/pvpoke.git twilight-trails
+git fetch https://github.com/pvpoke/pvpoke.git master
 npm run sync:pvpoke
 npm run validate:data
 npm test
@@ -145,6 +145,7 @@ the performance budget.
 
 ## Documentation
 
+- [1.0.2 release notes](docs/RELEASE-1.0.2.md)
 - [Local user guide](docs/USER-GUIDE.md)
 - [Deployment build targets](docs/DEPLOYMENT-BUILDS.md)
 - [Cloudflare Pages deployment and cutover](docs/CLOUDFLARE-DEPLOYMENT.md)

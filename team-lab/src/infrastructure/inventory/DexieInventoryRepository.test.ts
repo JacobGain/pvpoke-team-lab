@@ -87,6 +87,20 @@ describe("DexieInventoryRepository", () => {
     ).rejects.toBeInstanceOf(InventoryRecordNotFoundError);
   });
 
+  it("creates a batch atomically", async () => {
+    const first = createRecord();
+    const second = {
+      ...first,
+      inventoryId: "fd17fe2f-1d87-4879-8850-d95476cd9070",
+    };
+
+    await repository.createMany([first, second]);
+    expect(await repository.count()).toBe(2);
+
+    await expect(repository.createMany([second, first])).rejects.toBeDefined();
+    expect(await repository.count()).toBe(2);
+  });
+
   it("surfaces unsupported stored data without deleting it", async () => {
     await database.inventory.put({
       ...createRecord(),

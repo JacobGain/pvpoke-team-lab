@@ -59,6 +59,20 @@ export function useCreateInventoryPokemon() {
   });
 }
 
+export function useCreateManyInventoryPokemon() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (records: readonly InventoryPokemon[]) =>
+      inventoryRepository.createMany(records),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: inventoryQueryKeys.all,
+      });
+    },
+  });
+}
+
 export function useUpdateInventoryPokemon() {
   const queryClient = useQueryClient();
 

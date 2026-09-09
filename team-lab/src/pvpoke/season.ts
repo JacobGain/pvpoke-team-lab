@@ -2,6 +2,6 @@
 export const ACTIVE_SEASON = {
   number: 28,
   title: "Twilight Trails",
-  upstreamBranch: "twilight-trails",
-  upstreamCommit: "d4c5b76a76fbd13194b72113d7ecdd495dc805be",
+  upstreamBranch: "master",
+  upstreamCommit: "a93147bf1f2e829758958bfb5b37e56bbadc9678",
 } as const;

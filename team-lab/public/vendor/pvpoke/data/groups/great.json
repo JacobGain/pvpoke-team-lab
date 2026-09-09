@@ -2,13 +2,18 @@
     {
         "speciesId": "altaria",
         "fastMove": "DRAGON_BREATH",
-        "chargedMoves": ["SKY_ATTACK", "FLAMETHROWER"]
+        "chargedMoves": ["MOONBLAST", "FLAMETHROWER"]
     },
     {
         "speciesId": "annihilape_shadow",
         "fastMove": "LOW_KICK",
         "chargedMoves": ["RAGE_FIST", "ICE_PUNCH"],
         "shadowType": "shadow"
+    },
+    {
+        "speciesId": "araquanid",
+        "fastMove": "INFESTATION",
+        "chargedMoves": ["WATER_PULSE", "MIRROR_COAT"]
     },
     {
         "speciesId": "azumarill",
@@ -49,6 +54,11 @@
         "speciesId": "cramorant",
         "fastMove": "PECK",
         "chargedMoves": ["DIVE", "FLY"]
+    },
+    {
+        "speciesId": "deoxys_defense",
+        "fastMove": "LOW_KICK",
+        "chargedMoves": ["PSYCHO_BOOST", "THUNDERBOLT"]
     },
     {
         "speciesId": "dewgong",
@@ -207,7 +217,13 @@
     {
         "speciesId": "snorlax",
         "fastMove": "PSYWAVE",
-        "chargedMoves": ["BODY_SLAM", "SUPER_POWER"]
+        "chargedMoves": ["BODY_SLAM", "EARTHQUAKE"]
+    },
+    {
+        "speciesId": "snorlax_shadow",
+        "fastMove": "PSYWAVE",
+        "chargedMoves": ["BODY_SLAM", "SUPER_POWER"],
+        "shadowType": "shadow"
     },
     {
         "speciesId": "stunfisk",

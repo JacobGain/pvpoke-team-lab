@@ -9,7 +9,7 @@ import { ACTIVE_SEASON } from "./season";
 describe("active Season 28 bundle", () => {
   it("identifies the pinned Twilight Trails revision", () => {
     expect(manifest.season).toEqual(ACTIVE_SEASON);
-    expect(gameMaster.timestamp).toBe("2026-09-07 22:36:29");
+    expect(gameMaster.timestamp).toBe("2026-09-09 01:44:57");
     expect(manifest.dataVersion).toBe(gameMaster.timestamp);
   });
 
@@ -19,7 +19,8 @@ describe("active Season 28 bundle", () => {
     expect(moves.get("BODY_SLAM")).toMatchObject({ power: 65, energy: 40 });
     expect(moves.get("BULLDOZE")).toMatchObject({ power: 80, energy: 55 });
     expect(moves.get("MOONBLAST")).toMatchObject({ power: 90, energy: 50 });
-    expect(moves.get("SHADOW_FORCE")).toMatchObject({ energy: 70 });
+    expect(moves.get("MIRROR_COAT")).toMatchObject({ energy: 45 });
+    expect(moves.get("SHADOW_FORCE")).toMatchObject({ energy: 65 });
   });
 
   it("ships the matching rankings for every supported league", () => {

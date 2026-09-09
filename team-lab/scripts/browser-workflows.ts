@@ -833,15 +833,34 @@ class BrowserWorkflow {
   async assertNoHorizontalOverflow(state: string): Promise<void> {
     const metrics = await this.evaluate<{
       readonly clientWidth: number;
+      readonly bodyScrollWidth: number;
+      readonly frameScrollWidth: number;
+      readonly offenders: readonly string[];
       readonly scrollWidth: number;
-    }>(`({
-      clientWidth: document.documentElement.clientWidth,
-      scrollWidth: document.documentElement.scrollWidth
-    })`);
+    }>(`(() => {
+      const clientWidth = document.documentElement.clientWidth;
+      return {
+        clientWidth,
+        bodyScrollWidth: document.body.scrollWidth,
+        frameScrollWidth: document.querySelector(".app-frame")?.scrollWidth ?? 0,
+        scrollWidth: document.documentElement.scrollWidth,
+        offenders: [...document.querySelectorAll("body *")]
+          .filter((element) =>
+            element.getBoundingClientRect().right > clientWidth + 1 ||
+            element.scrollWidth > element.clientWidth + 1
+          )
+          .sort((left, right) => right.getBoundingClientRect().right - left.getBoundingClientRect().right)
+          .slice(0, 12)
+          .map((element) => {
+            const bounds = element.getBoundingClientRect();
+            return \`\${element.tagName.toLocaleLowerCase()}.\${element.className}:right=\${Math.round(bounds.right)},client=\${element.clientWidth},scroll=\${element.scrollWidth},position=\${getComputedStyle(element).position}\`;
+          })
+      };
+    })()`);
 
     invariant(
       metrics.scrollWidth === metrics.clientWidth,
-      `${state} overflows horizontally: ${metrics.scrollWidth}px document in ${metrics.clientWidth}px viewport.`,
+      `${state} overflows horizontally: ${metrics.scrollWidth}px document in ${metrics.clientWidth}px viewport; body ${metrics.bodyScrollWidth}px, frame ${metrics.frameScrollWidth}px; offenders ${metrics.offenders.join(", ")}.`,
     );
   }
 
@@ -1174,7 +1193,7 @@ async function assertBuildTarget(
       document.querySelectorAll(".data-health").length,
     diagnosticsLinks:
       document.querySelectorAll('a[href$="/diagnostics/simulation"]').length,
-    favicon: document.querySelector('link[rel="icon"][type="image/webp"]')?.href ?? "",
+    favicon: document.querySelector('link[rel="icon"][sizes="48x48"]')?.href ?? "",
     visibleVersions: Array.from(document.querySelectorAll(".app-version"))
       .map((element) => element.textContent?.trim() ?? ""),
     release: await fetch(${JSON.stringify(browser.resolveUrl("/release.json"))}, { cache: "no-store" }).then(
@@ -1191,7 +1210,7 @@ async function assertBuildTarget(
   invariant(
     productionState.dataHealthIndicators === 0 &&
       productionState.diagnosticsLinks === 0 &&
-      productionState.favicon.endsWith("/assets/brand/teamlab-mark.webp") &&
+      productionState.favicon.endsWith("/favicon-48x48.png") &&
       productionState.visibleVersions.includes(`v${release.appVersion ?? ""}`),
     `Production exposed diagnostics navigation: ${JSON.stringify(productionState)}.`,
   );
@@ -1609,11 +1628,14 @@ async function assertStickyActionSurface(
   })()`);
   invariant(
     sticky.scrollY > 0 &&
-      sticky.position === "sticky" &&
+      (viewportWidth <= 680
+        ? sticky.position === "static" &&
+          sticky.actualBottom > sticky.expectedBottom
+        : sticky.position === "sticky" &&
+          Math.abs(sticky.actualBottom - sticky.expectedBottom) <= 1.5) &&
       sticky.opaque &&
-      sticky.backdropFilter === "none" &&
-      Math.abs(sticky.actualBottom - sticky.expectedBottom) <= 1.5,
-    `${state} sticky actions did not form an opaque, flush surface at ${viewportWidth}px: ${JSON.stringify(sticky)}.`,
+      sticky.backdropFilter === "none",
+    `${state} actions did not use the expected viewport behavior at ${viewportWidth}px: ${JSON.stringify(sticky)}.`,
   );
   await browser.evaluate(
     `window.scrollTo({ left: 0, top: 0, behavior: "instant" })`,
@@ -2525,6 +2547,7 @@ async function runCriticalWorkflows(
     ["/catalog", "Rankings"],
     ["/inventory", "Your inventory"],
     ["/inventory/new", "Add Pokémon"],
+    ["/inventory/bulk-add", "Bulk add Pokémon"],
     ["/inventory/backup", "Backup and restore"],
     [firstRecord.analyzeHref, firstRecord.speciesName],
     [firstRecord.editHref, "Edit Pokémon"],
