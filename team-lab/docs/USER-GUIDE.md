@@ -1,6 +1,6 @@
 # TeamLab Local User Guide
 
-TeamLab 1.0.1 treats **Season 28 — Twilight Trails** as the active season for
+TeamLab 1.0.2 treats **Season 28 — Twilight Trails** as the active season for
 rankings, recommended moves, meta opponents, and simulations. The dashboard
 identifies the active season. Existing inventory and saved teams remain stored;
 re-run analyses to evaluate them against the new season. There is no preview
@@ -73,6 +73,13 @@ contains `public/vendor/pvpoke/`.
 
 ### Keep the same browser origin
 
+Inventory and saved teams stay in IndexedDB on the current device and browser
+profile. TeamLab does not upload them and does not set an automatic expiration.
+They remain available until the browser, operating system, or user clears that
+site's data, or the inventory is reset in TeamLab. Private browsing and some
+mobile storage-pressure policies may remove data sooner, so export backups
+regularly.
+
 IndexedDB is isolated by browser origin. These are different local data stores:
 
 ```text
@@ -142,6 +149,19 @@ The catalog is reference data. Adding a Pokémon to inventory happens through
 ## Build your inventory
 
 Open **Open your inventory**, then choose **Add Pokémon**.
+
+For a large roster, choose **Bulk add** instead. Paste one Pokémon name or
+PvPoke species ID per line (commas and semicolons also work), review any names
+that could not be matched, and add the recognized entries together. While
+typing, autocomplete suggestions show the friendly form name and PvPoke ID;
+for example, `zacian`, `zacian hero`, or `zacian_hero` suggests
+**Zacian (Hero)**. Choosing a suggestion completes only the entry around the
+cursor. Arrow-key navigation keeps the active option visible inside the list,
+and selection returns focus to the input so another entry can be added without
+reopening the keyboard. Bulk-added
+records use PvPoke's default rank-one IV spread, calculated CP, and recommended
+moves for the selected league. Edit individual records afterward when exact
+build details matter. Repeated names intentionally create repeated records.
 
 ### Current Pokémon
 

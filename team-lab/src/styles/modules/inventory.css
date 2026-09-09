@@ -439,6 +439,121 @@
   font-weight: 750;
 }
 
+.bulk-add-panel textarea {
+  font-size: 1rem;
+  resize: vertical;
+}
+
+.bulk-add-autocomplete {
+  position: relative;
+}
+
+.bulk-add-suggestions {
+  display: grid;
+  max-height: min(18rem, 40dvh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-padding: 0.45rem;
+  -webkit-overflow-scrolling: touch;
+  padding: 0.45rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 0.75rem;
+  background: #ffffff;
+  box-shadow: var(--shadow-md);
+}
+
+.bulk-add-suggestions > small {
+  padding: 0.45rem 0.65rem;
+  color: var(--ink-500);
+}
+
+.bulk-add-suggestions button {
+  display: flex;
+  min-height: 3rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.65rem 0.75rem;
+  border: 0;
+  border-radius: 0.6rem;
+  color: var(--ink-900);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.bulk-add-suggestions button:hover,
+.bulk-add-suggestions .bulk-add-suggestion--active,
+.bulk-add-suggestions button:focus-visible {
+  color: var(--lab-700);
+  background: var(--lab-100);
+}
+
+.bulk-add-suggestions button small {
+  color: var(--ink-500);
+  font-weight: 600;
+}
+
+@media (max-width: 520px) {
+  .bulk-add-suggestions button {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+}
+
+.bulk-add-preview {
+  display: grid;
+  gap: 1rem;
+}
+
+.bulk-add-matches,
+.bulk-add-issues {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bulk-add-matches li,
+.bulk-add-issues li {
+  padding: 0.7rem 0.8rem;
+  border-radius: 0.7rem;
+}
+
+.bulk-add-matches li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.1rem 0.5rem;
+  color: #11663b;
+  background: #e5f7ed;
+}
+
+.bulk-add-matches small {
+  grid-column: 2;
+  color: #52607a;
+}
+
+.bulk-add-issues li {
+  color: #8f2525;
+  background: #fceaea;
+}
+
+.bulk-add-preview-toggle {
+  justify-self: start;
+  min-height: 2.75rem;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 0.7rem;
+  color: var(--lab-700);
+  background: #ffffff;
+  cursor: pointer;
+  font-weight: 750;
+}
+
 .backup-section {
   display: flex;
   align-items: center;
@@ -456,6 +571,12 @@
   max-width: 42rem;
   color: #52607a;
   line-height: 1.6;
+}
+
+.storage-protection-section .storage-protection-status {
+  margin-bottom: 0;
+  color: var(--ink-700);
+  font-weight: 700;
 }
 
 .backup-section button,

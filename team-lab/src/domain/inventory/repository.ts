@@ -15,6 +15,7 @@ export interface InventoryRepository {
   list(): Promise<readonly InventoryPokemon[]>;
   get(inventoryId: string): Promise<InventoryPokemon | undefined>;
   create(record: InventoryPokemon): Promise<void>;
+  createMany(records: readonly InventoryPokemon[]): Promise<void>;
   update(record: InventoryPokemon): Promise<void>;
   delete(inventoryId: string): Promise<void>;
   count(): Promise<number>;

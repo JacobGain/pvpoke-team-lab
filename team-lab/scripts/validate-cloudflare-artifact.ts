@@ -12,12 +12,16 @@ if (!outputArgument) {
 }
 
 const outputDirectory = resolve(outputArgument);
-const [indexHtml, headersPolicy, robotsText, sitemapXml, securityText] = await Promise.all([
+const [indexHtml, headersPolicy, robotsText, sitemapXml, securityText, legacySecurityText, favicon48, favicon96, faviconIco] = await Promise.all([
   readFile(resolve(outputDirectory, "index.html"), "utf8"),
   readFile(resolve(outputDirectory, "_headers"), "utf8"),
   readFile(resolve(outputDirectory, "robots.txt"), "utf8"),
   readFile(resolve(outputDirectory, "sitemap.xml"), "utf8"),
   readFile(resolve(outputDirectory, ".well-known/security.txt"), "utf8"),
+  readFile(resolve(outputDirectory, "security.txt"), "utf8"),
+  readFile(resolve(outputDirectory, "favicon-48x48.png")),
+  readFile(resolve(outputDirectory, "favicon-96x96.png")),
+  readFile(resolve(outputDirectory, "favicon.ico")),
 ]);
 
 if (!indexHtml.includes('<div id="root"></div>')) {
@@ -33,7 +37,9 @@ const requiredSeoFragments = [
   'property="og:title"',
   'name="twitter:card"',
   'rel="icon"',
-  'type="image/webp"',
+  'type="image/png" sizes="48x48" href="/favicon-48x48.png"',
+  'type="image/png" sizes="96x96" href="/favicon-96x96.png"',
+  'type="image/x-icon" sizes="any" href="/favicon.ico"',
 ];
 const missingSeoFragments = requiredSeoFragments.filter(
   (fragment) => !indexHtml.includes(fragment),
@@ -70,8 +76,15 @@ const expiresAt = Date.parse(expiresMatch?.[1] ?? "");
 const minimumExpiry = Date.now() + 30 * 24 * 60 * 60 * 1_000;
 const maximumExpiry = Date.now() + 366 * 24 * 60 * 60 * 1_000;
 
+function pngDimensions(contents: Buffer): readonly [number, number] {
+  const signature = contents.subarray(0, 8).toString("hex");
+  if (signature !== "89504e470d0a1a0a") return [0, 0];
+  return [contents.readUInt32BE(16), contents.readUInt32BE(20)];
+}
+
 if (
   missingSecurityTextFragments.length > 0 ||
+  legacySecurityText !== securityText ||
   !Number.isFinite(expiresAt) ||
   expiresAt < minimumExpiry ||
   expiresAt > maximumExpiry
@@ -79,6 +92,18 @@ if (
   throw new Error(
     "The RFC 9116 security.txt contact, policy, canonical URL, or expiration is invalid.",
   );
+}
+
+if (
+  pngDimensions(favicon48).join("x") !== "48x48" ||
+  pngDimensions(favicon96).join("x") !== "96x96" ||
+  faviconIco.readUInt16LE(0) !== 0 ||
+  faviconIco.readUInt16LE(2) !== 1 ||
+  faviconIco.readUInt16LE(4) < 1 ||
+  faviconIco[6] !== 48 ||
+  faviconIco[7] !== 48
+) {
+  throw new Error("The PNG and ICO favicon fallbacks are missing or invalid.");
 }
 
 const requiredHeaderPolicyFragments = [
@@ -97,6 +122,7 @@ const requiredHeaderPolicyFragments = [
   "X-Frame-Options: DENY",
   "X-Permitted-Cross-Domain-Policies: none",
   "/.well-known/security.txt",
+  "/security.txt",
   "Content-Type: text/plain; charset=utf-8",
   "/vendor/pvpoke/data/*",
   "Cache-Control: public, max-age=31536000, immutable",
@@ -120,10 +146,11 @@ if (missingHeaderPolicyFragments.length > 0) {
 
 if (
   headersPolicy.includes("script-src 'self' 'unsafe-inline'") ||
+  headersPolicy.includes("style-src 'self' 'unsafe-inline'") ||
   headersPolicy.includes("'unsafe-eval'")
 ) {
   throw new Error(
-    "The Cloudflare Pages script policy must not permit inline or evaluated scripts.",
+    "The Cloudflare Pages policy must not permit inline styles, inline scripts, or evaluated scripts.",
   );
 }
 
@@ -133,8 +160,14 @@ const entries = await readdir(outputDirectory, {
 });
 const files = entries.filter((entry) => entry.isFile());
 
-const nonWebpRasterImages = files.filter((file) =>
-  /\.(?:avif|gif|jpe?g|png)$/i.test(file.name),
+const allowedRasterFallbacks = new Set([
+  "favicon-48x48.png",
+  "favicon-96x96.png",
+]);
+const nonWebpRasterImages = files.filter(
+  (file) =>
+    /\.(?:avif|gif|jpe?g|png)$/i.test(file.name) &&
+    !allowedRasterFallbacks.has(file.name),
 );
 if (nonWebpRasterImages.length > 0) {
   throw new Error(

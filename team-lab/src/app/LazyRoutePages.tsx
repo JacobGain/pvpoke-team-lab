@@ -1,5 +1,11 @@
 import { lazy, Suspense, type ReactNode } from "react";
 
+export const BulkInventoryPage = lazy(() =>
+  import("@/features/inventory/BulkInventoryPage").then((module) => ({
+    default: module.BulkInventoryPage,
+  })),
+);
+
 export const InventoryAnalysisPage = lazy(() =>
   import("@/features/analysis/InventoryAnalysisPage").then((module) => ({
     default: module.InventoryAnalysisPage,

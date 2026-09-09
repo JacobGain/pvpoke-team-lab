@@ -11,13 +11,14 @@ import {
   Users,
 } from "lucide-react";
 import { Link } from "react-router";
+import { useQuery } from "@tanstack/react-query";
 
 import { PokemonSprite } from "@/components/PokemonSprite";
 import { useInventoryList } from "@/features/inventory/inventoryQueries";
-import { usePokemonCatalog } from "@/features/meta/usePokemonCatalog";
+import { dashboardDataQueryOptions } from "@/features/meta/dashboardData";
 import { useSavedTeamList } from "@/features/teams/savedTeamQueries";
 import { ACTIVE_SEASON } from "@/pvpoke/season";
-import { formatMoveList } from "@/utils/formatters";
+import { formatIdentifier, formatMoveList } from "@/utils/formatters";
 
 function MetricCard({
   label,
@@ -53,7 +54,7 @@ export function HomePage() {
   const league = useLeague();
   const inventoryResult = useInventoryList();
   const teamsResult = useSavedTeamList();
-  const catalogResult = usePokemonCatalog();
+  const dashboardDataResult = useQuery(dashboardDataQueryOptions);
   const inventory = inventoryResult.data ?? [];
   const teams = teamsResult.data ?? [];
   const currentCount = inventory.filter(
@@ -66,14 +67,7 @@ export function HomePage() {
   const recent = [...inventory]
     .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))
     .slice(0, 4);
-  const metaWatch = [...(catalogResult.data?.entries ?? [])]
-    .filter((entry) => entry.ranking !== undefined)
-    .sort(
-      (left, right) =>
-        (left.ranking?.rank ?? Number.POSITIVE_INFINITY) -
-        (right.ranking?.rank ?? Number.POSITIVE_INFINITY),
-    )
-    .slice(0, 3);
+  const metaWatch = dashboardDataResult.data?.leaders[league.id] ?? [];
 
   const nextAction =
     inventory.length === 0
@@ -156,7 +150,7 @@ export function HomePage() {
               {metaWatch.map((pokemon) => (
                 <li key={pokemon.speciesId}>
                   <span className="dashboard-meta-watch__rank">
-                    #{pokemon.ranking?.rank}
+                    #{pokemon.rank}
                   </span>
                   <PokemonSprite
                     eager
@@ -169,7 +163,7 @@ export function HomePage() {
                     <small>{pokemon.types.join(" · ")}</small>
                     <span>
                       {formatMoveList(
-                        pokemon.ranking?.recommendedMoveIds ?? [],
+                        pokemon.recommendedMoveIds,
                         " · ",
                       )}
                     </span>
@@ -263,10 +257,9 @@ export function HomePage() {
         {recent.length > 0 ? (
           <div className="recent-grid">
             {recent.map((record) => {
-              const pokemon = catalogResult.data?.entries.find(
-                (entry) => entry.speciesId === record.speciesId,
-              );
-              const name = pokemon?.speciesName ?? record.speciesId;
+              const name =
+                dashboardDataResult.data?.speciesNames[record.speciesId] ??
+                formatIdentifier(record.speciesId);
               return (
                 <Link
                   className="recent-pokemon"
