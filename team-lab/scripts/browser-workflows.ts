@@ -1872,6 +1872,37 @@ async function runCriticalWorkflows(
     1_000,
     ".selected-pokemon-preview",
   );
+  await browser.setLabeledControl(
+    "Species, form, and Shadow state",
+    "azum",
+    "input",
+  );
+  await browser.waitFor(
+    `Boolean(document.querySelector('.pokemon-combobox__option[data-species-id="azumarill"]'))`,
+    "Azumarill touch suggestion",
+  );
+  const touchSuggestionPressed = await browser.evaluate<boolean>(`(() => {
+    const option = document.querySelector(
+      '.pokemon-combobox__option[data-species-id="azumarill"]'
+    );
+    if (!(option instanceof HTMLButtonElement)) return false;
+    option.dispatchEvent(new PointerEvent("pointerdown", {
+      bubbles: true,
+      cancelable: true,
+      pointerId: 1,
+      pointerType: "touch",
+      isPrimary: true
+    }));
+    return true;
+  })()`);
+  invariant(
+    touchSuggestionPressed,
+    "The Azumarill touch suggestion could not be pressed.",
+  );
+  await browser.waitFor(
+    `document.querySelector('[role="combobox"]')?.getAttribute("data-selected-species-id") === "azumarill"`,
+    "touch-selected Azumarill",
+  );
   await browser.setViewport(1440, 1_000);
 
   await createInventory(browser);

@@ -141,6 +141,12 @@ export function PokemonCombobox({
                 key={pokemon.speciesId}
                 onClick={() => choose(pokemon)}
                 onMouseEnter={() => setActiveIndex(index)}
+                onPointerDown={(event) => {
+                  if (event.pointerType !== "mouse") {
+                    event.preventDefault();
+                    choose(pokemon);
+                  }
+                }}
                 role="option"
                 type="button"
               >
