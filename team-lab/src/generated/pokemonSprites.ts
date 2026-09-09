@@ -300,7 +300,7 @@ export const pokemonSpriteManifest: Readonly<
   "basculin": {
     "path": "/assets/pokemon/550.webp",
     "pokeApiId": 550,
-    "match": "base-fallback"
+    "match": "exact"
   },
   "bastiodon": {
     "path": "/assets/pokemon/411.webp",
@@ -528,19 +528,19 @@ export const pokemonSpriteManifest: Readonly<
     "match": "exact"
   },
   "burmy_plant": {
-    "path": "/assets/pokemon/412.webp",
+    "path": "/assets/pokemon/go-burmy_plant.webp",
     "pokeApiId": 412,
-    "match": "base-fallback"
+    "match": "exact"
   },
   "burmy_sandy": {
-    "path": "/assets/pokemon/412.webp",
+    "path": "/assets/pokemon/go-burmy_sandy.webp",
     "pokeApiId": 412,
-    "match": "base-fallback"
+    "match": "exact"
   },
   "burmy_trash": {
-    "path": "/assets/pokemon/412.webp",
+    "path": "/assets/pokemon/go-burmy_trash.webp",
     "pokeApiId": 412,
-    "match": "base-fallback"
+    "match": "exact"
   },
   "butterfree": {
     "path": "/assets/pokemon/12.webp",
@@ -703,14 +703,14 @@ export const pokemonSpriteManifest: Readonly<
     "match": "exact"
   },
   "cherrim_overcast": {
-    "path": "/assets/pokemon/421.webp",
+    "path": "/assets/pokemon/go-cherrim_overcast.webp",
     "pokeApiId": 421,
-    "match": "base-fallback"
+    "match": "exact"
   },
   "cherrim_sunny": {
-    "path": "/assets/pokemon/421.webp",
+    "path": "/assets/pokemon/go-cherrim_sunny.webp",
     "pokeApiId": 421,
-    "match": "base-fallback"
+    "match": "exact"
   },
   "cherubi": {
     "path": "/assets/pokemon/420.webp",
@@ -983,9 +983,9 @@ export const pokemonSpriteManifest: Readonly<
     "match": "exact"
   },
   "darmanitan_galarian_standard": {
-    "path": "/assets/pokemon/555.webp",
-    "pokeApiId": 555,
-    "match": "base-fallback"
+    "path": "/assets/pokemon/10177.webp",
+    "pokeApiId": 10177,
+    "match": "exact"
   },
   "darmanitan_standard": {
     "path": "/assets/pokemon/555.webp",
@@ -1055,7 +1055,7 @@ export const pokemonSpriteManifest: Readonly<
   "deoxys": {
     "path": "/assets/pokemon/386.webp",
     "pokeApiId": 386,
-    "match": "base-fallback"
+    "match": "exact"
   },
   "deoxys_attack": {
     "path": "/assets/pokemon/10001.webp",
@@ -1260,7 +1260,7 @@ export const pokemonSpriteManifest: Readonly<
   "dudunsparce": {
     "path": "/assets/pokemon/982.webp",
     "pokeApiId": 982,
-    "match": "base-fallback"
+    "match": "exact"
   },
   "dugtrio": {
     "path": "/assets/pokemon/51.webp",
@@ -1610,7 +1610,7 @@ export const pokemonSpriteManifest: Readonly<
   "frillish": {
     "path": "/assets/pokemon/592.webp",
     "pokeApiId": 592,
-    "match": "base-fallback"
+    "match": "exact"
   },
   "froakie": {
     "path": "/assets/pokemon/656.webp",
@@ -1713,24 +1713,24 @@ export const pokemonSpriteManifest: Readonly<
     "match": "exact"
   },
   "genesect_burn": {
-    "path": "/assets/pokemon/649.webp",
+    "path": "/assets/pokemon/go-genesect_burn.webp",
     "pokeApiId": 649,
-    "match": "base-fallback"
+    "match": "exact"
   },
   "genesect_chill": {
-    "path": "/assets/pokemon/649.webp",
+    "path": "/assets/pokemon/go-genesect_chill.webp",
     "pokeApiId": 649,
-    "match": "base-fallback"
+    "match": "exact"
   },
   "genesect_douse": {
-    "path": "/assets/pokemon/649.webp",
+    "path": "/assets/pokemon/go-genesect_douse.webp",
     "pokeApiId": 649,
-    "match": "base-fallback"
+    "match": "exact"
   },
   "genesect_shock": {
-    "path": "/assets/pokemon/649.webp",
+    "path": "/assets/pokemon/go-genesect_shock.webp",
     "pokeApiId": 649,
-    "match": "base-fallback"
+    "match": "exact"
   },
   "gengar": {
     "path": "/assets/pokemon/94.webp",
@@ -2315,7 +2315,7 @@ export const pokemonSpriteManifest: Readonly<
   "jellicent": {
     "path": "/assets/pokemon/593.webp",
     "pokeApiId": 593,
-    "match": "base-fallback"
+    "match": "exact"
   },
   "jigglypuff": {
     "path": "/assets/pokemon/39.webp",
@@ -2935,7 +2935,7 @@ export const pokemonSpriteManifest: Readonly<
   "maushold": {
     "path": "/assets/pokemon/925.webp",
     "pokeApiId": 925,
-    "match": "base-fallback"
+    "match": "exact"
   },
   "mawile": {
     "path": "/assets/pokemon/303.webp",
@@ -2990,7 +2990,7 @@ export const pokemonSpriteManifest: Readonly<
   "meowstic": {
     "path": "/assets/pokemon/678.webp",
     "pokeApiId": 678,
-    "match": "base-fallback"
+    "match": "exact"
   },
   "meowstic_female": {
     "path": "/assets/pokemon/10025.webp",
@@ -3048,9 +3048,9 @@ export const pokemonSpriteManifest: Readonly<
     "match": "exact"
   },
   "mewtwo_armored": {
-    "path": "/assets/pokemon/150.webp",
+    "path": "/assets/pokemon/go-mewtwo_armored.webp",
     "pokeApiId": 150,
-    "match": "base-fallback"
+    "match": "exact"
   },
   "mewtwo_mega_x": {
     "path": "/assets/pokemon/10043.webp",
@@ -3095,7 +3095,7 @@ export const pokemonSpriteManifest: Readonly<
   "mimikyu": {
     "path": "/assets/pokemon/778.webp",
     "pokeApiId": 778,
-    "match": "base-fallback"
+    "match": "exact"
   },
   "minccino": {
     "path": "/assets/pokemon/572.webp",
@@ -3238,14 +3238,14 @@ export const pokemonSpriteManifest: Readonly<
     "match": "exact"
   },
   "necrozma_dawn_wings": {
-    "path": "/assets/pokemon/800.webp",
-    "pokeApiId": 800,
-    "match": "base-fallback"
+    "path": "/assets/pokemon/10156.webp",
+    "pokeApiId": 10156,
+    "match": "exact"
   },
   "necrozma_dusk_mane": {
-    "path": "/assets/pokemon/800.webp",
-    "pokeApiId": 800,
-    "match": "base-fallback"
+    "path": "/assets/pokemon/10155.webp",
+    "pokeApiId": 10155,
+    "match": "exact"
   },
   "nickit": {
     "path": "/assets/pokemon/827.webp",
@@ -3360,7 +3360,7 @@ export const pokemonSpriteManifest: Readonly<
   "oinkologne": {
     "path": "/assets/pokemon/916.webp",
     "pokeApiId": 916,
-    "match": "base-fallback"
+    "match": "exact"
   },
   "oinkologne_female": {
     "path": "/assets/pokemon/10254.webp",
@@ -3805,7 +3805,7 @@ export const pokemonSpriteManifest: Readonly<
   "pyroar": {
     "path": "/assets/pokemon/668.webp",
     "pokeApiId": 668,
-    "match": "base-fallback"
+    "match": "exact"
   },
   "quagsire": {
     "path": "/assets/pokemon/195.webp",
@@ -4645,7 +4645,7 @@ export const pokemonSpriteManifest: Readonly<
   "squawkabilly": {
     "path": "/assets/pokemon/931.webp",
     "pokeApiId": 931,
-    "match": "base-fallback"
+    "match": "exact"
   },
   "squirtle": {
     "path": "/assets/pokemon/7.webp",
@@ -4893,19 +4893,19 @@ export const pokemonSpriteManifest: Readonly<
     "match": "exact"
   },
   "tauros_aqua": {
-    "path": "/assets/pokemon/128.webp",
-    "pokeApiId": 128,
-    "match": "base-fallback"
+    "path": "/assets/pokemon/10252.webp",
+    "pokeApiId": 10252,
+    "match": "exact"
   },
   "tauros_blaze": {
-    "path": "/assets/pokemon/128.webp",
-    "pokeApiId": 128,
-    "match": "base-fallback"
+    "path": "/assets/pokemon/10251.webp",
+    "pokeApiId": 10251,
+    "match": "exact"
   },
   "tauros_combat": {
-    "path": "/assets/pokemon/128.webp",
-    "pokeApiId": 128,
-    "match": "base-fallback"
+    "path": "/assets/pokemon/10250.webp",
+    "pokeApiId": 10250,
+    "match": "exact"
   },
   "teddiursa": {
     "path": "/assets/pokemon/216.webp",
@@ -5070,7 +5070,7 @@ export const pokemonSpriteManifest: Readonly<
   "toxtricity": {
     "path": "/assets/pokemon/849.webp",
     "pokeApiId": 849,
-    "match": "base-fallback"
+    "match": "exact"
   },
   "tranquill": {
     "path": "/assets/pokemon/520.webp",
@@ -5553,24 +5553,24 @@ export const pokemonSpriteManifest: Readonly<
     "match": "exact"
   },
   "zacian_crowned_sword": {
-    "path": "/assets/pokemon/888.webp",
-    "pokeApiId": 888,
-    "match": "base-fallback"
+    "path": "/assets/pokemon/10188.webp",
+    "pokeApiId": 10188,
+    "match": "exact"
   },
   "zacian_hero": {
     "path": "/assets/pokemon/888.webp",
     "pokeApiId": 888,
-    "match": "base-fallback"
+    "match": "exact"
   },
   "zamazenta_crowned_shield": {
-    "path": "/assets/pokemon/889.webp",
-    "pokeApiId": 889,
-    "match": "base-fallback"
+    "path": "/assets/pokemon/10189.webp",
+    "pokeApiId": 10189,
+    "match": "exact"
   },
   "zamazenta_hero": {
     "path": "/assets/pokemon/889.webp",
     "pokeApiId": 889,
-    "match": "base-fallback"
+    "match": "exact"
   },
   "zangoose": {
     "path": "/assets/pokemon/335.webp",
@@ -5650,7 +5650,7 @@ export const pokemonSpriteManifest: Readonly<
   "zygarde": {
     "path": "/assets/pokemon/718.webp",
     "pokeApiId": 718,
-    "match": "base-fallback"
+    "match": "exact"
   },
   "zygarde_10": {
     "path": "/assets/pokemon/10181.webp",

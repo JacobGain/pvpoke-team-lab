@@ -15,6 +15,10 @@ const POKEAPI_LIST_URL = "https://pokeapi.co/api/v2/pokemon?limit=100000";
 const SPRITE_SOURCE_ROOT =
   `https://raw.githubusercontent.com/PokeAPI/sprites/${SPRITES_REVISION}` +
   "/sprites/pokemon/other/home";
+const POKEMINERS_REVISION = "c5e20d0e580469395ef3cec33f243e1544550008";
+const POKEMINERS_SOURCE_ROOT =
+  `https://raw.githubusercontent.com/PokeMiners/pogo_assets/${POKEMINERS_REVISION}` +
+  "/Images/Pokemon%20-%20256x256/Addressable%20Assets";
 const projectRoot = resolve(import.meta.dirname, "..");
 const gameMasterPath = resolve(
   projectRoot,
@@ -54,8 +58,32 @@ interface SpriteManifestEntry {
   readonly match: "exact" | "base-fallback";
 }
 
+interface SpriteSource {
+  readonly assetId: string;
+  readonly pokeApiId: number;
+  readonly sourceUrl: string;
+}
+
+const pokemonGoFormArtwork: Readonly<Record<string, string>> = {
+  burmy_plant: "pm412.fBURMY_PLANT.icon.png",
+  burmy_sandy: "pm412.fBURMY_SANDY.icon.png",
+  burmy_trash: "pm412.fBURMY_TRASH.icon.png",
+  cherrim_overcast: "pm421.fOVERCAST.icon.png",
+  cherrim_sunny: "pm421.fSUNNY.icon.png",
+  genesect_burn: "pm649.fBURN.icon.png",
+  genesect_chill: "pm649.fCHILL.icon.png",
+  genesect_douse: "pm649.fDOUSE.icon.png",
+  genesect_shock: "pm649.fSHOCK.icon.png",
+  mewtwo_armored: "pm150.fA.icon.png",
+};
+
 const explicitAliases: Readonly<Record<string, string>> = {
+  basculin: "basculin-red-striped",
+  darmanitan_galarian_standard: "darmanitan-galar-standard",
+  deoxys: "deoxys-normal",
+  dudunsparce: "dudunsparce-two-segment",
   farfetchd: "farfetchd",
+  frillish: "frillish-male",
   mr_mime: "mr-mime",
   mr_rime: "mr-rime",
   mime_jr: "mime-jr",
@@ -68,7 +96,28 @@ const explicitAliases: Readonly<Record<string, string>> = {
   nidoran_female: "nidoran-f",
   nidoran_male: "nidoran-m",
   flabebe: "flabebe",
+  jellicent: "jellicent-male",
+  maushold: "maushold-family-of-four",
+  meowstic: "meowstic-male",
+  mimikyu: "mimikyu-disguised",
+  necrozma_dawn_wings: "necrozma-dawn",
+  necrozma_dusk_mane: "necrozma-dusk",
+  oinkologne: "oinkologne-male",
+  pikachu_libre: "pikachu-libre",
+  pikachu_pop_star: "pikachu-pop-star",
+  pikachu_rock_star: "pikachu-rock-star",
+  pyroar: "pyroar-male",
+  squawkabilly: "squawkabilly-green-plumage",
   sirfetchd: "sirfetchd",
+  tauros_aqua: "tauros-paldea-aqua-breed",
+  tauros_blaze: "tauros-paldea-blaze-breed",
+  tauros_combat: "tauros-paldea-combat-breed",
+  toxtricity: "toxtricity-amped",
+  zacian_crowned_sword: "zacian-crowned",
+  zacian_hero: "zacian",
+  zamazenta_crowned_shield: "zamazenta-crowned",
+  zamazenta_hero: "zamazenta",
+  zygarde: "zygarde-50",
 };
 
 function slugCandidates(speciesId: string): readonly string[] {
@@ -107,10 +156,7 @@ async function fetchJson<T>(url: string): Promise<T> {
   return (await response.json()) as T;
 }
 
-async function downloadSprite(
-  pokeApiId: number,
-): Promise<Uint8Array | undefined> {
-  const sourceUrl = `${SPRITE_SOURCE_ROOT}/${pokeApiId}.png`;
+async function downloadSprite(sourceUrl: string): Promise<Uint8Array | undefined> {
   const response = await fetch(sourceUrl, {
     headers: { "user-agent": "TeamLab sprite synchronizer" },
   });
@@ -170,31 +216,53 @@ async function main() {
   const resolvedPokemon = [...uniquePokemon]
     .sort(([left], [right]) => left.localeCompare(right))
     .map(([speciesId, pokemon]) => {
+      const pokemonGoFile = pokemonGoFormArtwork[speciesId];
+      if (pokemonGoFile) {
+        const source: SpriteSource = {
+          assetId: `go-${speciesId}`,
+          pokeApiId: pokemon.dex,
+          sourceUrl: `${POKEMINERS_SOURCE_ROOT}/${pokemonGoFile}`,
+        };
+        return {
+          speciesId,
+          pokemon,
+          source,
+          match: "exact" as const,
+        };
+      }
       const exactId = slugCandidates(speciesId)
         .map((candidate) => pokeApiIds.get(candidate))
         .find((candidate): candidate is number => candidate !== undefined);
+      const resolvedId = exactId ?? pokemon.dex;
+      const source: SpriteSource = {
+        assetId: String(resolvedId),
+        pokeApiId: resolvedId,
+        sourceUrl: `${SPRITE_SOURCE_ROOT}/${resolvedId}.png`,
+      };
 
       return {
         speciesId,
         pokemon,
-        pokeApiId: exactId ?? pokemon.dex,
+        source,
         match: exactId === undefined
           ? ("base-fallback" as const)
           : ("exact" as const),
       };
     });
-  const uniquePokeApiIds = [
-    ...new Set(resolvedPokemon.map(({ pokeApiId }) => pokeApiId)),
+  const uniqueSources = [
+    ...new Map(
+      resolvedPokemon.map(({ source }) => [source.assetId, source]),
+    ).values(),
   ];
-  const missingSpriteIds = new Set<number>();
+  const missingSpriteIds = new Set<string>();
   let downloadedCount = 0;
 
-  for (let index = 0; index < uniquePokeApiIds.length; index += 16) {
-    const batch = uniquePokeApiIds.slice(index, index + 16);
+  for (let index = 0; index < uniqueSources.length; index += 16) {
+    const batch = uniqueSources.slice(index, index + 16);
     await Promise.all(
-      batch.map(async (pokeApiId) => {
-        const outputPath = resolve(assetDirectory, `${pokeApiId}.webp`);
-        const sourcePath = resolve(assetDirectory, `${pokeApiId}.png`);
+      batch.map(async (source) => {
+        const outputPath = resolve(assetDirectory, `${source.assetId}.webp`);
+        const sourcePath = resolve(assetDirectory, `${source.assetId}.png`);
         try {
           await access(outputPath);
         } catch {
@@ -202,10 +270,10 @@ async function main() {
           try {
             image = await readFile(sourcePath);
           } catch {
-            image = await downloadSprite(pokeApiId);
+            image = await downloadSprite(source.sourceUrl);
           }
           if (!image) {
-            missingSpriteIds.add(pokeApiId);
+            missingSpriteIds.add(source.assetId);
             return;
           }
           await mkdir(dirname(outputPath), { recursive: true });
@@ -223,16 +291,17 @@ async function main() {
       }),
     );
     process.stdout.write(
-      `Prepared ${Math.min(index + batch.length, uniquePokeApiIds.length)}/${uniquePokeApiIds.length} sprite files.\n`,
+      `Prepared ${Math.min(index + batch.length, uniqueSources.length)}/${uniqueSources.length} sprite files.\n`,
     );
   }
 
   for (const resolved of resolvedPokemon) {
     const { speciesId, pokemon } = resolved;
-    const hasExactArtwork = !missingSpriteIds.has(resolved.pokeApiId);
-    const pokeApiId = hasExactArtwork ? resolved.pokeApiId : pokemon.dex;
+    const hasExactArtwork = !missingSpriteIds.has(resolved.source.assetId);
+    const pokeApiId = hasExactArtwork ? resolved.source.pokeApiId : pokemon.dex;
     const match = hasExactArtwork ? resolved.match : "base-fallback";
-    const outputPath = resolve(assetDirectory, `${pokeApiId}.webp`);
+    const assetId = hasExactArtwork ? resolved.source.assetId : String(pokemon.dex);
+    const outputPath = resolve(assetDirectory, `${assetId}.webp`);
 
     if (match === "base-fallback") {
       fallbacks.push(
@@ -257,16 +326,18 @@ Generated from PokeAPI/sprites revision \`${SPRITES_REVISION}\`.
 - Source: https://github.com/PokeAPI/sprites
 - Repository license: CC0 1.0 Universal
 - The source license states that image contents are Copyright The Pokémon Company.
+- Battle-relevant Pokémon GO form artwork: https://github.com/PokeMiners/pogo_assets/tree/${POKEMINERS_REVISION}
+- PokeMiners states that its mined image contents remain property of The Pokémon Company and Niantic.
 - Pokémon and Pokémon character names are trademarks of Nintendo.
 
 Manifest SHA-256: \`${createHash("sha256")
       .update(JSON.stringify(manifest))
       .digest("hex")}\`
 
-## Base-art fallbacks
+## Intentional base-art fallbacks
 
-The following Pokémon GO-specific forms did not have an exact PokeAPI slug and
-use their National Dex base artwork while retaining their exact TeamLab label.
+The following cosmetic or duplicate PvPoke entries use their National Dex base
+artwork while retaining their exact TeamLab label.
 
 ${fallbacks.map((fallback) => `- ${fallback}`).join("\n")}
 `,
@@ -274,7 +345,7 @@ ${fallbacks.map((fallback) => `- ${fallback}`).join("\n")}
 
   process.stdout.write(
     [
-      `Prepared ${uniquePokeApiIds.length} unique sprite files (${downloadedCount} downloaded).`,
+      `Prepared ${uniqueSources.length} unique sprite files (${downloadedCount} downloaded).`,
       `Mapped ${Object.keys(manifest).length} PvPoke species/form IDs.`,
       `${fallbacks.length} mappings use base artwork fallbacks.`,
       `Source revision ${SPRITES_REVISION}.`,
