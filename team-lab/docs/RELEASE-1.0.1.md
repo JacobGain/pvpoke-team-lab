@@ -20,3 +20,8 @@ rejected before being read or parsed.
 The IndexedDB schema advances to version 3 to remove unused secondary indexes,
 reducing storage and write amplification. The migration preserves existing
 inventory and saved teams, and the portable backup schema remains unchanged.
+
+Browser storage now opens before the application becomes interactive. This
+prevents the first inventory save on a newly deployed origin from racing the
+browser's IndexedDB startup, and production workflow failures include database
+state that makes future persistence issues easier to diagnose.
