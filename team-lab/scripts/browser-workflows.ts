@@ -1145,7 +1145,10 @@ async function assertBuildTarget(
   const productionState = await browser.evaluate<{
     readonly dataHealthIndicators: number;
     readonly diagnosticsLinks: number;
+    readonly favicon: string;
+    readonly visibleVersions: readonly string[];
     readonly release: {
+      readonly appVersion?: string;
       readonly formatVersion?: number;
       readonly releaseId?: string;
       readonly target?: string;
@@ -1167,6 +1170,9 @@ async function assertBuildTarget(
       document.querySelectorAll(".data-health").length,
     diagnosticsLinks:
       document.querySelectorAll('a[href$="/diagnostics/simulation"]').length,
+    favicon: document.querySelector('link[rel="icon"][type="image/webp"]')?.href ?? "",
+    visibleVersions: Array.from(document.querySelectorAll(".app-version"))
+      .map((element) => element.textContent?.trim() ?? ""),
     release: await fetch(${JSON.stringify(browser.resolveUrl("/release.json"))}, { cache: "no-store" }).then(
       (response) => {
         if (!response.ok) {
@@ -1180,7 +1186,9 @@ async function assertBuildTarget(
 
   invariant(
     productionState.dataHealthIndicators === 0 &&
-      productionState.diagnosticsLinks === 0,
+      productionState.diagnosticsLinks === 0 &&
+      productionState.favicon.endsWith("/assets/brand/teamlab-mark.webp") &&
+      productionState.visibleVersions.includes(`v${release.appVersion ?? ""}`),
     `Production exposed diagnostics navigation: ${JSON.stringify(productionState)}.`,
   );
   invariant(

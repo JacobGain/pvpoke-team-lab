@@ -45,6 +45,7 @@ export default defineConfig(async ({ mode }) => {
     },
     define: {
       __TEAMLAB_DIAGNOSTICS__: JSON.stringify(diagnosticsEnabled),
+      __TEAMLAB_VERSION__: JSON.stringify(releaseMetadata.appVersion),
     },
     plugins: [react(), releaseMetadataPlugin(releaseMetadata)],
     resolve: {
