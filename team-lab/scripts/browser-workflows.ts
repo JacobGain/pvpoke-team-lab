@@ -505,6 +505,10 @@ class BrowserWorkflow {
     }
   }
 
+  browserErrors(): readonly string[] {
+    return [...this.recentBrowserErrors];
+  }
+
   private async navigationDiagnostic(
     attempt: number,
     failure: unknown,
@@ -1341,18 +1345,49 @@ async function createInventory(
       const persistenceState = await browser.evaluate<{
         readonly alert: string;
         readonly cardCount: number;
+        readonly databases: readonly { readonly name?: string; readonly version?: number }[];
+        readonly inventoryCount: number | string;
         readonly pathname: string;
         readonly submitText: string;
-      }>(`(() => {
+      }>(`(async () => {
         const submit = [...document.querySelectorAll("button")].find(
           (button) =>
             button instanceof HTMLButtonElement &&
             (button.name === "save-intent" || button.type === "submit")
         );
+        const databases = typeof indexedDB.databases === "function"
+          ? await indexedDB.databases()
+          : [];
+        const inventoryCount = await Promise.race([
+          new Promise((resolve) => {
+            const request = indexedDB.open("team-lab");
+            request.onerror = () => resolve(
+              request.error?.name ?? "database-open-error"
+            );
+            request.onblocked = () => resolve("database-open-blocked");
+            request.onsuccess = () => {
+              const database = request.result;
+              const countRequest = database
+                .transaction("inventory", "readonly")
+                .objectStore("inventory")
+                .count();
+              countRequest.onerror = () => resolve(
+                countRequest.error?.name ?? "inventory-count-error"
+              );
+              countRequest.onsuccess = () => resolve(countRequest.result);
+            };
+          }),
+          new Promise((resolve) => setTimeout(
+            () => resolve("database-diagnostic-timeout"),
+            2_000
+          ))
+        ]);
         return {
           alert:
             document.querySelector('[role="alert"]')?.textContent?.trim() ?? "",
           cardCount: document.querySelectorAll(".inventory-card").length,
+          databases,
+          inventoryCount,
           pathname: location.pathname,
           submitText: submit?.textContent?.trim() ?? ""
         };
@@ -1360,7 +1395,10 @@ async function createInventory(
       const message =
         error instanceof Error ? error.message : String(error);
       throw new Error(
-        `${message} Inventory persistence state: ${JSON.stringify(persistenceState)}.`,
+        `${message} Inventory persistence state: ${JSON.stringify({
+          ...persistenceState,
+          browserErrors: browser.browserErrors(),
+        })}.`,
         { cause: error },
       );
     }

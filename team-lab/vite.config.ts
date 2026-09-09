@@ -51,6 +51,12 @@ export default defineConfig(async ({ mode }) => {
     resolve: {
       alias: {
         "@": fileURLToPath(new URL("./src", import.meta.url)),
+        // Dexie's conditional production export wraps a pre-minified UMD build.
+        // Bundle its native ESM entry in every mode so production and
+        // development use the same IndexedDB implementation.
+        dexie: fileURLToPath(
+          new URL("./node_modules/dexie/dist/dexie.mjs", import.meta.url),
+        ),
       },
     },
   };

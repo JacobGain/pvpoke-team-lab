@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/PageHeader";
 import {
   createTeamLabBackup,
   inspectTeamLabBackup,
+  MAX_TEAM_LAB_BACKUP_BYTES,
   serializeTeamLabBackup,
   type TeamLabBackupInspection,
   type TeamLabRestoreMode,
@@ -99,6 +100,14 @@ export function InventoryBackupPage() {
     }
 
     setSelectedFilename(file.name);
+    if (file.size > MAX_TEAM_LAB_BACKUP_BYTES) {
+      setInspection({
+        success: false,
+        envelopeError: "The selected backup is larger than the 10 MiB limit.",
+        issues: [],
+      });
+      return;
+    }
     setInspection(inspectTeamLabBackup(await file.text(), catalog));
   }
 
@@ -223,9 +232,9 @@ export function InventoryBackupPage() {
         back={{ to: "/inventory", label: "Inventory" }}
         description={
           <p>
-            Export inventory and saved teams in one portable TeamLab JSON
-            backup, or validate every record and reference before changing
-            stored data.
+            Export inventory and saved teams in one compact, portable TeamLab
+            JSON backup, or validate every record and reference before changing
+            stored data. Imports are limited to 10 MiB.
           </p>
         }
         eyebrow="Data safety"

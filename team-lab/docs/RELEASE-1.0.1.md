@@ -12,4 +12,16 @@ The app now uses a theme-matched TeamLab mark in its navigation, footer, and
 browser tab. The interface also displays its release version, sourced directly
 from the build metadata, and production raster assets are validated as WebP.
 
-Inventory, saved-team, backup, and database schemas are unchanged from 1.0.0.
+Security hardening adds an RFC 9116 `security.txt`, a private GitHub disclosure
+channel, explicit caching rules, and production validation for the disclosure
+metadata. Backup exports now use compact JSON, and files larger than 10 MiB are
+rejected before being read or parsed.
+
+The IndexedDB schema advances to version 3 to remove unused secondary indexes,
+reducing storage and write amplification. The migration preserves existing
+inventory and saved teams, and the portable backup schema remains unchanged.
+
+Browser storage now opens before the application becomes interactive. This
+prevents the first inventory save on a newly deployed origin from racing the
+browser's IndexedDB startup, and production workflow failures include database
+state that makes future persistence issues easier to diagnose.
