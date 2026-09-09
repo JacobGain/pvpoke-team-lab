@@ -542,6 +542,18 @@
   background: #fceaea;
 }
 
+.bulk-add-preview-toggle {
+  justify-self: start;
+  min-height: 2.75rem;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 0.7rem;
+  color: var(--lab-700);
+  background: #ffffff;
+  cursor: pointer;
+  font-weight: 750;
+}
+
 .backup-section {
   display: flex;
   align-items: center;
@@ -559,6 +571,12 @@
   max-width: 42rem;
   color: #52607a;
   line-height: 1.6;
+}
+
+.storage-protection-section .storage-protection-status {
+  margin-bottom: 0;
+  color: var(--ink-700);
+  font-weight: 700;
 }
 
 .backup-section button,

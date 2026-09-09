@@ -306,11 +306,10 @@ function RankingDetail({
                   <strong>{stat.value}</strong>
                 </dt>
                 <dd>
-                  <span
+                  <progress
                     aria-hidden="true"
-                    style={{
-                      width: `${Math.min((stat.raw / stat.max) * 100, 100)}%`,
-                    }}
+                    max={stat.max}
+                    value={Math.min(stat.raw, stat.max)}
                   />
                 </dd>
               </div>

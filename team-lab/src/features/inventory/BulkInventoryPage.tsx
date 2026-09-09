@@ -22,6 +22,8 @@ import { LeagueName } from "@/features/leagues/LeagueSelector";
 import { useLeague } from "@/features/leagues/leagueStore";
 import { usePokemonCatalog } from "@/features/meta/usePokemonCatalog";
 
+const COLLAPSED_MATCH_COUNT = 12;
+
 function formatError(error: unknown): string {
   return error instanceof Error ? error.message : "Unable to add this batch.";
 }
@@ -34,9 +36,11 @@ export function BulkInventoryPage() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [source, setSource] = useState("");
   const [savedCount, setSavedCount] = useState(0);
+  const [savedRemainingCount, setSavedRemainingCount] = useState(0);
   const [caret, setCaret] = useState(0);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const [activeSuggestion, setActiveSuggestion] = useState(0);
+  const [showAllMatches, setShowAllMatches] = useState(false);
   const preview = useMemo(
     () =>
       catalogResult.data
@@ -93,13 +97,17 @@ export function BulkInventoryPage() {
     if (!preview || preview.matches.length === 0 || !catalogResult.data) return;
 
     const count = preview.matches.length;
+    const remainingSource = preview.remainingInputs.join("\n");
     setSavedCount(0);
     createMutation.mutate(
       createBulkInventoryRecords(preview.matches, catalogResult.data),
       {
         onSuccess: () => {
           setSavedCount(count);
-          setSource("");
+          setSavedRemainingCount(preview.remainingInputs.length);
+          setSource(remainingSource);
+          setCaret(remainingSource.length);
+          setShowAllMatches(false);
         },
       },
     );
@@ -141,7 +149,13 @@ export function BulkInventoryPage() {
 
       {savedCount > 0 ? (
         <p className="backup-success" role="status">
-          Added {savedCount} Pokémon on this device. <Link to="/inventory">View inventory</Link>.
+          Added {savedCount} Pokémon on this device.{" "}
+          {savedRemainingCount > 0
+            ? `${savedRemainingCount} ${
+                savedRemainingCount === 1 ? "entry remains" : "entries remain"
+              } below for correction or the next batch. `
+            : ""}
+          <Link to="/inventory">View inventory</Link>.
         </p>
       ) : null}
 
@@ -151,7 +165,8 @@ export function BulkInventoryPage() {
           <h2>Paste your Pokémon list</h2>
           <p className="form-section__intro">
             Enter one Pokémon per line, or separate entries with commas or
-            semicolons. Repeated names create repeated records, up to {MAX_BULK_INVENTORY_ENTRIES} at a time.
+            semicolons. Repeated names create repeated records, up to{" "}
+            {MAX_BULK_INVENTORY_ENTRIES} at a time.
           </p>
           <div
             className="bulk-add-autocomplete form-field form-field--wide"
@@ -173,14 +188,17 @@ export function BulkInventoryPage() {
               aria-autocomplete="list"
               aria-controls="bulk-pokemon-suggestions"
               aria-expanded={suggestionsOpen && suggestions.length > 0}
+              aria-haspopup="listbox"
               autoCapitalize="words"
               id="bulk-pokemon-list"
               onChange={(event) => {
                 setSavedCount(0);
+                setSavedRemainingCount(0);
                 setSource(event.target.value);
                 setCaret(event.target.selectionStart);
                 setSuggestionsOpen(true);
                 setActiveSuggestion(0);
+                setShowAllMatches(false);
               }}
               onClick={(event) => {
                 setCaret(event.currentTarget.selectionStart);
@@ -221,6 +239,7 @@ export function BulkInventoryPage() {
               }}
               placeholder={"Azumarill\nAltaria\nstunfisk_galarian"}
               ref={textareaRef}
+              role="combobox"
               rows={10}
               value={source}
             />
@@ -282,17 +301,6 @@ export function BulkInventoryPage() {
                 <span className="context-badge">{preview.issues.length} need attention</span>
               ) : null}
             </div>
-            {preview.matches.length > 0 ? (
-              <ul className="bulk-add-matches">
-                {preview.matches.map(({ input, pokemon }, index) => (
-                  <li key={`${input}-${index}`}>
-                    <Check aria-hidden="true" size={16} />
-                    <span>{pokemon.speciesName}</span>
-                    <small>{pokemon.speciesId}</small>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
             {preview.issues.length > 0 ? (
               <ul className="bulk-add-issues">
                 {preview.issues.map((issue, index) => (
@@ -302,9 +310,38 @@ export function BulkInventoryPage() {
                 ))}
               </ul>
             ) : null}
+            {preview.matches.length > 0 ? (
+              <>
+                <ul className="bulk-add-matches">
+                  {(showAllMatches
+                    ? preview.matches
+                    : preview.matches.slice(0, COLLAPSED_MATCH_COUNT)
+                  ).map(({ input, pokemon }, index) => (
+                    <li key={`${input}-${index}`}>
+                      <Check aria-hidden="true" size={16} />
+                      <span>{pokemon.speciesName}</span>
+                      <small>{pokemon.speciesId}</small>
+                    </li>
+                  ))}
+                </ul>
+                {preview.matches.length > COLLAPSED_MATCH_COUNT ? (
+                  <button
+                    aria-expanded={showAllMatches}
+                    className="bulk-add-preview-toggle"
+                    onClick={() => setShowAllMatches((current) => !current)}
+                    type="button"
+                  >
+                    {showAllMatches
+                      ? "Show fewer matches"
+                      : `Show all ${preview.matches.length} matches`}
+                  </button>
+                ) : null}
+              </>
+            ) : null}
             {preview.truncated ? (
               <p className="inventory-error" role="alert">
-                Only the first {MAX_BULK_INVENTORY_ENTRIES} entries are included in this batch.
+                Only the first {MAX_BULK_INVENTORY_ENTRIES} entries are
+                included in this batch.
               </p>
             ) : null}
           </section>

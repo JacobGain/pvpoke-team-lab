@@ -57,6 +57,18 @@ describe("bulk inventory", () => {
     expect(preview.issues).toEqual([
       expect.objectContaining({ input: "Missingno" }),
     ]);
+    expect(preview.remainingInputs).toEqual(["Missingno"]);
+  });
+
+  it("retains unmatched and overflow entries for a later batch", () => {
+    const overflow = Array.from({ length: 501 }, () => "Azumarill");
+    overflow[1] = "Missingno";
+
+    const preview = previewBulkInventory(overflow.join("\n"), inventoryTestCatalog);
+
+    expect(preview.matches).toHaveLength(499);
+    expect(preview.truncated).toBe(true);
+    expect(preview.remainingInputs).toEqual(["Missingno", "Azumarill"]);
   });
 
   it("creates current builds from catalog IV and move defaults", () => {

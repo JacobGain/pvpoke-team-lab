@@ -146,10 +146,11 @@ if (missingHeaderPolicyFragments.length > 0) {
 
 if (
   headersPolicy.includes("script-src 'self' 'unsafe-inline'") ||
+  headersPolicy.includes("style-src 'self' 'unsafe-inline'") ||
   headersPolicy.includes("'unsafe-eval'")
 ) {
   throw new Error(
-    "The Cloudflare Pages script policy must not permit inline or evaluated scripts.",
+    "The Cloudflare Pages policy must not permit inline styles, inline scripts, or evaluated scripts.",
   );
 }
 

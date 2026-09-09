@@ -22,6 +22,7 @@ export interface BulkInventoryIssue {
 export interface BulkInventoryPreview {
   readonly matches: readonly BulkInventoryMatch[];
   readonly issues: readonly BulkInventoryIssue[];
+  readonly remainingInputs: readonly string[];
   readonly truncated: boolean;
 }
 
@@ -184,6 +185,10 @@ export function previewBulkInventory(
   return {
     matches,
     issues,
+    remainingInputs: [
+      ...issues.map((issue) => issue.input),
+      ...allInputs.slice(MAX_BULK_INVENTORY_ENTRIES),
+    ],
     truncated: allInputs.length > MAX_BULK_INVENTORY_ENTRIES,
   };
 }
