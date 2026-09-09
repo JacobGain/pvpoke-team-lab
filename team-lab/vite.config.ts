@@ -45,11 +45,18 @@ export default defineConfig(async ({ mode }) => {
     },
     define: {
       __TEAMLAB_DIAGNOSTICS__: JSON.stringify(diagnosticsEnabled),
+      __TEAMLAB_VERSION__: JSON.stringify(releaseMetadata.appVersion),
     },
     plugins: [react(), releaseMetadataPlugin(releaseMetadata)],
     resolve: {
       alias: {
         "@": fileURLToPath(new URL("./src", import.meta.url)),
+        // Dexie's conditional production export wraps a pre-minified UMD build.
+        // Bundle its native ESM entry in every mode so production and
+        // development use the same IndexedDB implementation.
+        dexie: fileURLToPath(
+          new URL("./node_modules/dexie/dist/dexie.mjs", import.meta.url),
+        ),
       },
     },
   };

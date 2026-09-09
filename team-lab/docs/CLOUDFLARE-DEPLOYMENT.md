@@ -39,9 +39,11 @@ gh secret set CLOUDFLARE_ACCOUNT_ID
 gh secret set CLOUDFLARE_API_TOKEN
 ```
 
-The deployment uses the `cloudflare-pages` GitHub environment. Add required
-reviewers there later if production deployment approvals are wanted. No domain,
-billing method, Pages Function, or storage binding is required.
+Production uses the `cloudflare-pages` GitHub environment, while staging uses
+`cloudflare-pages-staging`. Add required reviewers to the production environment
+later if deployment approvals are wanted. Both environments use the same
+repository secrets and Cloudflare Pages project. No additional domain, billing
+method, Pages Function, or storage binding is required.
 
 The workflow-owned environment is the only GitHub deployment record for a
 release. Wrangler intentionally receives no `gitHubToken`: that optional input
@@ -53,14 +55,15 @@ each GitHub deployment identifies the exact uploaded artifact.
 ## Release pipeline
 
 Pull requests run the complete **Verify public artifact** gate but never
-deploy. A push to `master`:
+deploy. A push to either `master` or `staging`:
 
 1. builds the public root-hosted `dist/` exactly once;
 2. validates diagnostics are absent and Cloudflare static limits are met;
 3. browser-tests that exact artifact;
 4. uploads it as `team-lab-public-<commit SHA>`;
 5. downloads the verified artifact in the deployment job;
-6. deploys it to the `pvpoke-team-lab` production branch with pinned Wrangler;
+6. deploys it to the matching `pvpoke-team-lab` Pages branch with pinned
+   Wrangler;
 7. polls the returned immutable HTTPS URL until its public release metadata
    identifies the expected commit and every entry asset is available;
 8. browser-tests that exact URL, with bounded retries for only the initial
@@ -95,9 +98,16 @@ proves the exact new deployment before production aliases or DNS are involved.
 The custom domain still routes to the current production deployment and is not
 duplicated by this verification URL.
 
-The workflow intentionally fails on `master` if the project or either
-credential is missing. This prevents a release commit from appearing successful
-when production was not updated.
+The workflow intentionally fails on `master` or `staging` if the project or
+either credential is missing. This prevents a release commit from appearing
+successful when its environment was not updated.
+
+The production branch remains available at `pvpoke-team-lab.pages.dev` and its
+custom domain. The latest successful staging deployment is available at the
+stable `staging.pvpoke-team-lab.pages.dev` branch alias. Cloudflare also returns
+an immutable deployment URL for each upload; post-deployment verification uses
+that immutable URL to prove the exact commit before the stable alias is used for
+manual acceptance testing.
 
 ## Local Cloudflare verification
 

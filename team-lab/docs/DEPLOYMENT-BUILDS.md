@@ -106,8 +106,8 @@ and the job exposes the generic artifact ID, URL, and digest as outputs.
 
 ### Cloudflare Pages deployment
 
-Successful pushes to `master` deploy the Pages artifact produced by
-**Verify public artifact**. The deployment job checks out only the repository
+Successful pushes to `master` and `staging` deploy the Pages artifact produced
+by **Verify public artifact**. Each deployment job checks out only the repository
 configuration; it does not install application dependencies, rebuild TeamLab,
 or invoke a Cloudflare build. It downloads the named GitHub artifact and sends
 those exact files through pinned Wrangler. This keeps the tested bytes
@@ -117,10 +117,10 @@ the admin target.
 The verified build uses `VITE_BASE_PATH=/` for the `pages.dev` site. Production
 `dist/` intentionally has no top-level `404.html`, allowing Cloudflare Pages to
 apply its native SPA fallback and return HTTP 200 on direct application routes.
-The deployment:
+Both deployments:
 
-- uses the workflow-owned `cloudflare-pages` GitHub environment as its only
-  GitHub deployment record;
+- use separate workflow-owned `cloudflare-pages` and
+  `cloudflare-pages-staging` GitHub environments;
 - requires scoped `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` repository
   secrets;
 - publishes only after the complete public release gate succeeds;
@@ -137,6 +137,9 @@ Cloudflare URL for traceability, while the custom domain continues to serve the
 current production deployment.
 
 Pull requests and manual release-gate runs verify artifacts but never deploy.
+The stable staging alias is `https://staging.pvpoke-team-lab.pages.dev`; it
+updates only after a verified push reaches `staging` and does not affect the
+production alias or custom domain.
 The application remains static-only and configures no Functions, Workers, D1,
 KV, R2, authentication, or server-side persistence. See
 [Cloudflare Pages deployment](CLOUDFLARE-DEPLOYMENT.md) for account bootstrap,

@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - master
+      - staging
   workflow_dispatch:
 
 permissions:
@@ -91,8 +92,8 @@ jobs:
           compression-level: 9
           include-hidden-files: false
 
-  deploy-cloudflare:
-    name: Deploy verified artifact to Cloudflare Pages
+  deploy-cloudflare-production:
+    name: Deploy verified artifact to production
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     needs: verify-public-artifact
     runs-on: ubuntu-24.04
@@ -142,13 +143,75 @@ jobs:
             --commit-hash=${{ github.sha }}
             --commit-dirty=false
 
-  verify-deployment:
+  verify-production-deployment:
     name: Verify production deployment
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-    needs: deploy-cloudflare
+    needs: deploy-cloudflare-production
     permissions:
       contents: read
     uses: ./.github/workflows/team-lab-deployment-check.yml
     with:
-      origin: ${{ needs.deploy-cloudflare.outputs.origin }}
+      origin: ${{ needs.deploy-cloudflare-production.outputs.origin }}
+      expected_commit: ${{ github.sha }}
+
+  deploy-cloudflare-staging:
+    name: Deploy verified artifact to staging
+    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
+    needs: verify-public-artifact
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      deployments: write
+    environment:
+      name: cloudflare-pages-staging
+      url: https://staging.pvpoke-team-lab.pages.dev
+    outputs:
+      origin: ${{ steps.deploy.outputs.deployment-url }}
+
+    steps:
+      - name: Check out deployment configuration
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Download exact verified public artifact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: team-lab-public-${{ github.sha }}
+          path: team-lab/dist
+
+      - name: Confirm only the public static artifact is present
+        working-directory: team-lab
+        run: |
+          test -f dist/index.html
+          test -f dist/release.json
+          test ! -e dist/404.html
+          test ! -e dist/_worker.js
+          test ! -e dist-admin
+
+      - name: Deploy exact public artifact to Cloudflare Pages staging
+        id: deploy
+        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: team-lab
+          wranglerVersion: "4.129.1"
+          command: >-
+            pages deploy dist
+            --project-name=pvpoke-team-lab
+            --branch=staging
+            --commit-hash=${{ github.sha }}
+            --commit-dirty=false
+
+  verify-staging-deployment:
+    name: Verify staging deployment
+    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
+    needs: deploy-cloudflare-staging
+    permissions:
+      contents: read
+    uses: ./.github/workflows/team-lab-deployment-check.yml
+    with:
+      origin: ${{ needs.deploy-cloudflare-staging.outputs.origin }}
       expected_commit: ${{ github.sha }}

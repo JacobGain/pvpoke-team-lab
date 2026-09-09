@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   createTeamLabBackup,
   inspectTeamLabBackup,
+  MAX_TEAM_LAB_BACKUP_BYTES,
   serializeTeamLabBackup,
 } from "@/domain/backup/teamLabBackup";
 import { createInventoryPokemon } from "@/domain/inventory/factory";
@@ -108,6 +109,29 @@ describe("TeamLab full-data backup", () => {
         inventory: records,
         savedTeams: [team],
       },
+    });
+  });
+
+  it("serializes compact backups and rejects oversized input before parsing", () => {
+    const backup = createTeamLabBackup(
+      inventory(),
+      [],
+      inventoryTestCatalog,
+      () => new Date("2026-07-25T14:00:00.000Z"),
+    );
+    const serialized = serializeTeamLabBackup(backup);
+
+    expect(serialized).not.toContain("\n");
+    expect(serialized.length).toBeLessThan(JSON.stringify(backup, null, 2).length);
+    expect(
+      inspectTeamLabBackup(
+        " ".repeat(MAX_TEAM_LAB_BACKUP_BYTES + 1),
+        inventoryTestCatalog,
+      ),
+    ).toEqual({
+      success: false,
+      envelopeError: "The selected backup is larger than the 10 MiB limit.",
+      issues: [],
     });
   });
 

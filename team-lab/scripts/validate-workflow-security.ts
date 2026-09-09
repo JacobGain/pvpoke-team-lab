@@ -14,6 +14,10 @@ const dependabotConfigPath = resolve(
   process.cwd(),
   "../.github/dependabot.yml",
 );
+const releaseWorkflowPath = resolve(
+  process.cwd(),
+  "../.github/workflows/team-lab-release.yml",
+);
 const workflowNames = (await readdir(workflowsDirectory))
   .filter((name) => name.endsWith(".yml") || name.endsWith(".yaml"))
   .sort();
@@ -186,6 +190,29 @@ if (
 ) {
   throw new Error(
     "Dependabot must target staging, cap both ecosystems at three PRs, group routine npm and Action updates, keep CodeQL actions together, and defer incompatible TypeScript major updates.",
+  );
+}
+
+const releaseWorkflow = await readFile(releaseWorkflowPath, "utf8");
+const requiredDeploymentPolicy = [
+  "- master\n      - staging",
+  "github.ref == 'refs/heads/master'",
+  "github.ref == 'refs/heads/staging'",
+  "name: cloudflare-pages\n",
+  "name: cloudflare-pages-staging\n",
+  "url: https://staging.pvpoke-team-lab.pages.dev",
+  "--branch=master",
+  "--branch=staging",
+] as const;
+
+if (
+  requiredDeploymentPolicy.some(
+    (policy) => !releaseWorkflow.includes(policy),
+  ) ||
+  (releaseWorkflow.match(/pages deploy dist/g)?.length ?? 0) !== 2
+) {
+  throw new Error(
+    "The release workflow must deploy verified master and staging artifacts to separate Cloudflare Pages environments and branch aliases.",
   );
 }
 

@@ -1,4 +1,8 @@
 User-agent: *
 Allow: /
+Disallow: /diagnostics
+Disallow: /inventory
+Disallow: /recommend
+Disallow: /teams
 
 Sitemap: https://pogoteamlab.com/sitemap.xml

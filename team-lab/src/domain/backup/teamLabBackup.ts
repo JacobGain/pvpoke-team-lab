@@ -22,6 +22,9 @@ import {
 export const TEAM_LAB_BACKUP_FORMAT = "teamlab-backup" as const;
 export { TEAM_LAB_BACKUP_SCHEMA_VERSION } from "@/domain/schemaVersions";
 export const LEGACY_INVENTORY_BACKUP_SCHEMA_VERSION = 1 as const;
+export const MAX_TEAM_LAB_BACKUP_BYTES = 10 * 1024 * 1024;
+export const MAX_TEAM_LAB_BACKUP_INVENTORY_RECORDS = 20_000;
+export const MAX_TEAM_LAB_BACKUP_SAVED_TEAMS = 5_000;
 
 const backupMetadataSchema = z.object({
   format: z.literal(TEAM_LAB_BACKUP_FORMAT),
@@ -30,13 +33,13 @@ const backupMetadataSchema = z.object({
 
 const backupEnvelopeV1Schema = backupMetadataSchema.extend({
   schemaVersion: z.literal(LEGACY_INVENTORY_BACKUP_SCHEMA_VERSION),
-  inventory: z.array(z.unknown()),
+  inventory: z.array(z.unknown()).max(MAX_TEAM_LAB_BACKUP_INVENTORY_RECORDS),
 });
 
 const backupEnvelopeV2Schema = backupMetadataSchema.extend({
   schemaVersion: z.literal(TEAM_LAB_BACKUP_SCHEMA_VERSION),
-  inventory: z.array(z.unknown()),
-  savedTeams: z.array(z.unknown()),
+  inventory: z.array(z.unknown()).max(MAX_TEAM_LAB_BACKUP_INVENTORY_RECORDS),
+  savedTeams: z.array(z.unknown()).max(MAX_TEAM_LAB_BACKUP_SAVED_TEAMS),
 });
 
 const supportedBackupEnvelopeSchema = z.discriminatedUnion("schemaVersion", [
@@ -180,7 +183,7 @@ export function createTeamLabBackup(
 }
 
 export function serializeTeamLabBackup(backup: TeamLabBackup): string {
-  return JSON.stringify(backup, null, 2);
+  return JSON.stringify(backup);
 }
 
 function candidateRecordId(
@@ -199,6 +202,14 @@ export function inspectTeamLabBackup(
   source: string,
   catalog: PokemonCatalog,
 ): TeamLabBackupInspection {
+  if (new Blob([source]).size > MAX_TEAM_LAB_BACKUP_BYTES) {
+    return {
+      success: false,
+      envelopeError: "The selected backup is larger than the 10 MiB limit.",
+      issues: [],
+    };
+  }
+
   let parsedJson: unknown;
 
   try {

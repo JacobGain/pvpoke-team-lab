@@ -505,6 +505,10 @@ class BrowserWorkflow {
     }
   }
 
+  browserErrors(): readonly string[] {
+    return [...this.recentBrowserErrors];
+  }
+
   private async navigationDiagnostic(
     attempt: number,
     failure: unknown,
@@ -1145,7 +1149,10 @@ async function assertBuildTarget(
   const productionState = await browser.evaluate<{
     readonly dataHealthIndicators: number;
     readonly diagnosticsLinks: number;
+    readonly favicon: string;
+    readonly visibleVersions: readonly string[];
     readonly release: {
+      readonly appVersion?: string;
       readonly formatVersion?: number;
       readonly releaseId?: string;
       readonly target?: string;
@@ -1167,6 +1174,9 @@ async function assertBuildTarget(
       document.querySelectorAll(".data-health").length,
     diagnosticsLinks:
       document.querySelectorAll('a[href$="/diagnostics/simulation"]').length,
+    favicon: document.querySelector('link[rel="icon"][type="image/webp"]')?.href ?? "",
+    visibleVersions: Array.from(document.querySelectorAll(".app-version"))
+      .map((element) => element.textContent?.trim() ?? ""),
     release: await fetch(${JSON.stringify(browser.resolveUrl("/release.json"))}, { cache: "no-store" }).then(
       (response) => {
         if (!response.ok) {
@@ -1180,7 +1190,9 @@ async function assertBuildTarget(
 
   invariant(
     productionState.dataHealthIndicators === 0 &&
-      productionState.diagnosticsLinks === 0,
+      productionState.diagnosticsLinks === 0 &&
+      productionState.favicon.endsWith("/assets/brand/teamlab-mark.webp") &&
+      productionState.visibleVersions.includes(`v${release.appVersion ?? ""}`),
     `Production exposed diagnostics navigation: ${JSON.stringify(productionState)}.`,
   );
   invariant(
@@ -1333,18 +1345,49 @@ async function createInventory(
       const persistenceState = await browser.evaluate<{
         readonly alert: string;
         readonly cardCount: number;
+        readonly databases: readonly { readonly name?: string; readonly version?: number }[];
+        readonly inventoryCount: number | string;
         readonly pathname: string;
         readonly submitText: string;
-      }>(`(() => {
+      }>(`(async () => {
         const submit = [...document.querySelectorAll("button")].find(
           (button) =>
             button instanceof HTMLButtonElement &&
             (button.name === "save-intent" || button.type === "submit")
         );
+        const databases = typeof indexedDB.databases === "function"
+          ? await indexedDB.databases()
+          : [];
+        const inventoryCount = await Promise.race([
+          new Promise((resolve) => {
+            const request = indexedDB.open("team-lab");
+            request.onerror = () => resolve(
+              request.error?.name ?? "database-open-error"
+            );
+            request.onblocked = () => resolve("database-open-blocked");
+            request.onsuccess = () => {
+              const database = request.result;
+              const countRequest = database
+                .transaction("inventory", "readonly")
+                .objectStore("inventory")
+                .count();
+              countRequest.onerror = () => resolve(
+                countRequest.error?.name ?? "inventory-count-error"
+              );
+              countRequest.onsuccess = () => resolve(countRequest.result);
+            };
+          }),
+          new Promise((resolve) => setTimeout(
+            () => resolve("database-diagnostic-timeout"),
+            2_000
+          ))
+        ]);
         return {
           alert:
             document.querySelector('[role="alert"]')?.textContent?.trim() ?? "",
           cardCount: document.querySelectorAll(".inventory-card").length,
+          databases,
+          inventoryCount,
           pathname: location.pathname,
           submitText: submit?.textContent?.trim() ?? ""
         };
@@ -1352,7 +1395,10 @@ async function createInventory(
       const message =
         error instanceof Error ? error.message : String(error);
       throw new Error(
-        `${message} Inventory persistence state: ${JSON.stringify(persistenceState)}.`,
+        `${message} Inventory persistence state: ${JSON.stringify({
+          ...persistenceState,
+          browserErrors: browser.browserErrors(),
+        })}.`,
         { cause: error },
       );
     }
@@ -1871,6 +1917,37 @@ async function runCriticalWorkflows(
     768,
     1_000,
     ".selected-pokemon-preview",
+  );
+  await browser.setLabeledControl(
+    "Species, form, and Shadow state",
+    "azum",
+    "input",
+  );
+  await browser.waitFor(
+    `Boolean(document.querySelector('.pokemon-combobox__option[data-species-id="azumarill"]'))`,
+    "Azumarill touch suggestion",
+  );
+  const touchSuggestionPressed = await browser.evaluate<boolean>(`(() => {
+    const option = document.querySelector(
+      '.pokemon-combobox__option[data-species-id="azumarill"]'
+    );
+    if (!(option instanceof HTMLButtonElement)) return false;
+    option.dispatchEvent(new PointerEvent("pointerdown", {
+      bubbles: true,
+      cancelable: true,
+      pointerId: 1,
+      pointerType: "touch",
+      isPrimary: true
+    }));
+    return true;
+  })()`);
+  invariant(
+    touchSuggestionPressed,
+    "The Azumarill touch suggestion could not be pressed.",
+  );
+  await browser.waitFor(
+    `document.querySelector('[role="combobox"]')?.getAttribute("data-selected-species-id") === "azumarill"`,
+    "touch-selected Azumarill",
   );
   await browser.setViewport(1440, 1_000);
 
