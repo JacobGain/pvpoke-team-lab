@@ -61,6 +61,12 @@ describe("TeamLabDatabase migrations", () => {
 
     expect(await upgradedDatabase.inventory.toArray()).toEqual([record]);
     expect(await upgradedDatabase.savedTeams.count()).toBe(0);
+    expect(
+      upgradedDatabase.inventory.schema.indexes.map((index) => index.name),
+    ).toEqual(["updatedAt"]);
+    expect(
+      upgradedDatabase.savedTeams.schema.indexes.map((index) => index.name),
+    ).toEqual(["updatedAt"]);
     upgradedDatabase.close();
   });
 });

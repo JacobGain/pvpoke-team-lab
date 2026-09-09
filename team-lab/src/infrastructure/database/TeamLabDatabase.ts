@@ -26,9 +26,8 @@ export class TeamLabDatabase extends Dexie {
     });
 
     this.version(TEAM_LAB_DATABASE_VERSION).stores({
-      inventory:
-        "&inventoryId, buildStatus, speciesId, favorite, createdAt, updatedAt",
-      savedTeams: "&teamId, formatId, name, createdAt, updatedAt",
+      inventory: "&inventoryId, updatedAt",
+      savedTeams: "&teamId, updatedAt",
     });
   }
 }
