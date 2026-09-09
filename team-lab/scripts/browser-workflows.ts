@@ -42,6 +42,7 @@ const INVENTORY_SPECIES = [
   "primeape",
   "toxapex",
 ] as const;
+const BULK_WORKFLOW_ADDED_RECORDS = 1;
 
 interface CdpResult {
   readonly result?: {
@@ -2436,6 +2437,35 @@ async function runCriticalWorkflows(
   );
 
   await browser.navigate("/inventory/backup", "Backup and restore");
+  await browser.waitFor(
+    `!document.querySelector(".storage-protection-section [role=status]")
+      ?.textContent?.includes("Checking")`,
+    "browser storage protection status",
+  );
+  const storageProtection = await browser.evaluate<{
+    readonly buttonLabel: string;
+    readonly status: string;
+  }>(`(() => {
+    const section = document.querySelector(".storage-protection-section");
+    return {
+      buttonLabel: section?.querySelector("button")?.textContent?.trim() ?? "",
+      status: section?.querySelector('[role="status"]')?.textContent?.trim() ?? ""
+    };
+  })()`);
+  invariant(
+    ["Protect browser storage", "Storage protected"].includes(
+      storageProtection.buttonLabel,
+    ) && storageProtection.status.length > 0,
+    `Local storage protection controls were incomplete: ${JSON.stringify(storageProtection)}.`,
+  );
+  if (storageProtection.buttonLabel === "Protect browser storage") {
+    await browser.clickButton("Protect browser storage");
+    await browser.waitFor(
+      `!document.querySelector(".storage-protection-section [role=status]")
+        ?.textContent?.includes("Requesting")`,
+      "browser storage protection result",
+    );
+  }
   const persistedCounts = await browser.evaluate<{
     readonly inventory: number;
     readonly teams: number;
@@ -2529,6 +2559,159 @@ async function runCriticalWorkflows(
   await browser.waitFor(
     `document.querySelectorAll(".inventory-card").length === ${INVENTORY_SPECIES.length}`,
     "restored inventory dashboard",
+  );
+
+  await browser.navigate("/inventory/bulk-add", "Bulk add Pokémon");
+  await browser.setViewport(320, 900);
+  await browser.setLabeledControl(
+    "Pokémon names or PvPoke IDs",
+    "sh",
+    "textarea",
+  );
+  await browser.waitFor(
+    `document.querySelectorAll(".bulk-add-suggestions [role=option]").length === 8`,
+    "scrollable bulk-add suggestions",
+  );
+  await browser.evaluate(`(() => {
+    const input = document.querySelector("#bulk-pokemon-list");
+    if (!(input instanceof HTMLTextAreaElement)) return;
+    input.focus();
+    for (let index = 0; index < 7; index += 1) {
+      input.dispatchEvent(new KeyboardEvent("keydown", {
+        key: "ArrowDown",
+        bubbles: true,
+        cancelable: true
+      }));
+    }
+  })()`);
+  await browser.waitFor(
+    `document.querySelector('[data-suggestion-index="7"]')?.getAttribute("aria-selected") === "true"`,
+    "last bulk-add keyboard suggestion",
+  );
+  const bulkSuggestionScroll = await browser.evaluate<{
+    readonly activeVisible: boolean;
+    readonly inputFocused: boolean;
+    readonly pageScrollX: number;
+    readonly suggestionScrollTop: number;
+  }>(`(() => {
+    const list = document.querySelector(".bulk-add-suggestions");
+    const active = document.querySelector('[aria-selected="true"]');
+    const listBounds = list?.getBoundingClientRect();
+    const activeBounds = active?.getBoundingClientRect();
+    return {
+      activeVisible: Boolean(
+        listBounds && activeBounds &&
+        activeBounds.top >= listBounds.top - 1 &&
+        activeBounds.bottom <= listBounds.bottom + 1
+      ),
+      inputFocused: document.activeElement?.id === "bulk-pokemon-list",
+      pageScrollX: window.scrollX,
+      suggestionScrollTop: list?.scrollTop ?? 0
+    };
+  })()`);
+  invariant(
+    bulkSuggestionScroll.activeVisible &&
+      bulkSuggestionScroll.inputFocused &&
+      bulkSuggestionScroll.pageScrollX === 0 &&
+      bulkSuggestionScroll.suggestionScrollTop > 0,
+    `Bulk autocomplete did not scroll internally while retaining input focus: ${JSON.stringify(bulkSuggestionScroll)}.`,
+  );
+  await browser.setLabeledControl(
+    "Pokémon names or PvPoke IDs",
+    "zacian_hero",
+    "textarea",
+  );
+  await browser.waitFor(
+    `Boolean(document.querySelector('.bulk-add-suggestions [data-species-id="zacian_hero"]'))`,
+    "bulk-add Zacian form suggestions",
+  );
+  await browser.evaluate(`document.querySelector("#bulk-pokemon-list")?.dispatchEvent(
+    new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true })
+  )`);
+  await browser.waitFor(
+    `document.querySelector("#bulk-pokemon-list")?.value === "Zacian (Hero)\\n" &&
+      document.querySelector(".bulk-add-preview h2")?.textContent?.trim() === "1 ready to add"`,
+    "bulk-add autocomplete completion",
+  );
+  await browser.setLabeledControl(
+    "Pokémon names or PvPoke IDs",
+    "zacian",
+    "textarea",
+  );
+  await browser.waitFor(
+    `Boolean(document.querySelector('.bulk-add-suggestions [data-species-id="zacian_hero"]'))`,
+    "touch-selectable bulk-add suggestion",
+  );
+  await browser.evaluate(`(() => {
+    const input = document.querySelector("#bulk-pokemon-list");
+    const option = document.querySelector(
+      '.bulk-add-suggestions [data-species-id="zacian_hero"]'
+    );
+    if (!(input instanceof HTMLTextAreaElement) || !(option instanceof HTMLButtonElement)) return;
+    input.focus();
+    option.dispatchEvent(new PointerEvent("pointerdown", {
+      bubbles: true,
+      cancelable: true,
+      pointerId: 1,
+      pointerType: "touch",
+      isPrimary: true
+    }));
+  })()`);
+  await browser.waitFor(
+    `document.querySelector("#bulk-pokemon-list")?.value === "Zacian (Hero)\\n" &&
+      document.activeElement?.id === "bulk-pokemon-list"`,
+    "touch-selected bulk-add suggestion with restored input focus",
+  );
+  const bulkCombobox = await browser.evaluate<boolean>(`(() => {
+    const input = document.querySelector("#bulk-pokemon-list");
+    return input?.getAttribute("role") === "combobox" &&
+      input?.getAttribute("aria-haspopup") === "listbox" &&
+      input?.getAttribute("aria-controls") === "bulk-pokemon-suggestions";
+  })()`);
+  invariant(bulkCombobox, "Bulk autocomplete did not expose combobox semantics.");
+
+  await browser.setLabeledControl(
+    "Pokémon names or PvPoke IDs",
+    Array.from({ length: 13 }, () => "Azumarill").join("\n"),
+    "textarea",
+  );
+  await browser.waitFor(
+    `document.querySelector(".bulk-add-preview h2")?.textContent?.trim() ===
+      "13 ready to add"`,
+    "thirteen-entry bulk-add preview",
+  );
+  const collapsedBulkPreview = await browser.evaluate<{
+    readonly matchRows: number;
+    readonly toggleLabel: string;
+  }>(`(() => ({
+    matchRows: document.querySelectorAll(".bulk-add-matches li").length,
+    toggleLabel: document.querySelector(".bulk-add-preview-toggle")
+      ?.textContent?.trim() ?? ""
+  }))()`);
+  invariant(
+    collapsedBulkPreview.matchRows === 12 &&
+      collapsedBulkPreview.toggleLabel === "Show all 13 matches",
+    `Bulk preview was not compact by default: ${JSON.stringify(collapsedBulkPreview)}.`,
+  );
+  await browser.clickButton("Show all 13 matches");
+  await browser.waitFor(
+    `document.querySelectorAll(".bulk-add-matches li").length === 13`,
+    "expanded bulk-add preview",
+  );
+
+  await browser.setLabeledControl(
+    "Pokémon names or PvPoke IDs",
+    "Azumarill\nMissingno",
+    "textarea",
+  );
+  await browser.clickButton("Add 1 Pokémon");
+  await browser.waitFor(
+    `document.querySelector("#bulk-pokemon-list")?.value === "Missingno" &&
+      [...document.querySelectorAll('[role="status"]')].some((status) =>
+        status.textContent?.includes("1 entry remains")
+      )`,
+    "lossless partial bulk-add save",
+    PERSISTENCE_TIMEOUT_MS,
   );
 
   const diagnosticsMobileRoute =
@@ -2648,7 +2831,7 @@ async function runCriticalWorkflows(
   await browser.evaluate(`document.querySelector('[aria-label="Open navigation menu"]')?.click()`);
   await browser.setLabeledControl("Battle league", "great-league", "select", 1);
   await browser.navigate("/inventory", "Your inventory");
-  invariant(await browser.evaluate(`document.querySelectorAll(".inventory-card").length === ${INVENTORY_SPECIES.length}`), "Great League inventory did not survive switching leagues.");
+  invariant(await browser.evaluate(`document.querySelectorAll(".inventory-card").length === ${INVENTORY_SPECIES.length + BULK_WORKFLOW_ADDED_RECORDS}`), "Great League inventory did not survive switching leagues.");
   console.log("[browser-workflows] Ultra League creation, simulation, persistence, and mobile switching passed");
 
   await browser.setViewport(1440, 1_000);
@@ -2688,7 +2871,7 @@ async function runCriticalWorkflows(
   await browser.evaluate(`document.querySelector('[aria-label="Open navigation menu"]')?.click()`);
   await browser.setLabeledControl("Battle league", "great-league", "select", 1);
   await browser.navigate("/inventory", "Your inventory");
-  invariant(await browser.evaluate(`document.querySelectorAll(".inventory-card").length === ${INVENTORY_SPECIES.length}`), "Great League inventory did not survive switching leagues.");
+  invariant(await browser.evaluate(`document.querySelectorAll(".inventory-card").length === ${INVENTORY_SPECIES.length + BULK_WORKFLOW_ADDED_RECORDS}`), "Great League inventory did not survive switching leagues.");
   console.log("[browser-workflows] Master League creation, simulation, persistence, and mobile switching passed");
 
   return {

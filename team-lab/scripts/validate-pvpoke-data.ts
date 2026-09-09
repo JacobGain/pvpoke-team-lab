@@ -9,6 +9,7 @@ import {
   rankingCollectionSchema,
 } from "../src/pvpoke/types/schemas.ts";
 import { buildPokemonCatalog } from "../src/pvpoke/adapters/buildPokemonCatalog.ts";
+import { dashboardDataSchema } from "../src/pvpoke/types/dashboard.ts";
 
 const dataDirectory = resolve(
   process.env.TEAMLAB_PVPOKE_DATA_DIR ??
@@ -99,3 +100,6 @@ const masterRankings = rankingCollectionSchema.parse(await readJson("rankings/al
 const masterMeta = metaGroupSchema.parse(await readJson("groups/master.json"));
 const masterCatalog = buildPokemonCatalog(gameMaster, masterRankings, masterMeta, 10000);
 console.log(`Open Master League rankings: ${masterRankings.length}\nMaster League meta entries: ${masterMeta.length}\nMaster catalog diagnostics: ${countCatalogDiagnostics(masterCatalog.diagnostics)}`);
+
+const dashboardData = dashboardDataSchema.parse(await readJson("dashboard.json"));
+console.log(`Dashboard species names: ${Object.keys(dashboardData.speciesNames).length}\nDashboard leaders: ${Object.values(dashboardData.leaders).flat().length}`);

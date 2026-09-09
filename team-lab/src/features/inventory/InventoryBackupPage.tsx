@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState, type ChangeEvent } from "react";
+import { useEffect, useState, type ChangeEvent } from "react";
 import { Link } from "react-router";
 
 import { PageHeader } from "@/components/PageHeader";
@@ -34,6 +34,15 @@ type ConfirmationAction =
   | "clear-inventory"
   | "reset-all";
 
+type PersistenceState =
+  | "checking"
+  | "temporary"
+  | "requesting"
+  | "persistent"
+  | "denied"
+  | "unsupported"
+  | "error";
+
 function downloadBackup(contents: string, filename: string) {
   const blob = new Blob([contents], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -61,6 +70,32 @@ export function InventoryBackupPage() {
   const [resetConfirmation, setResetConfirmation] = useState("");
   const [restoreMode, setRestoreMode] =
     useState<TeamLabRestoreMode>("merge");
+  const [persistenceState, setPersistenceState] =
+    useState<PersistenceState>(() =>
+      typeof navigator.storage?.persisted === "function"
+        ? "checking"
+        : "unsupported",
+    );
+
+  useEffect(() => {
+    let active = true;
+    const storage = navigator.storage;
+    if (typeof storage?.persisted !== "function") {
+      return;
+    }
+
+    void storage.persisted().then(
+      (persistent) => {
+        if (active) setPersistenceState(persistent ? "persistent" : "temporary");
+      },
+      () => {
+        if (active) setPersistenceState("error");
+      },
+    );
+    return () => {
+      active = false;
+    };
+  }, []);
 
   if (
     catalogResult.isLoading ||
@@ -123,6 +158,21 @@ export function InventoryBackupPage() {
       );
     } catch (error) {
       setExportError(error);
+    }
+  }
+
+  async function requestPersistentStorage() {
+    if (typeof navigator.storage?.persist !== "function") {
+      setPersistenceState("unsupported");
+      return;
+    }
+
+    setPersistenceState("requesting");
+    try {
+      const persistent = await navigator.storage.persist();
+      setPersistenceState(persistent ? "persistent" : "denied");
+    } catch {
+      setPersistenceState("error");
     }
   }
 
@@ -263,6 +313,51 @@ export function InventoryBackupPage() {
           {formatError(exportError)}
         </p>
       ) : null}
+
+      <section className="form-section backup-section storage-protection-section">
+        <div>
+          <p className="eyebrow">On-device retention</p>
+          <h2>Protect browser storage</h2>
+          <p>
+            TeamLab stores inventory and teams in this browser. Ask the browser
+            to protect that data from automatic storage cleanup. Manual site-data
+            clearing and device loss can still remove it, so backups remain important.
+          </p>
+          <p className="storage-protection-status" role="status">
+            {persistenceState === "checking"
+              ? "Checking browser storage protection…"
+              : persistenceState === "persistent"
+                ? "Protected: this browser granted persistent storage."
+                : persistenceState === "temporary"
+                  ? "Not protected yet: the browser may remove data under storage pressure."
+                  : persistenceState === "requesting"
+                    ? "Requesting storage protection…"
+                    : persistenceState === "denied"
+                      ? "The browser did not grant persistent storage. Download regular backups for safekeeping."
+                      : persistenceState === "unsupported"
+                        ? "This browser does not offer a persistent-storage request. Download regular backups for safekeeping."
+                        : "TeamLab could not check storage protection. Download regular backups for safekeeping."}
+          </p>
+        </div>
+        <button
+          disabled={
+            persistenceState === "checking" ||
+            persistenceState === "requesting" ||
+            persistenceState === "persistent" ||
+            persistenceState === "unsupported"
+          }
+          onClick={() => {
+            void requestPersistentStorage();
+          }}
+          type="button"
+        >
+          {persistenceState === "requesting"
+            ? "Requesting…"
+            : persistenceState === "persistent"
+              ? "Storage protected"
+              : "Protect browser storage"}
+        </button>
+      </section>
 
       <section className="form-section">
         <p className="eyebrow">Import</p>

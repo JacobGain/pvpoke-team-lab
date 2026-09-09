@@ -1,12 +1,48 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  bulkInventoryInputRangeAt,
+  completeBulkInventoryInput,
   createBulkInventoryRecords,
   previewBulkInventory,
+  suggestBulkInventoryPokemon,
 } from "@/domain/inventory/bulkAdd";
 import { inventoryTestCatalog } from "@/domain/inventory/inventoryTestFixtures";
 
 describe("bulk inventory", () => {
+  it("suggests forms from partial friendly names and PvPoke IDs", () => {
+    const zacianHero = {
+      ...inventoryTestCatalog.entries[0]!,
+      speciesId: "zacian_hero",
+      speciesName: "Zacian (Hero)",
+    };
+    const catalog = {
+      ...inventoryTestCatalog,
+      entries: [...inventoryTestCatalog.entries, zacianHero],
+    };
+
+    expect(suggestBulkInventoryPokemon("zacian", catalog)[0]).toBe(zacianHero);
+    expect(suggestBulkInventoryPokemon("zacian hero", catalog)[0]).toBe(
+      zacianHero,
+    );
+    expect(suggestBulkInventoryPokemon("zacian_hero", catalog)[0]).toBe(
+      zacianHero,
+    );
+  });
+
+  it("completes only the entry around the caret", () => {
+    const source = "Azumarill\nzacian he; Altaria";
+    const range = bulkInventoryInputRangeAt(source, source.indexOf("he") + 2);
+
+    expect(range.query).toBe("zacian he");
+    expect(
+      completeBulkInventoryInput(source, range, "Zacian (Hero)"),
+    ).toEqual({
+      source: "Azumarill\nZacian (Hero); Altaria",
+      caret: 23,
+    });
+  });
+
   it("matches names and PvPoke IDs while preserving duplicates", () => {
     const preview = previewBulkInventory(
       "Azumarill\naltaria; Azumarill\nMissingno",
@@ -21,6 +57,18 @@ describe("bulk inventory", () => {
     expect(preview.issues).toEqual([
       expect.objectContaining({ input: "Missingno" }),
     ]);
+    expect(preview.remainingInputs).toEqual(["Missingno"]);
+  });
+
+  it("retains unmatched and overflow entries for a later batch", () => {
+    const overflow = Array.from({ length: 501 }, () => "Azumarill");
+    overflow[1] = "Missingno";
+
+    const preview = previewBulkInventory(overflow.join("\n"), inventoryTestCatalog);
+
+    expect(preview.matches).toHaveLength(499);
+    expect(preview.truncated).toBe(true);
+    expect(preview.remainingInputs).toEqual(["Missingno", "Azumarill"]);
   });
 
   it("creates current builds from catalog IV and move defaults", () => {
