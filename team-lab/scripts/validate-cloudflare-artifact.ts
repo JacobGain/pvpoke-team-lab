@@ -12,11 +12,12 @@ if (!outputArgument) {
 }
 
 const outputDirectory = resolve(outputArgument);
-const [indexHtml, headersPolicy, robotsText, sitemapXml] = await Promise.all([
+const [indexHtml, headersPolicy, robotsText, sitemapXml, securityText] = await Promise.all([
   readFile(resolve(outputDirectory, "index.html"), "utf8"),
   readFile(resolve(outputDirectory, "_headers"), "utf8"),
   readFile(resolve(outputDirectory, "robots.txt"), "utf8"),
   readFile(resolve(outputDirectory, "sitemap.xml"), "utf8"),
+  readFile(resolve(outputDirectory, ".well-known/security.txt"), "utf8"),
 ]);
 
 if (!indexHtml.includes('<div id="root"></div>')) {
@@ -45,10 +46,39 @@ if (missingSeoFragments.length > 0) {
 
 if (
   !robotsText.includes("Sitemap: https://pogoteamlab.com/sitemap.xml") ||
+  !robotsText.includes("Disallow: /diagnostics") ||
+  !robotsText.includes("Disallow: /inventory") ||
+  !robotsText.includes("Disallow: /recommend") ||
+  !robotsText.includes("Disallow: /teams") ||
   !sitemapXml.includes("https://pogoteamlab.com/") ||
   !sitemapXml.includes("https://pogoteamlab.com/catalog")
 ) {
   throw new Error("The production robots.txt or sitemap.xml is incomplete.");
+}
+
+const requiredSecurityTextFragments = [
+  "Contact: https://github.com/JacobGain/pvpoke-team-lab/security/advisories/new",
+  "Preferred-Languages: en",
+  "Canonical: https://pogoteamlab.com/.well-known/security.txt",
+  "Policy: https://github.com/JacobGain/pvpoke-team-lab/security/policy",
+];
+const missingSecurityTextFragments = requiredSecurityTextFragments.filter(
+  (fragment) => !securityText.includes(fragment),
+);
+const expiresMatch = securityText.match(/^Expires: (.+)$/m);
+const expiresAt = Date.parse(expiresMatch?.[1] ?? "");
+const minimumExpiry = Date.now() + 30 * 24 * 60 * 60 * 1_000;
+const maximumExpiry = Date.now() + 366 * 24 * 60 * 60 * 1_000;
+
+if (
+  missingSecurityTextFragments.length > 0 ||
+  !Number.isFinite(expiresAt) ||
+  expiresAt < minimumExpiry ||
+  expiresAt > maximumExpiry
+) {
+  throw new Error(
+    "The RFC 9116 security.txt contact, policy, canonical URL, or expiration is invalid.",
+  );
 }
 
 const requiredHeaderPolicyFragments = [
@@ -66,6 +96,10 @@ const requiredHeaderPolicyFragments = [
   "X-Content-Type-Options: nosniff",
   "X-Frame-Options: DENY",
   "X-Permitted-Cross-Domain-Policies: none",
+  "/.well-known/security.txt",
+  "Content-Type: text/plain; charset=utf-8",
+  "/vendor/pvpoke/data/*",
+  "Cache-Control: public, max-age=31536000, immutable",
   "https://pvpoke-team-lab.pages.dev/*",
   "https://:deployment.pvpoke-team-lab.pages.dev/*",
   "X-Robots-Tag: noindex",

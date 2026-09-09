@@ -1,0 +1,5 @@
+Contact: https://github.com/JacobGain/pvpoke-team-lab/security/advisories/new
+Expires: 2027-09-01T00:00:00Z
+Preferred-Languages: en
+Canonical: https://pogoteamlab.com/.well-known/security.txt
+Policy: https://github.com/JacobGain/pvpoke-team-lab/security/policy
