@@ -142,6 +142,18 @@ h3 {
   box-shadow: inset 3px 0 var(--dossier-cyan);
 }
 
+.app-version {
+  width: max-content;
+  padding: 0.18rem 0.42rem;
+  border: 1px solid rgb(0 184 198 / 38%);
+  color: var(--dossier-cyan);
+  font-family: var(--font-display);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1;
+}
+
 .brand-mark__copy strong {
   font-size: 1.45rem;
   font-weight: 800;
@@ -1208,6 +1220,12 @@ h3 {
   align-items: flex-start;
   gap: 0.65rem;
   color: var(--lab-700);
+}
+
+.app-footer__identity > img {
+  width: 1.65rem;
+  height: 1.65rem;
+  object-fit: contain;
 }
 
 .app-footer__identity > span {

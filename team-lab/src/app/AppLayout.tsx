@@ -4,7 +4,6 @@ import {
   Archive,
   BookOpen,
   Boxes,
-  FlaskConical,
   Home,
   Menu,
   Sparkles,
@@ -53,6 +52,19 @@ const utilityNavigation: readonly NavigationItem[] = [
 ];
 
 const SITE_ORIGIN = "https://pogoteamlab.com";
+const BRAND_MARK_PATH = `${import.meta.env.BASE_URL}assets/brand/teamlab-mark.webp`;
+
+function BrandMark() {
+  return (
+    <img
+      alt=""
+      decoding="async"
+      height="32"
+      src={BRAND_MARK_PATH}
+      width="32"
+    />
+  );
+}
 const publicSeo = {
   home: {
     title: "Pokémon GO PvP Team Builder & Roster Planner | TeamLab",
@@ -160,7 +172,7 @@ export function AppLayout() {
           to="/"
         >
           <span className="brand-mark__icon" aria-hidden="true">
-            <FlaskConical size={25} strokeWidth={2.2} />
+            <BrandMark />
           </span>
           <span className="brand-mark__copy">
             <strong>TeamLab</strong>
@@ -188,6 +200,7 @@ export function AppLayout() {
 
         <div className="app-rail__footer">
           <small>Inventory and team-planning workspace</small>
+          <span className="app-version">v{__TEAMLAB_VERSION__}</span>
         </div>
       </aside>
 
@@ -195,7 +208,7 @@ export function AppLayout() {
         <div className="app-topbar__inner">
           <NavLink className="brand-mark" to="/" aria-label="TeamLab dashboard">
             <span className="brand-mark__icon" aria-hidden="true">
-              <FlaskConical size={23} strokeWidth={2.2} />
+              <BrandMark />
             </span>
             <span className="brand-mark__copy">
               <strong>TeamLab</strong>
@@ -244,10 +257,12 @@ export function AppLayout() {
         <footer className="app-footer">
           <div className="app-footer__inner">
             <div className="app-footer__identity">
-              <FlaskConical aria-hidden="true" size={20} />
+              <BrandMark />
               <span>
                 <strong>TeamLab</strong>
-                <small>Independent battle-planning tool</small>
+                <small>
+                  Independent battle-planning tool · v{__TEAMLAB_VERSION__}
+                </small>
               </span>
             </div>
             <div className="app-footer__legal">
