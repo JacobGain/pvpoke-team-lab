@@ -13,7 +13,9 @@ league's PvPoke default IV spread, calculated CP, and recommended moves. Any
 unmatched or ambiguous entries stay visible for correction, and repeated names
 create separate inventory records. Cursor-aware autocomplete accepts partial
 friendly names and normalized PvPoke IDs, then shows both labels before filling
-the selected entry.
+the selected entry. Keyboard navigation scrolls the list independently of the
+page, while keyboard and touch selection preserve or restore input focus for
+continuous entry on mobile devices.
 
 On narrow mobile viewports, inventory and team form actions now remain in normal
 document flow. This prevents the on-screen keyboard and autocomplete suggestions

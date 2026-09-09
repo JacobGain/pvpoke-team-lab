@@ -1,4 +1,5 @@
 import {
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -29,6 +30,7 @@ export function BulkInventoryPage() {
   const league = useLeague();
   const catalogResult = usePokemonCatalog();
   const createMutation = useCreateManyInventoryPokemon();
+  const suggestionsRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [source, setSource] = useState("");
   const [savedCount, setSavedCount] = useState(0);
@@ -53,6 +55,23 @@ export function BulkInventoryPage() {
         : [],
     [catalogResult.data, inputRange.query],
   );
+
+  useEffect(() => {
+    if (!suggestionsOpen) return;
+    const list = suggestionsRef.current;
+    const option = list?.querySelector<HTMLElement>(
+      `[data-suggestion-index="${activeSuggestion}"]`,
+    );
+    if (!list || !option) return;
+
+    const listBounds = list.getBoundingClientRect();
+    const optionBounds = option.getBoundingClientRect();
+    if (optionBounds.top < listBounds.top) {
+      list.scrollTop -= listBounds.top - optionBounds.top;
+    } else if (optionBounds.bottom > listBounds.bottom) {
+      list.scrollTop += optionBounds.bottom - listBounds.bottom;
+    }
+  }, [activeSuggestion, suggestions, suggestionsOpen]);
 
   if (catalogResult.isLoading) {
     return <main className="inventory-page">Loading bulk add…</main>;
@@ -210,6 +229,7 @@ export function BulkInventoryPage() {
                 aria-label="Pokémon autocomplete suggestions"
                 className="bulk-add-suggestions"
                 id="bulk-pokemon-suggestions"
+                ref={suggestionsRef}
                 role="listbox"
               >
                 <small>Suggestions for “{inputRange.query}”</small>
@@ -222,11 +242,18 @@ export function BulkInventoryPage() {
                         : undefined
                     }
                     data-species-id={pokemon.speciesId}
+                    data-suggestion-index={index}
                     id={`bulk-suggestion-${pokemon.speciesId}`}
                     key={pokemon.speciesId}
                     onClick={() => chooseSuggestion(pokemon.speciesName)}
                     onMouseDown={(event) => event.preventDefault()}
                     onMouseEnter={() => setActiveSuggestion(index)}
+                    onPointerDown={(event) => {
+                      if (event.pointerType !== "mouse") {
+                        event.preventDefault();
+                        chooseSuggestion(pokemon.speciesName);
+                      }
+                    }}
                     role="option"
                     type="button"
                   >

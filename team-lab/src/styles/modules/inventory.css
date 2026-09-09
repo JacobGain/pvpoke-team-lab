@@ -440,6 +440,7 @@
 }
 
 .bulk-add-panel textarea {
+  font-size: 1rem;
   resize: vertical;
 }
 
@@ -449,8 +450,11 @@
 
 .bulk-add-suggestions {
   display: grid;
-  max-height: 18rem;
+  max-height: min(18rem, 40dvh);
   overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-padding: 0.45rem;
+  -webkit-overflow-scrolling: touch;
   padding: 0.45rem;
   border: 1px solid var(--line-strong);
   border-radius: 0.75rem;
@@ -488,6 +492,14 @@
 .bulk-add-suggestions button small {
   color: var(--ink-500);
   font-weight: 600;
+}
+
+@media (max-width: 520px) {
+  .bulk-add-suggestions button {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
 }
 
 .bulk-add-preview {

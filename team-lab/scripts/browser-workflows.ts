@@ -2532,6 +2532,60 @@ async function runCriticalWorkflows(
   );
 
   await browser.navigate("/inventory/bulk-add", "Bulk add Pokémon");
+  await browser.setViewport(320, 900);
+  await browser.setLabeledControl(
+    "Pokémon names or PvPoke IDs",
+    "sh",
+    "textarea",
+  );
+  await browser.waitFor(
+    `document.querySelectorAll(".bulk-add-suggestions [role=option]").length === 8`,
+    "scrollable bulk-add suggestions",
+  );
+  await browser.evaluate(`(() => {
+    const input = document.querySelector("#bulk-pokemon-list");
+    if (!(input instanceof HTMLTextAreaElement)) return;
+    input.focus();
+    for (let index = 0; index < 7; index += 1) {
+      input.dispatchEvent(new KeyboardEvent("keydown", {
+        key: "ArrowDown",
+        bubbles: true,
+        cancelable: true
+      }));
+    }
+  })()`);
+  await browser.waitFor(
+    `document.querySelector('[data-suggestion-index="7"]')?.getAttribute("aria-selected") === "true"`,
+    "last bulk-add keyboard suggestion",
+  );
+  const bulkSuggestionScroll = await browser.evaluate<{
+    readonly activeVisible: boolean;
+    readonly inputFocused: boolean;
+    readonly pageScrollX: number;
+    readonly suggestionScrollTop: number;
+  }>(`(() => {
+    const list = document.querySelector(".bulk-add-suggestions");
+    const active = document.querySelector('[aria-selected="true"]');
+    const listBounds = list?.getBoundingClientRect();
+    const activeBounds = active?.getBoundingClientRect();
+    return {
+      activeVisible: Boolean(
+        listBounds && activeBounds &&
+        activeBounds.top >= listBounds.top - 1 &&
+        activeBounds.bottom <= listBounds.bottom + 1
+      ),
+      inputFocused: document.activeElement?.id === "bulk-pokemon-list",
+      pageScrollX: window.scrollX,
+      suggestionScrollTop: list?.scrollTop ?? 0
+    };
+  })()`);
+  invariant(
+    bulkSuggestionScroll.activeVisible &&
+      bulkSuggestionScroll.inputFocused &&
+      bulkSuggestionScroll.pageScrollX === 0 &&
+      bulkSuggestionScroll.suggestionScrollTop > 0,
+    `Bulk autocomplete did not scroll internally while retaining input focus: ${JSON.stringify(bulkSuggestionScroll)}.`,
+  );
   await browser.setLabeledControl(
     "Pokémon names or PvPoke IDs",
     "zacian_hero",
@@ -2548,6 +2602,35 @@ async function runCriticalWorkflows(
     `document.querySelector("#bulk-pokemon-list")?.value === "Zacian (Hero)\\n" &&
       document.querySelector(".bulk-add-preview h2")?.textContent?.trim() === "1 ready to add"`,
     "bulk-add autocomplete completion",
+  );
+  await browser.setLabeledControl(
+    "Pokémon names or PvPoke IDs",
+    "zacian",
+    "textarea",
+  );
+  await browser.waitFor(
+    `Boolean(document.querySelector('.bulk-add-suggestions [data-species-id="zacian_hero"]'))`,
+    "touch-selectable bulk-add suggestion",
+  );
+  await browser.evaluate(`(() => {
+    const input = document.querySelector("#bulk-pokemon-list");
+    const option = document.querySelector(
+      '.bulk-add-suggestions [data-species-id="zacian_hero"]'
+    );
+    if (!(input instanceof HTMLTextAreaElement) || !(option instanceof HTMLButtonElement)) return;
+    input.focus();
+    option.dispatchEvent(new PointerEvent("pointerdown", {
+      bubbles: true,
+      cancelable: true,
+      pointerId: 1,
+      pointerType: "touch",
+      isPrimary: true
+    }));
+  })()`);
+  await browser.waitFor(
+    `document.querySelector("#bulk-pokemon-list")?.value === "Zacian (Hero)\\n" &&
+      document.activeElement?.id === "bulk-pokemon-list"`,
+    "touch-selected bulk-add suggestion with restored input focus",
   );
 
   const diagnosticsMobileRoute =

@@ -156,7 +156,9 @@ that could not be matched, and add the recognized entries together. While
 typing, autocomplete suggestions show the friendly form name and PvPoke ID;
 for example, `zacian`, `zacian hero`, or `zacian_hero` suggests
 **Zacian (Hero)**. Choosing a suggestion completes only the entry around the
-cursor. Bulk-added
+cursor. Arrow-key navigation keeps the active option visible inside the list,
+and selection returns focus to the input so another entry can be added without
+reopening the keyboard. Bulk-added
 records use PvPoke's default rank-one IV spread, calculated CP, and recommended
 moves for the selected league. Edit individual records afterward when exact
 build details matter. Repeated names intentionally create repeated records.
