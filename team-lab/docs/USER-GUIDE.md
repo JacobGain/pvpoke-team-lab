@@ -152,7 +152,11 @@ Open **Open your inventory**, then choose **Add Pokémon**.
 
 For a large roster, choose **Bulk add** instead. Paste one Pokémon name or
 PvPoke species ID per line (commas and semicolons also work), review any names
-that could not be matched, and add the recognized entries together. Bulk-added
+that could not be matched, and add the recognized entries together. While
+typing, autocomplete suggestions show the friendly form name and PvPoke ID;
+for example, `zacian`, `zacian hero`, or `zacian_hero` suggests
+**Zacian (Hero)**. Choosing a suggestion completes only the entry around the
+cursor. Bulk-added
 records use PvPoke's default rank-one IV spread, calculated CP, and recommended
 moves for the selected league. Edit individual records afterward when exact
 build details matter. Repeated names intentionally create repeated records.

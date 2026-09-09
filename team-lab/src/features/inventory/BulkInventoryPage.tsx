@@ -1,12 +1,20 @@
-import { useMemo, useState, type FormEvent } from "react";
+import {
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+} from "react";
 import { Check, ListPlus } from "lucide-react";
 import { Link } from "react-router";
 
 import { PageHeader } from "@/components/PageHeader";
 import {
+  bulkInventoryInputRangeAt,
+  completeBulkInventoryInput,
   createBulkInventoryRecords,
   MAX_BULK_INVENTORY_ENTRIES,
   previewBulkInventory,
+  suggestBulkInventoryPokemon,
 } from "@/domain/inventory/bulkAdd";
 import { useCreateManyInventoryPokemon } from "@/features/inventory/inventoryQueries";
 import { LeagueName } from "@/features/leagues/LeagueSelector";
@@ -21,14 +29,29 @@ export function BulkInventoryPage() {
   const league = useLeague();
   const catalogResult = usePokemonCatalog();
   const createMutation = useCreateManyInventoryPokemon();
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [source, setSource] = useState("");
   const [savedCount, setSavedCount] = useState(0);
+  const [caret, setCaret] = useState(0);
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+  const [activeSuggestion, setActiveSuggestion] = useState(0);
   const preview = useMemo(
     () =>
       catalogResult.data
         ? previewBulkInventory(source, catalogResult.data)
         : undefined,
     [catalogResult.data, source],
+  );
+  const inputRange = useMemo(
+    () => bulkInventoryInputRangeAt(source, caret),
+    [caret, source],
+  );
+  const suggestions = useMemo(
+    () =>
+      catalogResult.data
+        ? suggestBulkInventoryPokemon(inputRange.query, catalogResult.data)
+        : [],
+    [catalogResult.data, inputRange.query],
   );
 
   if (catalogResult.isLoading) {
@@ -63,6 +86,26 @@ export function BulkInventoryPage() {
     );
   }
 
+  function chooseSuggestion(speciesName: string) {
+    const completion = completeBulkInventoryInput(
+      source,
+      inputRange,
+      speciesName,
+    );
+    setSource(completion.source);
+    setCaret(completion.caret);
+    setSavedCount(0);
+    setSuggestionsOpen(false);
+    setActiveSuggestion(0);
+    requestAnimationFrame(() => {
+      textareaRef.current?.focus();
+      textareaRef.current?.setSelectionRange(
+        completion.caret,
+        completion.caret,
+      );
+    });
+  }
+
   return (
     <main className="inventory-page inventory-form-page">
       <PageHeader
@@ -91,19 +134,109 @@ export function BulkInventoryPage() {
             Enter one Pokémon per line, or separate entries with commas or
             semicolons. Repeated names create repeated records, up to {MAX_BULK_INVENTORY_ENTRIES} at a time.
           </p>
-          <label className="form-field form-field--wide">
-            <span>Pokémon names or PvPoke IDs</span>
+          <div
+            className="bulk-add-autocomplete form-field form-field--wide"
+            onBlur={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget)) {
+                setSuggestionsOpen(false);
+              }
+            }}
+          >
+            <label htmlFor="bulk-pokemon-list">
+              <span>Pokémon names or PvPoke IDs</span>
+            </label>
             <textarea
+              aria-activedescendant={
+                suggestionsOpen && suggestions[activeSuggestion]
+                  ? `bulk-suggestion-${suggestions[activeSuggestion].speciesId}`
+                  : undefined
+              }
+              aria-autocomplete="list"
+              aria-controls="bulk-pokemon-suggestions"
+              aria-expanded={suggestionsOpen && suggestions.length > 0}
               autoCapitalize="words"
+              id="bulk-pokemon-list"
               onChange={(event) => {
                 setSavedCount(0);
                 setSource(event.target.value);
+                setCaret(event.target.selectionStart);
+                setSuggestionsOpen(true);
+                setActiveSuggestion(0);
+              }}
+              onClick={(event) => {
+                setCaret(event.currentTarget.selectionStart);
+                setSuggestionsOpen(true);
+              }}
+              onFocus={(event) => {
+                setCaret(event.currentTarget.selectionStart);
+                setSuggestionsOpen(true);
+              }}
+              onKeyUp={(event) => {
+                if (
+                  ["ArrowDown", "ArrowUp", "Enter", "Escape"].includes(
+                    event.key,
+                  )
+                ) return;
+                setCaret(event.currentTarget.selectionStart);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "ArrowDown" && suggestions.length > 0) {
+                  event.preventDefault();
+                  setSuggestionsOpen(true);
+                  setActiveSuggestion((current) =>
+                    Math.min(current + 1, suggestions.length - 1),
+                  );
+                } else if (event.key === "ArrowUp" && suggestions.length > 0) {
+                  event.preventDefault();
+                  setActiveSuggestion((current) => Math.max(current - 1, 0));
+                } else if (
+                  event.key === "Enter" &&
+                  suggestionsOpen &&
+                  suggestions[activeSuggestion]
+                ) {
+                  event.preventDefault();
+                  chooseSuggestion(suggestions[activeSuggestion].speciesName);
+                } else if (event.key === "Escape") {
+                  setSuggestionsOpen(false);
+                }
               }}
               placeholder={"Azumarill\nAltaria\nstunfisk_galarian"}
+              ref={textareaRef}
               rows={10}
               value={source}
             />
-          </label>
+            {suggestionsOpen && suggestions.length > 0 ? (
+              <div
+                aria-label="Pokémon autocomplete suggestions"
+                className="bulk-add-suggestions"
+                id="bulk-pokemon-suggestions"
+                role="listbox"
+              >
+                <small>Suggestions for “{inputRange.query}”</small>
+                {suggestions.map((pokemon, index) => (
+                  <button
+                    aria-selected={index === activeSuggestion}
+                    className={
+                      index === activeSuggestion
+                        ? "bulk-add-suggestion--active"
+                        : undefined
+                    }
+                    data-species-id={pokemon.speciesId}
+                    id={`bulk-suggestion-${pokemon.speciesId}`}
+                    key={pokemon.speciesId}
+                    onClick={() => chooseSuggestion(pokemon.speciesName)}
+                    onMouseDown={(event) => event.preventDefault()}
+                    onMouseEnter={() => setActiveSuggestion(index)}
+                    role="option"
+                    type="button"
+                  >
+                    <span>{pokemon.speciesName}</span>
+                    <small>{pokemon.speciesId}</small>
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
           <p className="assumption-notice">
             Each match uses PvPoke’s default <LeagueName /> rank-one IV spread,
             calculated CP, and recommended moves. These assumptions stay visibly

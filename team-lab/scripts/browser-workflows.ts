@@ -2531,6 +2531,25 @@ async function runCriticalWorkflows(
     "restored inventory dashboard",
   );
 
+  await browser.navigate("/inventory/bulk-add", "Bulk add Pokémon");
+  await browser.setLabeledControl(
+    "Pokémon names or PvPoke IDs",
+    "zacian_hero",
+    "textarea",
+  );
+  await browser.waitFor(
+    `Boolean(document.querySelector('.bulk-add-suggestions [data-species-id="zacian_hero"]'))`,
+    "bulk-add Zacian form suggestions",
+  );
+  await browser.evaluate(`document.querySelector("#bulk-pokemon-list")?.dispatchEvent(
+    new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true })
+  )`);
+  await browser.waitFor(
+    `document.querySelector("#bulk-pokemon-list")?.value === "Zacian (Hero)\\n" &&
+      document.querySelector(".bulk-add-preview h2")?.textContent?.trim() === "1 ready to add"`,
+    "bulk-add autocomplete completion",
+  );
+
   const diagnosticsMobileRoute =
     buildTarget === "production"
       ? ([
