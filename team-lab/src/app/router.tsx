@@ -4,6 +4,7 @@ import {
 } from "react-router";
 
 import {
+  BulkInventoryPage,
   InventoryAnalysisPage,
   InventoryBackupPage,
   InventoryFormPage,
@@ -64,6 +65,14 @@ export const router = createBrowserRouter(
           element: (
             <LazyRoute>
               <InventoryFormPage />
+            </LazyRoute>
+          ),
+        },
+        {
+          path: "inventory/bulk-add",
+          element: (
+            <LazyRoute>
+              <BulkInventoryPage />
             </LazyRoute>
           ),
         },

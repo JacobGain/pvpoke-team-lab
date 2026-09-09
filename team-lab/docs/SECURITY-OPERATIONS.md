@@ -9,7 +9,8 @@ or server-side mutation endpoints to protect.
 
 - Keep GitHub private vulnerability reporting enabled and security-alert
   notifications active for repository administrators.
-- Review `/.well-known/security.txt` before its `Expires` date. Production
+- Review the canonical `/.well-known/security.txt` and `/security.txt`
+  compatibility copy before their `Expires` date. Production
   validation fails when it is expired, less than 30 days from expiry, or more
   than 366 days from expiry.
 - Handle vulnerability details in a private advisory rather than a public issue.

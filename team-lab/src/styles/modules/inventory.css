@@ -439,6 +439,50 @@
   font-weight: 750;
 }
 
+.bulk-add-panel textarea {
+  resize: vertical;
+}
+
+.bulk-add-preview {
+  display: grid;
+  gap: 1rem;
+}
+
+.bulk-add-matches,
+.bulk-add-issues {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bulk-add-matches li,
+.bulk-add-issues li {
+  padding: 0.7rem 0.8rem;
+  border-radius: 0.7rem;
+}
+
+.bulk-add-matches li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.1rem 0.5rem;
+  color: #11663b;
+  background: #e5f7ed;
+}
+
+.bulk-add-matches small {
+  grid-column: 2;
+  color: #52607a;
+}
+
+.bulk-add-issues li {
+  color: #8f2525;
+  background: #fceaea;
+}
+
 .backup-section {
   display: flex;
   align-items: center;
