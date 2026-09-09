@@ -4,7 +4,7 @@
   "version": "1.0.1",
   "type": "module",
   "engines": {
-    "node": ">=22.22.0"
+    "node": "^22.22.0 || ^24.0.0 || >=26.0.0"
   },
   "scripts": {
     "audit:security": "npm audit --audit-level=high",
@@ -59,7 +59,7 @@
     "typescript": "6.0.3",
     "typescript-eslint": "8.69.0",
     "vite": "8.2.2",
-    "vitest": "4.1.11",
+    "vitest": "5.0.0",
     "wrangler": "4.130.0"
   },
   "overrides": {
