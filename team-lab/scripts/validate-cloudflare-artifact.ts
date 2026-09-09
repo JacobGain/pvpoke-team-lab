@@ -31,6 +31,8 @@ const requiredSeoFragments = [
   'meta name="robots" content="index, follow"',
   'property="og:title"',
   'name="twitter:card"',
+  'rel="icon"',
+  'type="image/webp"',
 ];
 const missingSeoFragments = requiredSeoFragments.filter(
   (fragment) => !indexHtml.includes(fragment),
@@ -96,6 +98,15 @@ const entries = await readdir(outputDirectory, {
   withFileTypes: true,
 });
 const files = entries.filter((entry) => entry.isFile());
+
+const nonWebpRasterImages = files.filter((file) =>
+  /\.(?:avif|gif|jpe?g|png)$/i.test(file.name),
+);
+if (nonWebpRasterImages.length > 0) {
+  throw new Error(
+    `The production artifact contains raster images that are not WebP: ${nonWebpRasterImages.map((file) => resolve(file.parentPath, file.name)).join(", ")}.`,
+  );
+}
 
 if (files.length > MAX_FILES) {
   throw new Error(
