@@ -1,3 +1,5 @@
+import { LeagueName } from "@/features/leagues/LeagueSelector";
+import { useLeague } from "@/features/leagues/leagueStore";
 import { Plus, Sparkles, Users } from "lucide-react";
 import { Link } from "react-router";
 
@@ -11,13 +13,14 @@ import {
   useDeleteSavedTeam,
   useSavedTeamList,
 } from "@/features/teams/savedTeamQueries";
-import { formatTeamPosition } from "@/utils/formatters";
+import { formatCalendarDate, formatTeamPosition } from "@/utils/formatters";
 
 function formatError(error: unknown): string {
   return error instanceof Error ? error.message : "Unable to load saved teams.";
 }
 
 export function SavedTeamsPage() {
+  const league = useLeague();
   const teamsResult = useSavedTeamList();
   const inventoryResult = useInventoryList();
   const catalogResult = usePokemonCatalog();
@@ -87,7 +90,7 @@ export function SavedTeamsPage() {
             and closer positions remain explicit.
           </p>
         }
-        eyebrow="Open Great League lineups"
+        eyebrow={`${league.title} lineups`}
         title="Saved teams"
       />
 
@@ -107,7 +110,7 @@ export function SavedTeamsPage() {
                 </p>
                 <h2>{team.name}</h2>
               </div>
-              <span className="context-badge">Great League</span>
+              <span className="context-badge"><LeagueName /></span>
             </div>
             <ol className="team-members">
               {members.map((member) => (
@@ -150,7 +153,7 @@ export function SavedTeamsPage() {
             </ol>
             {team.notes ? <p className="inventory-notes">{team.notes}</p> : null}
             <small>
-              Updated {new Date(team.updatedAt).toLocaleString()}
+              Last updated: {formatCalendarDate(team.updatedAt)}
               {team.lastAnalyzedDataVersion
                 ? ` · analyzed with ${team.lastAnalyzedDataVersion}`
                 : " · not yet analyzed"}

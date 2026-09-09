@@ -1,3 +1,4 @@
+import { leagueForCp } from "@/domain/leagues";
 import {
   analyzeInventoryBuild,
   type BuildRequirement,
@@ -238,6 +239,8 @@ export function buildRecommendationCandidatePool(
   inventory: readonly InventoryPokemon[],
   catalog: PokemonCatalog,
 ): RecommendationCandidatePool {
+  if (request.formatId !== leagueForCp(catalog.cpCap).id) throw new Error("Recommendation league must match the catalog.");
+  inventory = inventory.filter((record) => (record.formatId ?? "great-league") === request.formatId);
   const validatedRequest = recommendationRequestSchema.parse(request);
   const inventoryById = new Map(
     inventory.map((record) => [record.inventoryId, record]),

@@ -87,7 +87,7 @@ export function calculateEffectiveStats(
 export function findHighestLegalLevel(
   pokemon: PokemonCatalogEntry,
   ivs: InventoryIvs,
-  cpCap = GREAT_LEAGUE_CP_CAP,
+  cpCap = pokemon.cpCap ?? GREAT_LEAGUE_CP_CAP,
   levelCap = GREAT_LEAGUE_RANKING_LEVEL_CAP,
 ): { readonly level: number; readonly cp: number } | undefined {
   const maximumLevel = Math.min(levelCap, pokemon.levelCap);
@@ -109,7 +109,7 @@ export function findHighestLegalLevel(
 
 export function generateIvRankingTable(
   pokemon: PokemonCatalogEntry,
-  cpCap = GREAT_LEAGUE_CP_CAP,
+  cpCap = pokemon.cpCap ?? GREAT_LEAGUE_CP_CAP,
   levelCap = GREAT_LEAGUE_RANKING_LEVEL_CAP,
 ): readonly IvRankedCombination[] {
   const cacheKey = rankingCacheKey(pokemon, cpCap, levelCap);
@@ -172,7 +172,7 @@ export function analyzeIvRanking(
 
   if (!combination || !rankOne) {
     throw new Error(
-      `${pokemon.speciesName} has no valid Open Great League IV ranking for ${ivKey(ivs)}.`,
+      `${pokemon.speciesName} has no valid selected league IV ranking for ${ivKey(ivs)}.`,
     );
   }
   const highestAttack = table.reduce((highest, candidate) =>

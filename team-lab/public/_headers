@@ -14,3 +14,15 @@ https://pvpoke-team-lab.pages.dev/*
 
 https://:deployment.pvpoke-team-lab.pages.dev/*
   X-Robots-Tag: noindex
+
+/inventory*
+  X-Robots-Tag: noindex, nofollow
+
+/teams*
+  X-Robots-Tag: noindex, nofollow
+
+/recommend*
+  X-Robots-Tag: noindex, nofollow
+
+/diagnostics*
+  X-Robots-Tag: noindex, nofollow

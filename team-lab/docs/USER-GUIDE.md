@@ -1,8 +1,30 @@
 # TeamLab Local User Guide
 
+TeamLab 1.0.0 treats **Season 28 — Twilight Trails** as the active season for
+rankings, recommended moves, meta opponents, and simulations. The dashboard
+identifies the active season. Existing inventory and saved teams remain stored;
+re-run analyses to evaluate them against the new season. There is no preview
+mode or season selector.
+
+## Choosing a league
+
+Use **Active league** in the desktop sidebar or the mobile navigation menu to
+switch between Great League (1500 CP), Ultra League (2500 CP), and Master League
+(no CP limit). The selection is remembered on this browser. Switching returns to the dashboard; save any
+form edits first.
+
+Rankings, default IVs, build analysis, teams, recommendations, and simulation
+opponents follow the selected league. Each inventory record and saved team
+belongs to one league. Records saved before 0.0.7 remain in Great League.
+Master League defaults use 15/15/15 IVs at level 50 (or a lower species level
+cap). Planned builds maximize level with the entered IVs. Existing support for
+exact Best Buddy builds remains available; default rankings use level 50.
+Backups and reset tools cover all three leagues together; switching leagues does
+not remove any records.
+
 ## What TeamLab does
 
-TeamLab is a local-first Open Great League inventory and team-planning
+TeamLab is a local-first Great, Ultra, and Master League inventory and team-planning
 application built on the data and simulation engine in this PvPoke fork.
 
 The MVP lets you:
@@ -10,7 +32,7 @@ The MVP lets you:
 - record exact Pokémon you own and builds you plan;
 - compare IVs, effective stats, roles, moves, and named-opponent thresholds;
 - save ordered lead, safe-switch, and closer teams;
-- run exact teams against the current Open Great League meta;
+- run exact teams against the selected league’s meta;
 - build recommendations around one or two owned anchors;
 - save selected recommendations as teams;
 - back up and restore inventory and saved teams as JSON.
@@ -107,12 +129,12 @@ The catalog shows normalized released Pokémon with:
 
 - Pokédex and form identity;
 - types and Shadow state;
-- overall Open Great League rank where published;
+- overall rank in the selected league where published;
 - fast and charged moves;
 - current-meta membership.
 
 Search accepts a species name or species ID. The meta-only control narrows the
-list to the current checked-in Great League group.
+list to the current checked-in league meta group.
 
 The catalog is reference data. Adding a Pokémon to inventory happens through
 **Open your inventory**.
@@ -269,7 +291,7 @@ starts from an exact owned anchor.
 - Choose ready-now and planned builds together, ready-now only, or planned
   only.
 - Optionally include highly ranked Pokémon outside your inventory. These use
-  PvPoke’s recommended moves and default Great League IVs.
+  PvPoke’s recommended moves and default IVs for the selected league.
 - Choose the meta-target and shield scope.
 
 ### Run and review
@@ -401,8 +423,8 @@ inside TeamLab; recovery requires a previously downloaded backup.
 
 ## Data versions and refreshes
 
-TeamLab reads the Game Master, Open Great League rankings, Great League meta
-group, and simulation scripts from its checked-in
+TeamLab reads the Game Master, all three leagues’ rankings and meta
+groups, and simulation scripts from its checked-in
 `public/vendor/pvpoke/` directory.
 
 The loaded data version appears throughout analysis and simulation results.
@@ -434,7 +456,7 @@ jQuery, Battle, GameMaster, Pokémon, and TeamRanker classic scripts.
 
 Confirm:
 
-- CP is between 10 and 1500;
+- CP is between 10 and the selected league’s cap (1500 or 2500); Master League has no CP limit;
 - every IV is between 0 and 15;
 - the CP is reachable for that exact species/form and IV spread;
 - the selected moves belong to that form.
@@ -473,7 +495,7 @@ export a new backup when possible.
 
 TeamLab currently supports:
 
-- Open Great League;
+- Open Great League (1500 CP), Open Ultra League (2500 CP), and Open Master League (no CP limit);
 - manual inventory entry;
 - local browser persistence;
 - current and planned owned builds;

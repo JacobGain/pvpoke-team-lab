@@ -1,3 +1,4 @@
+import { LEAGUES } from "@/domain/leagues";
 import { useState } from "react";
 import { Link } from "react-router";
 
@@ -33,7 +34,7 @@ function downloadReport(report: SimulationCharacterizationReport) {
 }
 
 export function SimulationDiagnosticsPage() {
-  const catalogResult = usePokemonCatalog();
+  const catalogResult = usePokemonCatalog(LEAGUES["great-league"]);
   const [report, setReport] = useState<SimulationCharacterizationReport>();
   const [error, setError] = useState<unknown>();
   const [running, setRunning] = useState(false);

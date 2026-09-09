@@ -1,3 +1,5 @@
+import { LeagueName } from "@/features/leagues/LeagueSelector";
+import { useLeague } from "@/features/leagues/leagueStore";
 import { useMemo, useRef, useState } from "react";
 import { SearchX } from "lucide-react";
 import { Link } from "react-router";
@@ -10,6 +12,7 @@ import {
 } from "@/domain/pokemon/catalog";
 import { RankingRow } from "@/features/meta/RankingRow";
 import { usePokemonCatalog } from "@/features/meta/usePokemonCatalog";
+import { formatCalendarDate } from "@/utils/formatters";
 
 const PAGE_SIZE = 100;
 
@@ -41,6 +44,7 @@ function matchesSearch(
 }
 
 export function PokemonCatalogPage() {
+  const league = useLeague();
   const { data: catalog, error, isLoading } = usePokemonCatalog();
   const [search, setSearch] = useState("");
   const [showUnranked, setShowUnranked] = useState(false);
@@ -65,7 +69,7 @@ export function PokemonCatalogPage() {
   if (isLoading) {
     return (
       <main className="catalog-page">
-        <p>Building the Open Great League catalog…</p>
+        <p>Building the <LeagueName open /> catalog…</p>
       </main>
     );
   }
@@ -114,8 +118,13 @@ export function PokemonCatalogPage() {
         aside={
           <div className="catalog-summary">
             <strong>{filteredPokemon.length.toLocaleString()}</strong>
-            <span>matching records</span>
-            <small>Data: {catalog.dataVersion}</small>
+            <span>ranked Pokémon</span>
+            <small>
+              Last updated:{" "}
+              <time dateTime={catalog.dataVersion}>
+                {formatCalendarDate(catalog.dataVersion)}
+              </time>
+            </small>
           </div>
         }
         description={
@@ -124,7 +133,7 @@ export function PokemonCatalogPage() {
             membership from PvPoke.
           </p>
         }
-        eyebrow="PvPoke Great League"
+        eyebrow={`PvPoke ${league.shortTitle}`}
         title="Rankings"
       />
 

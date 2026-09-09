@@ -1,3 +1,4 @@
+import { LEAGUES } from "@/domain/leagues";
 import type {
   InventoryMoveset,
   InventoryPokemon,
@@ -107,12 +108,12 @@ export function validateInventoryPokemonAgainstCatalog(
 
   if (
     record.currentBuild.ivProfile.source === "assumed-rank-1" &&
-    !currentPokemon.defaultGreatLeagueIvs
+    !(currentPokemon.defaultIvsByCp ? currentPokemon.defaultIvsByCp[LEAGUES[record.formatId ?? "great-league"].cp] : currentPokemon.defaultLeagueIvs)
   ) {
     issues.push({
       code: "assumed-ivs-unavailable",
       path: "currentBuild.ivProfile",
-      message: `${currentPokemon.speciesName} has no upstream default Great League IV spread.`,
+      message: `${currentPokemon.speciesName} has no upstream default selected league IV spread.`,
     });
   }
 

@@ -1,12 +1,12 @@
+import { useLeague } from "@/features/leagues/leagueStore";
+import { LeagueSelector, LeagueName } from "@/features/leagues/LeagueSelector";
 import {
   Archive,
   BookOpen,
   Boxes,
   FlaskConical,
-  HeartPulse,
   Home,
   Menu,
-  ShieldCheck,
   Sparkles,
   Users,
   X,
@@ -14,8 +14,6 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router";
-
-import { usePvpokeDataStatus } from "@/features/meta/usePvpokeDataStatus";
 
 interface NavigationItem {
   readonly to: string;
@@ -52,17 +50,64 @@ const utilityNavigation: readonly NavigationItem[] = [
     icon: Archive,
     end: false,
   },
-  ...(__TEAMLAB_DIAGNOSTICS__
-    ? [
-        {
-          to: "/diagnostics/simulation",
-          label: "Engine diagnostics",
-          icon: HeartPulse,
-          end: false,
-        },
-      ]
-    : []),
 ];
+
+const SITE_ORIGIN = "https://pogoteamlab.com";
+const publicSeo = {
+  home: {
+    title: "Pokémon GO PvP Team Builder & Roster Planner | TeamLab",
+    description:
+      "Track your Pokémon GO PvP roster, compare current Great, Ultra, and Master League rankings, and build teams from the Pokémon you own.",
+  },
+  rankings: {
+    title: "Pokémon GO PvP Rankings | TeamLab",
+    description:
+      "Explore current Pokémon GO PvP rankings, recommended moves, matchups, and optimal IVs for Great, Ultra, and Master League.",
+  },
+} as const;
+
+function setMeta(name: string, content: string, attribute = "name") {
+  let element = document.head.querySelector<HTMLMetaElement>(
+    `meta[${attribute}="${name}"]`,
+  );
+  if (!element) {
+    element = document.createElement("meta");
+    element.setAttribute(attribute, name);
+    document.head.append(element);
+  }
+  element.content = content;
+}
+
+function updateSeoMetadata(pathname: string) {
+  const isHome = pathname === "/";
+  const isRankings = pathname === "/catalog";
+  const seo = isRankings ? publicSeo.rankings : publicSeo.home;
+  const isPublic = isHome || isRankings;
+  const canonicalPath = isRankings ? "/catalog" : "/";
+
+  document.title = isPublic ? seo.title : `TeamLab | Pokémon GO PvP`;
+  setMeta("description", seo.description);
+  setMeta("robots", isPublic ? "index, follow" : "noindex, nofollow");
+  setMeta("og:title", document.title, "property");
+  setMeta("og:description", seo.description, "property");
+  setMeta("og:url", `${SITE_ORIGIN}${canonicalPath}`, "property");
+  setMeta("twitter:title", document.title);
+  setMeta("twitter:description", seo.description);
+
+  let canonical = document.head.querySelector<HTMLLinkElement>(
+    'link[rel="canonical"]',
+  );
+  if (!isPublic) {
+    canonical?.remove();
+    return;
+  }
+  if (!canonical) {
+    canonical = document.createElement("link");
+    canonical.rel = "canonical";
+    document.head.append(canonical);
+  }
+  canonical.href = `${SITE_ORIGIN}${canonicalPath}`;
+}
 
 function NavigationLink({
   to,
@@ -92,63 +137,15 @@ function NavigationLink({
   );
 }
 
-function DataHealthIndicator({
-  dataState,
-  gameMasterTitle,
-  compact = false,
-}: {
-  readonly dataState: "loading" | "ready" | "error";
-  readonly gameMasterTitle?: string;
-  readonly compact?: boolean;
-}) {
-  const className = `data-health data-health--${dataState}`;
-  const title =
-    dataState === "ready"
-      ? `Bundled PvPoke data · ${gameMasterTitle}`
-      : "Check bundled battle data";
-  const content = (
-    <>
-      <span aria-hidden="true" />
-      <ShieldCheck size={16} />
-      <strong>
-        {dataState === "loading"
-          ? "Loading"
-          : dataState === "ready"
-            ? compact
-              ? "Data ready"
-              : "Battle data ready"
-            : compact
-              ? "Data issue"
-              : "Bundled data issue"}
-      </strong>
-    </>
-  );
-
-  return __TEAMLAB_DIAGNOSTICS__ ? (
-    <NavLink
-      className={className}
-      title={title}
-      to="/diagnostics/simulation"
-    >
-      {content}
-    </NavLink>
-  ) : (
-    <div className={className} role="status" title={title}>
-      {content}
-    </div>
-  );
-}
-
 export function AppLayout() {
+  const league = useLeague();
   const location = useLocation();
-  const { data, error, isLoading } = usePvpokeDataStatus();
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     window.scrollTo({ left: 0, top: 0, behavior: "instant" });
+    updateSeoMetadata(location.pathname);
   }, [location.pathname]);
-
-  const dataState = isLoading ? "loading" : error || !data ? "error" : "ready";
 
   return (
     <div className="app-frame">
@@ -167,14 +164,12 @@ export function AppLayout() {
           </span>
           <span className="brand-mark__copy">
             <strong>TeamLab</strong>
-            <small>Battle dossier</small>
+            <small>Pokémon GO PvP</small>
           </span>
         </NavLink>
 
         <div className="app-rail__format">
-          <span>Active format</span>
-          <strong>Open Great League</strong>
-          <small>CP limit 1,500</small>
+          <LeagueSelector />
         </div>
 
         <nav className="app-nav app-nav--rail" aria-label="Primary">
@@ -185,17 +180,13 @@ export function AppLayout() {
         </nav>
 
         <nav className="app-nav app-nav--rail app-nav--utility" aria-label="Tools">
-          <p className="app-rail__label">System</p>
+          <p className="app-rail__label">Manage</p>
           {utilityNavigation.slice(1).map((item) => (
             <NavigationLink key={item.to} {...item} />
           ))}
         </nav>
 
         <div className="app-rail__footer">
-          <DataHealthIndicator
-            dataState={dataState}
-            gameMasterTitle={data?.gameMasterTitle}
-          />
           <small>Inventory and team-planning workspace</small>
         </div>
       </aside>
@@ -208,16 +199,11 @@ export function AppLayout() {
             </span>
             <span className="brand-mark__copy">
               <strong>TeamLab</strong>
-              <small>Open Great League</small>
+              <small><LeagueName open /></small>
             </span>
           </NavLink>
 
           <div className="app-topbar__tools">
-            <DataHealthIndicator
-              compact
-              dataState={dataState}
-              gameMasterTitle={data?.gameMasterTitle}
-            />
             <button
               aria-controls="mobile-menu"
               aria-expanded={menuOpen}
@@ -239,6 +225,7 @@ export function AppLayout() {
         id="mobile-menu"
       >
         <nav aria-label="More TeamLab destinations">
+          <LeagueSelector onSelect={() => setMenuOpen(false)} />
           <p className="mobile-menu__label">Explore and manage</p>
           {utilityNavigation.map((item) => (
             <NavigationLink
@@ -253,7 +240,7 @@ export function AppLayout() {
       </div>
 
       <div className="app-content" id="main-content">
-        <Outlet />
+        <Outlet key={league.id} />
         <footer className="app-footer">
           <div className="app-footer__inner">
             <div className="app-footer__identity">

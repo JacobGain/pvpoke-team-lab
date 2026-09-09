@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { GREAT_LEAGUE_FORMAT_ID } from "@/domain/teams/schemas";
+
 
 export const RECOMMENDATION_RESULT_COUNT_MIN = 1;
 export const RECOMMENDATION_RESULT_COUNT_MAX = 5;
@@ -30,7 +30,7 @@ export const recommendationPartnerScopeSchema = z.enum([
 
 export const recommendationRequestSchema = z
   .object({
-    formatId: z.literal(GREAT_LEAGUE_FORMAT_ID),
+    formatId: z.enum(["great-league", "ultra-league", "master-league"]),
     anchors: z.array(recommendationAnchorSchema).min(1).max(2),
     resultCount: z
       .number()

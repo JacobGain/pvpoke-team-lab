@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { useState, type ChangeEvent } from "react";
 import { Link } from "react-router";
 
@@ -15,9 +16,10 @@ import {
   useClearSavedTeams,
   useResetAllLocalData,
 } from "@/features/backup/maintenanceQueries";
-import { useInventoryList } from "@/features/inventory/inventoryQueries";
+import { inventoryListQueryOptions } from "@/features/inventory/inventoryQueries";
 import { usePokemonCatalog } from "@/features/meta/usePokemonCatalog";
-import { useSavedTeamList } from "@/features/teams/savedTeamQueries";
+import { savedTeamListQueryOptions } from "@/features/teams/savedTeamQueries";
+import { formatCalendarDate } from "@/utils/formatters";
 
 function formatError(error: unknown): string {
   return error instanceof Error
@@ -44,8 +46,8 @@ function downloadBackup(contents: string, filename: string) {
 
 export function InventoryBackupPage() {
   const catalogResult = usePokemonCatalog();
-  const inventoryResult = useInventoryList();
-  const savedTeamsResult = useSavedTeamList();
+  const inventoryResult = useQuery(inventoryListQueryOptions);
+  const savedTeamsResult = useQuery(savedTeamListQueryOptions);
   const restoreMutation = useRestoreTeamLabBackup();
   const clearSavedTeamsMutation = useClearSavedTeams();
   const clearInventoryMutation = useClearGuardedInventory();
@@ -274,8 +276,8 @@ export function InventoryBackupPage() {
               <span>
                 {inspection.backup.inventory.length} inventory records ·{" "}
                 {inspection.backup.savedTeams.length} saved teams · schema{" "}
-                {inspection.backup.sourceSchemaVersion} · exported{" "}
-                {new Date(inspection.backup.exportedAt).toLocaleString()}
+                {inspection.backup.sourceSchemaVersion} · Exported:{" "}
+                {formatCalendarDate(inspection.backup.exportedAt)}
               </span>
               {inspection.backup.sourceSchemaVersion === 1 ? (
                 <small>

@@ -89,6 +89,11 @@ export function getTypeEffectiveness(
   defenderTypes: readonly string[],
 ): number {
   return defenderTypes.reduce((effectiveness, defenderType) => {
+    // PvPoke represents a missing secondary type with the `none` sentinel.
+    if (defenderType === "none") {
+      return effectiveness;
+    }
+
     const traits = TYPE_TRAITS[defenderType];
 
     if (!traits) {
@@ -162,10 +167,10 @@ export function analyzeNamedOpponent(
   pokemon: PokemonCatalogEntry,
   opponent: PokemonCatalogEntry,
 ): NamedOpponentAnalysis {
-  const opponentIvs = opponent.defaultGreatLeagueIvs;
+  const opponentIvs = opponent.defaultLeagueIvs;
 
   if (!opponentIvs) {
-    throw new Error(`${opponent.speciesName} has no default Great League build.`);
+    throw new Error(`${opponent.speciesName} has no default selected league build.`);
   }
 
   const opponentStats = calculateEffectiveStats(

@@ -1,3 +1,4 @@
+import { useLeague } from "@/features/leagues/leagueStore";
 import { useMemo, useState } from "react";
 import {
   Archive,
@@ -6,7 +7,7 @@ import {
   SearchX,
   Users,
 } from "lucide-react";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 
 import { EmptyState } from "@/components/EmptyState";
 import { PageHeader } from "@/components/PageHeader";
@@ -25,6 +26,7 @@ import {
 } from "@/features/inventory/inventoryView";
 import { usePokemonCatalog } from "@/features/meta/usePokemonCatalog";
 import {
+  formatCalendarDate,
   formatIdentifier,
   formatMoveList,
   formatMoveName,
@@ -35,22 +37,37 @@ function formatError(error: unknown): string {
 }
 
 export function InventoryPage() {
+  const league = useLeague();
   const catalogResult = usePokemonCatalog();
   const inventoryResult = useInventoryList();
   const deleteMutation = useDeleteInventoryPokemon();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState<InventoryViewStatus>("all");
   const [favoriteOnly, setFavoriteOnly] = useState(false);
   const [sort, setSort] = useState<InventoryViewSort>("updated");
+  const statusParam = searchParams.get("status");
+  const status: InventoryViewStatus =
+    statusParam === "current" || statusParam === "planned"
+      ? statusParam
+      : "all";
+  const assumedIvsOnly = searchParams.get("ivs") === "assumed";
+
+  function setFilterParameter(name: string, value?: string) {
+    const next = new URLSearchParams(searchParams);
+    if (value) next.set(name, value);
+    else next.delete(name);
+    setSearchParams(next, { replace: true });
+  }
 
   const filteredRecords = useMemo(() => {
     return filterAndSortInventory(
       inventoryResult.data ?? [],
       catalogResult.data,
-      { search, status, favoriteOnly, sort },
+      { search, status, favoriteOnly, assumedIvsOnly, sort },
     );
   }, [
     catalogResult.data,
+    assumedIvsOnly,
     favoriteOnly,
     inventoryResult.data,
     search,
@@ -110,7 +127,7 @@ export function InventoryPage() {
             validated PvPoke catalog.
           </p>
         }
-        eyebrow="Open Great League roster"
+        eyebrow={`${league.title} roster`}
         title="Your inventory"
       />
 
@@ -131,8 +148,10 @@ export function InventoryPage() {
           <select
             value={status}
             onChange={(event) => {
-              setStatus(
-                event.target.value as InventoryViewStatus,
+              const nextStatus = event.target.value as InventoryViewStatus;
+              setFilterParameter(
+                "status",
+                nextStatus === "all" ? undefined : nextStatus,
               );
             }}
           >
@@ -154,16 +173,31 @@ export function InventoryPage() {
             <option value="cp">Highest CP</option>
           </select>
         </label>
-        <label className="check-control">
-          <input
-            type="checkbox"
-            checked={favoriteOnly}
-            onChange={(event) => {
-              setFavoriteOnly(event.target.checked);
-            }}
-          />
-          Favorites only
-        </label>
+        <div className="inventory-filter-toggles">
+          <label className="check-control">
+            <input
+              type="checkbox"
+              checked={favoriteOnly}
+              onChange={(event) => {
+                setFavoriteOnly(event.target.checked);
+              }}
+            />
+            Favorites only
+          </label>
+          <label className="check-control">
+            <input
+              type="checkbox"
+              checked={assumedIvsOnly}
+              onChange={(event) => {
+                setFilterParameter(
+                  "ivs",
+                  event.target.checked ? "assumed" : undefined,
+                );
+              }}
+            />
+            Assumed IVs only
+          </label>
+        </div>
       </section>
 
       {error ? (
@@ -299,8 +333,8 @@ export function InventoryPage() {
                   <p className="inventory-notes">{record.notes}</p>
                 ) : null}
                 <small>
-                  Created {new Date(record.createdAt).toLocaleString()} · updated{" "}
-                  {new Date(record.updatedAt).toLocaleString()}
+                  Created: {formatCalendarDate(record.createdAt)} · Last updated:{" "}
+                  {formatCalendarDate(record.updatedAt)}
                 </small>
               </div>
               <div className="inventory-card__actions">

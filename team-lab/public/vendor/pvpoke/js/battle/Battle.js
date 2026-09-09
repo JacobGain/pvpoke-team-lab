@@ -22,6 +22,7 @@ function Battle(){
 	var turnMessages = []; // Array of messages to be displayed by the emulator for specific Pokemon
 	var turnAnimations = []; // Animations to be displayed by the front end this turn
 	var turnActions = []; // Actions to be performed this turn
+	var actionIndex = 0; // Iterator over current turnActions
 	var queuedActions = []; // Input registered from previous turns to be processed on future turns
 	var sandbox = false; // Is this automated or following user instructions?
 	var mode = "simulate"; // Simulate or emulate?
@@ -252,7 +253,8 @@ function Battle(){
 		// Determine if charged move priority should be used
 		usePriority = false;
 
-		if(pokemon[0].stats.atk != pokemon[1].stats.atk){
+		if(pokemon[0].stats.atk != pokemon[1].stats.atk
+			|| pokemon[0].speciesId == "cramorant" && pokemon[1].speciesId == "cramorant" ){
 			usePriority = true;
 		}
 
@@ -316,6 +318,7 @@ function Battle(){
 		// Determine actions for both Pokemon
 		var actionsThisTurn = false;
 		var chargedMoveThisTurn = false;
+		var chargedMoveLastTurn = previousTurnActions.find(action => action.type == "charged");
 		var cooldownsToSet = [pokemon[0].cooldown, pokemon[1].cooldown]; // Store cooldown values to set later
 
 		if(turns > lastProcessedTurn){
@@ -326,7 +329,13 @@ function Battle(){
 				var action = self.getTurnAction(poke, opponent);
 
 				if(action){
+
+					if(chargedMoveLastTurn && action.type != "switch"){
+						continue; // Only allow 0 turn switches after a Charged Attack sequence
+					}
+
 					actionsThisTurn = true;
+
 					if(action.type == "charged"){
 						chargedMoveThisTurn = true;
 					}
@@ -348,7 +357,17 @@ function Battle(){
 
 							if(valid){
 								cooldownsToSet[i] += poke.fastMove.cooldown;
+								timeline.push(new TimelineEvent("tap interaction", "Tap", poke.index, time, turns, [2,0]));
 							}
+						}
+
+						// Don't allow any inputs on the same turn that a Charged Attack resolves
+						/*if(queuedActions.find(action => action.type == "charged" && action.turn == turns - 1)){
+							valid = false;
+						}*/
+
+						if(action.type == "charged" && valid){
+							cooldownsToSet[i] += 500;
 						}
 
 						if(valid){
@@ -364,15 +383,7 @@ function Battle(){
 		pokemon[1].cooldown = cooldownsToSet[1];
 
 		// Check for a Charged Move this turn to apply floating Fast Moves
-		var chargedMoveQueuedThisTurn = false;
-
-		for(var i = 0; i < queuedActions.length; i++){
-			var action = queuedActions[i];
-			if(action.type == "charged"){
-				chargedMoveQueuedThisTurn = true;
-			}
-		}
-
+		var chargedMoveLastTurn = previousTurnActions.find(action => action.type == "charged");
 
 		// Take actions from the queue to be processed now
 		for(var i = 0; i < queuedActions.length; i++){
@@ -380,36 +391,16 @@ function Battle(){
 			var valid = false;
 
 			// Is there a fast move that's eligible to be processed this turn?
-			if(action.type == "fast"){
+			if(action.type == "fast" || action.type == "charged"){
 
 				// Was this queued on a previous turn? See if it's eligible
 				var timeSinceActivated = (turns - action.turn) * 500;
-				var chargedMoveLastTurn = false;
 
-				for(var n = 0; n < previousTurnActions.length; n++){
-					if(previousTurnActions[n].type == "charged"){
-						chargedMoveLastTurn = true;
-					}
-				}
+				var requiredTimeToPass = action.type == "fast" ? pokemon[action.actor].fastMove.cooldown - 500 : 0;
 
-				var requiredTimeToPass = pokemon[action.actor].fastMove.cooldown - 500;
-
-				if(timeSinceActivated >= requiredTimeToPass){
-					action.settings.priority += 20;
-					valid = true;
-				} else if(chargedMoveQueuedThisTurn){
-					action.settings.priority -= 20;
+				if(timeSinceActivated >= requiredTimeToPass || (action.type == "fast" && chargedMoveLastTurn && action.turn < turns)){
 					valid = true;
 				}
-
-				/*if((timeSinceActivated >= 500)&&(chargedMoveLastTurn)){
-					action.settings.priority += 20;
-					valid = true;
-				}*/
-			}
-
-			if(action.type == "charged"){
-				valid = true;
 			}
 
 			if(action.type == "wait"){
@@ -418,6 +409,10 @@ function Battle(){
 
 			if(action.type == "switch"){
 				valid = true;
+
+				if(chargedMoveLastTurn){
+					action.priority -= 40; // Resolve floating Fast Attacks before 0 turn swaps after a Charged Attack sequence
+				}
 			}
 
 			if(valid){
@@ -431,14 +426,15 @@ function Battle(){
 		turnActions.sort((a,b) => (a.settings.priority > b.settings.priority) ? -1 : ((b.settings.priority > a.settings.priority) ? 1 : 0));
 
 		// Process actions on this turn
-
-		for(var n = 0; n < turnActions.length; n++){
+		actionIndex = 0;
+		
+		while(actionIndex < turnActions.length){
 			// Return here if we've reached a suspended state
 			if(phase != "neutral"){
 				return false;
 			}
 
-			var action = turnActions[n];
+			var action = turnActions[actionIndex++];
 			var poke = pokemon[action.actor];
 			var opponent = pokemon[ (action.actor == 0) ? 1 : 0 ];
 
@@ -457,7 +453,11 @@ function Battle(){
 					break;
 
 				case "charged":
-					var move = poke.chargedMoves[action.value];
+					if(typeof action.value === 'number'){
+						var move = poke.chargedMoves[action.value];
+					} else if(typeof action.value === 'string'){
+						var move = poke.extraChargedMovePool.find(m => m.moveId == action.value);
+					}
 
 					if(! move){
 						console.log("ERROR: Can't find move " + action.value);
@@ -468,33 +468,9 @@ function Battle(){
 					}
 
 					// Check if knocked out from a priority move
-					if((usePriority)&&(poke.hp <= 0)&&(poke.faintSource == "charged")){
+					if(usePriority && poke.hp <= 0 && poke.faintSource == "charged" && ! move.hasTag("ignoresFaint")){
 						action.valid = false;
 					}
-
-					// Check if knocked out by a fast move
-					var lethalFastMove = false;
-					var opponentChargedMoveThisTurn = false;
-
-					for(var j = 0; j < turnActions.length; j++){
-						if(turnActions[j].actor != action.actor){
-							if(turnActions[j].type == "fast"){
-								// Need to check if the damage has already been applied this turn
-								if(((opponent.cooldown == 0)&&(poke.hp <= pokemon[turnActions[j].actor].fastMove.damage)) || (poke.hp < 1)){
-									lethalFastMove = true;
-								}
-
-							} else if(turnActions[j].type == "charged"){
-								opponentChargedMoveThisTurn = true;
-							}
-						}
-					}
-
-					// This prevents Charged Moves from being used on the same turn as lethal Fast Moves
-					if((lethalFastMove)&&(! opponentChargedMoveThisTurn)){
-						action.valid = false;
-					}
-
 					break;
 
 				case "wait":
@@ -510,7 +486,6 @@ function Battle(){
 
 			self.processAction(action, poke, opponent);
 		}
-		// Set previous turn actions and clear the current turn
 
 		previousTurnActions = turnActions;
 		turnActions = [];
@@ -563,7 +538,7 @@ function Battle(){
 			// Reset after a charged move
 
 			if(roundChargedMoveUsed){
-				poke.cooldown = 0;
+				poke.cooldown = 500;
 			}
 		}
 
@@ -788,43 +763,12 @@ function Battle(){
 				action = new TimelineAction("fast", poke.index, turns, 0, {priority: poke.priority});
 			}
 
-			// Set cooldown
-
-			if((action)&&(action.type == "fast")){
-				timeline.push(new TimelineEvent("tap interaction", "Tap", poke.index, time, turns, [2,0]));
-			}
-
 			// Adjust priority
 
 			if(action){
 				if(action.type == "charged"){
 					roundChargedMovesInitiated++;
 
-					// Reset all cooldowns
-					if((opponent.cooldown > 0)&&(! opponent.hasActed)){
-						action.settings.priority += 4;
-						/* if(opponent.cooldown > 0){
-							opponent.chargedMovesOnly = true;
-						}
-						// Hook an opponent's charged move if also using a charged move
-						var hookingOnLastTurn = false;
-						if(opponent.cooldown == 500){
-							// We're going to do a super hacky workaround here and credit energy early for decision making
-							hookingOnLastTurn = true;
-							opponent.energy += opponent.fastMove.energyGain;
-						}
-						opponent.cooldown = 0;
-						var a = self.getTurnAction(opponent, poke);
-						if(hookingOnLastTurn){
-							opponent.energy -= opponent.fastMove.energyGain; // Now take that energy away, sike
-						}
-						if((a)&&(a.type == "charged")){
-							queuedActions.push(a);
-						} */
-
-					}
-
-					//poke.cooldown = 0;
 					action.settings.priority += 10;
 
 					// Set additional priority by attack stat
@@ -834,7 +778,7 @@ function Battle(){
 				}
 
 				if(action.type == "switch"){
-					action.settings.priority += 15;
+					action.settings.priority += 20;
 				}
 			}
 		}
@@ -899,6 +843,8 @@ function Battle(){
 		// Don't run this action if it's invalidated
 
 		if((! action.valid)||(action.processed)){
+
+			self.logDecision(poke, " cannot use invalid action " + action.type + " " + action.value);
 			return false;
 		}
 
@@ -913,8 +859,12 @@ function Battle(){
 				break;
 
 			case "charged":
-				var move = poke.chargedMoves[action.value];
-
+				if(typeof action.value === 'number'){
+					var move = poke.chargedMoves[action.value];
+				} else if(typeof action.value === 'string'){
+					var move = poke.extraChargedMovePool.find(m => m.moveId == action.value);
+				}
+				
 				// Validate this move can be used
 
 				if(poke.energy >= move.energy){
@@ -936,48 +886,81 @@ function Battle(){
 							turns--;
 						}
 
-						phase = "suspend_charged";
-						phaseProps = {
-							actor: poke.index,
-							move: action.value,
-							power: 1,
-							shield: false
-						};
-
-						chargeAmount = 0;
-						playerUseShield = false;
-
-						if(players[opponent.index].getAI() !== false){
-							playerUseShield = players[opponent.index].getAI().decideShield(poke, opponent, move);
-						}
-
-						// Initiate the move animation
-						setTimeout(function(){
+						// For instant moves, skip to animation and damage steps. Otherwise, perform charge up and shield decision
+						if(move.hasTag("instant")){
 							phase = "animating";
+							chargeAmount = 1;
+
 							self.dispatchUpdate({
 								type: "charged",
 								actor: poke.index,
 								moveName: move.name,
 								moveType: move.type
 							});
-						}, 6000);
 
-						// Execute this move after a set amount of time
-						setTimeout(function(){
-							self.useMove(poke, opponent, move, playerUseShield, action.settings.buffs);
+							// Execute this move after a set amount of time
+							setTimeout(function(){
+								self.useMove(poke, opponent, move, false, action.settings.buffs);
 
-							// If AI, evaluate the rest of the matchup
-							if(opponent.hp > 0){
-								if(players[1].getAI()){
-									players[1].getAI().evaluateMatchup(turns, pokemon[1], pokemon[0], players[0]);
+								// If AI, evaluate the rest of the matchup
+								if(opponent.hp > 0){
+									if(players[1].getAI()){
+										players[1].getAI().evaluateMatchup(turns, pokemon[1], pokemon[0], players[0]);
+									}
 								}
-							}
-						}, 8000);
+							}, 1000);
 
-						// Return the game to the neutral phase
-						phaseTimeout = setTimeout(function(){
-							phase = "neutral";
-						}, 10000);
+							// Return the game to the neutral phase
+							phaseTimeout = setTimeout(function(){
+								phase = "neutral";
+							}, 3000);
+
+						} else{
+							phase = "suspend_charged";
+							phaseProps = {
+								actor: poke.index,
+								move: action.value,
+								power: 1,
+								shield: false
+							};
+
+							chargeAmount = 0;
+							playerUseShield = false;
+
+							if(players[opponent.index].getAI() !== false){
+								playerUseShield = players[opponent.index].getAI().decideShield(poke, opponent, move);
+							}
+
+							// Initiate the move animation
+							setTimeout(function(){
+								phase = "animating";
+								self.dispatchUpdate({
+									type: "charged",
+									actor: poke.index,
+									moveName: move.name,
+									moveType: move.type
+								});
+							}, 6000);
+
+							// Execute this move after a set amount of time
+							setTimeout(function(){
+								self.useMove(poke, opponent, move, playerUseShield, action.settings.buffs);
+
+								// If AI, evaluate the rest of the matchup
+								if(opponent.hp > 0){
+									if(players[1].getAI()){
+										players[1].getAI().evaluateMatchup(turns, pokemon[1], pokemon[0], players[0]);
+									}
+								}
+							}, 8000);
+
+							// Return the game to the neutral phase
+							phaseTimeout = setTimeout(function(){
+								phase = "neutral";
+							}, 10000);
+						}
+
+
 
 					}
 
@@ -1038,7 +1021,7 @@ function Battle(){
 
 		// Apply pre-attack form changes
 		if(attacker.formChange && attacker.formChange.trigger == "activate_charged" && attacker.activeFormId != attacker.formChange.alternativeFormId
-			&& move.energy > 0  && (attacker.formChange.moveId == "ANY" || attacker.formChange.moveId == move.moveId)){
+			&& move.category == "charged"  && (attacker.formChange.moveId == "ANY" || attacker.formChange.moveId == move.moveId)){
 			attacker.changeForm(attacker.formChange.alternativeFormId);
 
 			self.logDecision(attacker, " has changed forms into " + attacker.activeFormId);
@@ -1061,26 +1044,36 @@ function Battle(){
 
 		// If Charged Move
 
-		if(move.energy > 0){
+		if(move.category == "charged"){
 
 			type = "charged " + move.type;
 			attacker.energy -= move.energy;
 
-			if((usePriority)&&(roundChargedMoveUsed > 0)&&(roundShieldUsed == 0)){
-				time+=chargedMinigameTime;
+			let chargedMoveTime = chargedMinigameTime;
+
+			if(move.hasTag("instant")){
+				chargedMoveTime = 3000;
 			}
 
-			matchupDisplayTime += chargedMinigameTime;
+			if((usePriority)&&(roundChargedMoveUsed > 0)&&(roundShieldUsed == 0)){
+				time+=chargedMoveTime;
+			}
+
+			matchupDisplayTime += chargedMoveTime;
 
 			// Add tap events for display
 
-			for(var i = 0; i < 8; i++){
-				timeline.push(new TimelineEvent("tap "+move.type, "Swipe", attacker.index, time+(1000*i), turns, [i]));
+			if(! move.hasTag("instant")){
+				for(var i = 0; i < 8; i++){
+					timeline.push(new TimelineEvent("tap "+move.type, "Swipe", attacker.index, time+(1000*i), turns, [i]));
+				}
 			}
 
-			// If defender has a shield, use it
 
-			if( ((sandbox) && (forceShields) && (defender.shields > 0)) || ((! sandbox) && (defender.shields > 0)) ){
+			// If defender has a shield, use it
+			let canShield = defender.shields > 0 && ! move.hasTag("instant");
+
+			if(canShield && (! sandbox || forceShields)){
 				var useShield = true;
 				var shieldWeight = 1;
 				var noShieldWeight = 1; // Used for randomized shielding decisions
@@ -1123,8 +1116,23 @@ function Battle(){
 					}
 				}
 
-				if(defender.activeFormId == "aegislash_shield" && damage * 2 < defender.hp){
-					useShield = false;
+				if(! sandbox){
+					// Save shields in Aegislash shield form to protect Blade form
+
+					if(defender.activeFormId == "aegislash_shield" && damage * 2 < defender.hp){
+						useShield = shieldDecision.value;
+					}
+
+					// Save shields in Cramorant gulping or gorging form to trigger Gulp Missile earlier against weak moves
+
+					if((defender.activeFormId == "cramorant_gulping" || defender.activeFormId == "cramorant_gorging") && damage * 2.2 < defender.hp){
+						useShield = shieldDecision.value;
+					}
+
+					// Don't shield early Cramorant Dives or Surfs to save for later attacks
+					if(attacker.speciesId == "cramorant" && damage / defender.hp < .33){
+						useShield = shieldDecision.value;
+					}
 				}
 
 				if(decisionMethod == "random"){
@@ -1262,7 +1270,7 @@ function Battle(){
 			}
 
 			// Special event for Mimikyu, copying shield functionality
-			if(defender.formChange && defender.formChange.trigger == "charged_move_damage" && defender.formChange.effect == "protect" && ! defenderUsedShield){''
+			if(defender.formChange && defender.formChange.trigger == "charged_move_damage" && defender.formChange.effect == "protect" && ! defenderUsedShield && ! move.hasTag("instant")){''
 				let damageBlocked = damage-1;
 				let shieldTimelineDescriptions = [damageBlocked, "Form Change", "-1 Defense"];
 
@@ -1303,7 +1311,7 @@ function Battle(){
 				queuedActions = [];
 			}
 
-		} else{
+		} else if(move.category == "fast"){
 			// If Fast Move
 
 			if(mode == "emulate"){
@@ -1351,21 +1359,24 @@ function Battle(){
 		// Adjust display time so events don't visually overlap
 		// This was really hard for my little brain to figure out so like really don't touch it
 
-		if(move.energy > 0){
+		if(move.category == "charged"){
 			displayTime += 8500;
 
-			if((usePriority)&&(roundChargedMoveUsed > 0)&&(! roundShieldUsed)){
-				displayTime += chargedMinigameTime;
+			if(usePriority && roundChargedMoveUsed > 0 && ! roundShieldUsed){
+				if(! move.hasTag("instant")){
+					displayTime += chargedMinigameTime;
+				} else{
+					displayTime += 2000;
+				}
+				
 			}
 		} else if(roundShieldUsed){
 			displayTime -= chargedMinigameTime;
 		}
 
 		if((move.energyGain > 0)&&(roundChargedMoveUsed)){
-			displayTime += 9500;
+			displayTime += 10000;
 		}
-
-
 
 		// Apply move buffs and debuffs
 
@@ -1397,7 +1408,7 @@ function Battle(){
 				}
 			}
 
-			if(buffRoll > 1 - move.buffApplyChance){
+			if(move.buffApplyChance == 1 || buffRoll > 1 - move.buffApplyChance){
 
 				// Gather targets for move buffs or debuffs
 				var buffTargets = [];
@@ -1504,7 +1515,7 @@ function Battle(){
 		}
 
 
-		var timelineDescriptions = [damage, energyValue, percentDamage]
+		var timelineDescriptions = [damage, energyValue, percentDamage];
 
 		if(buffApplied){
 			var buffStr = "";
@@ -1533,31 +1544,86 @@ function Battle(){
 		}
 
 		// Apply post-attack form changes
-		if(attacker.formChange && attacker.formChange.trigger == "charged_move" && attacker.activeFormId != attacker.formChange.alternativeFormId
-			&& move.energy > 0 && (attacker.formChange.moveId == "ANY" || attacker.formChange.moveId == move.moveId)){
+		if(attacker.formChange && attacker.formChange.trigger == "charged_move"
+			&& move.category == "charged" && (attacker.formChange.moveId == "ANY" || attacker.formChange?.moveId == move.moveId || attacker.formChange?.moveIDs?.includes(move.moveId))){
 
-			attacker.changeForm(attacker.formChange.alternativeFormId);
+			let newFormId = attacker.formChange.alternativeFormId;
 
-			self.logDecision(attacker, " has changed forms into " + attacker.activeFormId);
-
-			if(mode == "emulate"){
-				self.pushAnimation(attacker.index, "formchange", attacker.activeFormId);
+			if(newFormId == "variable"){
+				switch(attacker.speciesId){
+					case "cramorant":
+						let hp = attacker.hp / attacker.stats.hp;
+						if(hp > 0.5){
+							newFormId = "cramorant_gulping";
+						} else{
+							newFormId = "cramorant_gorging";
+						}
+						break;
+				}
 			}
 
-			attackerChangedForm = true;
+			if(attacker.activeFormId != newFormId){
+				self.logDecision(attacker, " has changed forms into " + newFormId);
+
+				attacker.changeForm(newFormId);
+
+				if(mode == "emulate"){
+					self.pushAnimation(attacker.index, "formchange", attacker.activeFormId);
+				}
+
+				attackerChangedForm = true;
+			}
 		}
 
 		if(attackerChangedForm){
 			timelineDescriptions.push("Form Change");
 		}
 
+		// Form specific functionality for Cramorant Gulp Missile trigger, form change is applied on Gulp Missile
+		if((defender.activeFormId == "cramorant_gulping" || defender.activeFormId == "cramorant_gorging")
+			&& move.category == "charged" && ! defenderUsedShield && ! move.hasTag("instant")){
+
+			switch(defender.activeFormId){
+				case "cramorant_gulping":
+					action = new TimelineAction(
+						"charged",
+						defender.index,
+						turns,
+						"GULP_MISSILE_ARROKUDA",
+						{shielded: false, buffs: false, priority: defender.priority});
+					
+					
+					turnActions.splice(actionIndex, 0, action);
+
+					if(mode == "emulate"){
+						turns--;
+					}
+					break;
+
+				case "cramorant_gorging":
+					action = new TimelineAction(
+						"charged",
+						defender.index,
+						turns,
+						"GULP_MISSILE_PIKACHU",
+						{shielded: false, buffs: false, priority: defender.priority});
+					
+					turnActions.splice(actionIndex, 0, action);
+
+					if(mode == "emulate"){
+						turns--;
+					}
+					break;
+			}
+		}
+
 		// Apply post-attack form changes to defender
 		if(defender.formChange && defender.formChange.trigger == "charged_move_damage" && defender.activeFormId != defender.formChange.alternativeFormId
-			&& move.energy > 0 && ! defenderUsedShield){
+			&& move.category == "charged" && ! defenderUsedShield && ! move.hasTag("instant")){
+
+			self.logDecision(defender, " has changed forms into " + defender.formChange.alternativeFormId);
 
 			defender.changeForm(defender.formChange.alternativeFormId);
-
-			self.logDecision(defender, " has changed forms into " + defender.activeFormId);
 
 			if(mode == "emulate"){
 				self.pushAnimation(defender.index, "formchange", defender.activeFormId);
@@ -1566,24 +1632,17 @@ function Battle(){
 			defenderChangedForm = true;
 		}
 
-
 		if(defenderChangedForm){
 			//timelineDescriptions.push("Form Change");
 		}
 
-		timeline.push(new TimelineEvent(type, move.name, attacker.index, displayTime, turns, timelineDescriptions));
+		let editable = ! move.hasTag("uneditable");
+
+		timeline.push(new TimelineEvent(type, move.name, attacker.index, displayTime, turns, timelineDescriptions, editable));
 		// If a Pokemon has fainted, clear the action queue
 
 		if(defender.hp <= 0){
-
-			// Mark how this Pokemon fainted
-			var moveType = "fast";
-
-			if(move.energy > 0){
-				moveType = "charged";
-			}
-
-			defender.faintSource = moveType;
+			defender.faintSource = move.category;
 
 			if(mode == "emulate"){
 				queuedActions = [];
@@ -1841,6 +1900,11 @@ function Battle(){
 
 		for(var i = 0; i < subject.chargedMoves.length; i++){
 			var chargedMove = subject.chargedMoves[i];
+
+			if(! chargedMove){
+				continue;
+			}
+
 			var chargedMoveTurns = 0
 			var fastMovesFromChargedMove = Math.ceil((chargedMove.energy - subject.energy) / subject.fastMove.energyGain);
 			var sequenceDamage = chargedMove.damage + (fastMovesFromChargedMove * subject.fastMove.damage);
@@ -1953,7 +2017,7 @@ function Battle(){
 
 		decisionLog.push({
 			turn: turns,
-			pokemon: pokemon,
+			pokemon: pokemon.speciesName,
 			hp: pokemon.hp,
 			string: string
 		});
@@ -1965,7 +2029,7 @@ function Battle(){
 		for(var i = 0; i < decisionLog.length; i++){
 			var log = decisionLog[i];
 
-			console.log(log.turn + "\t:\t" + log.pokemon.speciesName + "(" + log.hp + ") " + log.string);
+			console.log(log.turn + "\t:\t" + log.pokemon + "(" + log.hp + ")" + log.string);
 		}
 	}
 

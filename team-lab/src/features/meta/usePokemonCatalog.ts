@@ -1,19 +1,23 @@
+import type { League } from "@/domain/leagues";
+import { useLeague } from "@/features/leagues/leagueStore";
 import { useQueries } from "@tanstack/react-query";
 import { useMemo } from "react";
 
 import {
   gameMasterQueryOptions,
-  openGreatLeagueMetaQueryOptions,
-  openGreatLeagueRankingQueryOptions,
+  leagueMetaQueryOptions,
+  leagueRankingQueryOptions,
 } from "@/features/meta/pvpokeDataQueries";
 import { buildPokemonCatalog } from "@/pvpoke/adapters/buildPokemonCatalog";
 
-export function usePokemonCatalog() {
+export function usePokemonCatalog(overrideLeague?: League) {
+  const activeLeague = useLeague();
+  const league = overrideLeague ?? activeLeague;
   const results = useQueries({
     queries: [
       gameMasterQueryOptions,
-      openGreatLeagueRankingQueryOptions,
-      openGreatLeagueMetaQueryOptions,
+      leagueRankingQueryOptions(league),
+      leagueMetaQueryOptions(league),
     ],
   });
 
@@ -36,12 +40,13 @@ export function usePokemonCatalog() {
           gameMasterResult.data,
           rankingResult.data,
           metaResult.data,
+          league.cp,
         ),
       };
     } catch (error) {
       return { error };
     }
-  }, [gameMasterResult.data, rankingResult.data, metaResult.data]);
+  }, [gameMasterResult.data, rankingResult.data, metaResult.data, league.cp]);
 
   return {
     data: catalogResult.data,

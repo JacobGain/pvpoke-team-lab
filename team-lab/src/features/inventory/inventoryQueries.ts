@@ -1,3 +1,4 @@
+import { useLeague } from "@/features/leagues/leagueStore";
 import {
   queryOptions,
   useMutation,
@@ -25,13 +26,21 @@ export const inventoryListQueryOptions = queryOptions({
 });
 
 export function useInventoryList() {
-  return useQuery(inventoryListQueryOptions);
+  const league = useLeague();
+  return useQuery({
+    ...inventoryListQueryOptions,
+    select: (records) => records.filter(
+      (record) => (record.formatId ?? "great-league") === league.id,
+    ),
+  });
 }
 
 export function useInventoryPokemon(inventoryId: string | undefined) {
+  const league = useLeague();
   return useQuery({
     queryKey: inventoryQueryKeys.detail(inventoryId ?? ""),
     queryFn: () => inventoryRepository.get(inventoryId!),
+    select: (record) => record && (record.formatId ?? "great-league") === league.id ? record : undefined,
     enabled: inventoryId !== undefined,
   });
 }

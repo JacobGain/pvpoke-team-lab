@@ -23,6 +23,7 @@ import sharp from "sharp";
 const HOST = "127.0.0.1";
 const GLOBAL_TIMEOUT_MS = 120_000;
 const STEP_TIMEOUT_MS = 20_000;
+const PERSISTENCE_TIMEOUT_MS = 45_000;
 const ENGINE_TIMEOUT_MS = 45_000;
 const MAX_MAIN_THREAD_GAP_MS = 500;
 const MAX_VISUAL_CHANGED_PIXEL_RATIO = 0.01;
@@ -1131,23 +1132,18 @@ async function assertBuildTarget(
   expectedCommitSha?: string,
 ): Promise<string> {
   if (target === "development") {
-    const diagnosticsAvailable = await browser.evaluate<boolean>(
-      `Boolean(
-        document.querySelector('a[href$="/diagnostics/simulation"]') &&
-        [...document.querySelectorAll(".app-nav a")].some(
-          (link) => link.textContent?.trim() === "Engine diagnostics"
-        )
-      )`,
+    const diagnosticsNavigationLinks = await browser.evaluate<number>(
+      `document.querySelectorAll('a[href$="/diagnostics/simulation"]').length`,
     );
     invariant(
-      diagnosticsAvailable,
-      "Development mode did not expose engine diagnostics.",
+      diagnosticsNavigationLinks === 0,
+      "Development mode exposed engine diagnostics in user navigation.",
     );
     return "development";
   }
 
   const productionState = await browser.evaluate<{
-    readonly dataHealthTag: string;
+    readonly dataHealthIndicators: number;
     readonly diagnosticsLinks: number;
     readonly release: {
       readonly formatVersion?: number;
@@ -1167,8 +1163,8 @@ async function assertBuildTarget(
       };
     };
   }>(`(async () => ({
-    dataHealthTag:
-      document.querySelector(".app-rail .data-health")?.tagName ?? "",
+    dataHealthIndicators:
+      document.querySelectorAll(".data-health").length,
     diagnosticsLinks:
       document.querySelectorAll('a[href$="/diagnostics/simulation"]').length,
     release: await fetch(${JSON.stringify(browser.resolveUrl("/release.json"))}, { cache: "no-store" }).then(
@@ -1183,7 +1179,7 @@ async function assertBuildTarget(
   const release = productionState.release;
 
   invariant(
-    productionState.dataHealthTag === "DIV" &&
+    productionState.dataHealthIndicators === 0 &&
       productionState.diagnosticsLinks === 0,
     `Production exposed diagnostics navigation: ${JSON.stringify(productionState)}.`,
   );
@@ -1259,8 +1255,9 @@ async function setFileInput(
 
 async function createInventory(
   browser: BrowserWorkflow,
+  species: readonly string[] = INVENTORY_SPECIES,
 ): Promise<void> {
-  for (const [index, speciesId] of INVENTORY_SPECIES.entries()) {
+  for (const [index, speciesId] of species.entries()) {
     await browser.navigate("/inventory/new", "Add Pokémon");
     await browser.setLabeledControl(
       "Species, form, and Shadow state",
@@ -1273,7 +1270,7 @@ async function createInventory(
       `document.querySelector('[data-selected-species-id="${speciesId}"]') && document.querySelector(".level-result")?.textContent?.includes("Level") && !document.querySelector(".level-result .invalid-value")`,
       `${speciesId} to resolve to a legal build`,
     );
-    if (index === 0) {
+    if (index === 0 && speciesId === "azumarill") {
       const radioSizes = await browser.evaluate<
         readonly { readonly width: number; readonly height: number }[]
       >(`[
@@ -1326,11 +1323,40 @@ async function createInventory(
       "textarea",
     );
     await browser.clickButton("Add to inventory");
-    await browser.waitFor(
-      `location.pathname.endsWith("/inventory") && document.querySelectorAll(".inventory-card").length === ${index + 1}`,
-      `${speciesId} to persist`,
-    );
-    if (index === 0) {
+    try {
+      await browser.waitFor(
+        `location.pathname.endsWith("/inventory") && document.querySelectorAll(".inventory-card").length === ${index + 1}`,
+        `${speciesId} to persist`,
+        PERSISTENCE_TIMEOUT_MS,
+      );
+    } catch (error) {
+      const persistenceState = await browser.evaluate<{
+        readonly alert: string;
+        readonly cardCount: number;
+        readonly pathname: string;
+        readonly submitText: string;
+      }>(`(() => {
+        const submit = [...document.querySelectorAll("button")].find(
+          (button) =>
+            button instanceof HTMLButtonElement &&
+            (button.name === "save-intent" || button.type === "submit")
+        );
+        return {
+          alert:
+            document.querySelector('[role="alert"]')?.textContent?.trim() ?? "",
+          cardCount: document.querySelectorAll(".inventory-card").length,
+          pathname: location.pathname,
+          submitText: submit?.textContent?.trim() ?? ""
+        };
+      })()`);
+      const message =
+        error instanceof Error ? error.message : String(error);
+      throw new Error(
+        `${message} Inventory persistence state: ${JSON.stringify(persistenceState)}.`,
+        { cause: error },
+      );
+    }
+    if (index === 0 && speciesId === "azumarill") {
       const inventoryBadges = await browser.evaluate<boolean>(`(() => {
         const card = document.querySelector(".inventory-card");
         return (
@@ -1567,8 +1593,30 @@ async function runCriticalWorkflows(
     { attempts: initialNavigationAttempts },
   );
   await browser.waitFor(
-    `document.querySelector("#pvpoke-data-title")?.textContent?.trim() === "Ready"`,
-    "bundled PvPoke data",
+    `document.querySelector("#current-format-title")?.textContent?.trim() === "Open Great League"`,
+    "current battle format",
+  );
+  invariant(
+    await browser.evaluate(`document.querySelector(".format-card")?.textContent?.includes("Season 28 · Twilight Trails")`),
+    "The dashboard did not identify Season 28 as active.",
+  );
+  const homeSeo = await browser.evaluate<{
+    readonly canonical: string;
+    readonly description: string;
+    readonly robots: string;
+    readonly title: string;
+  }>(`({
+    canonical: document.querySelector('link[rel="canonical"]')?.href ?? "",
+    description: document.querySelector('meta[name="description"]')?.content ?? "",
+    robots: document.querySelector('meta[name="robots"]')?.content ?? "",
+    title: document.title
+  })`);
+  invariant(
+    homeSeo.canonical === "https://pogoteamlab.com/" &&
+      homeSeo.description.includes("Great, Ultra, and Master League") &&
+      homeSeo.robots === "index, follow" &&
+      homeSeo.title.includes("Pokémon GO PvP Team Builder"),
+    `The public home metadata was incomplete: ${JSON.stringify(homeSeo)}.`,
   );
   const releaseId = await assertBuildTarget(
     browser,
@@ -1633,10 +1681,23 @@ async function runCriticalWorkflows(
     rankingsInDesktopNavigation,
     "The desktop command rail did not expose Rankings and format context.",
   );
+  const leagueSelectorCopy = await browser.evaluate<string>(
+    `document.querySelector(".app-rail select")?.selectedOptions[0]?.textContent?.trim() ?? ""`,
+  );
+  invariant(
+    leagueSelectorCopy === "Great · 1,500 CP",
+    `The desktop league selector did not use compact copy: ${leagueSelectorCopy}.`,
+  );
   await browser.navigate("/catalog", "Rankings");
   await browser.waitFor(
     `document.querySelectorAll(".ranking-row").length > 0`,
     "ranking rows",
+  );
+  invariant(
+    await browser.evaluate(
+      `document.querySelector('link[rel="canonical"]')?.href === "https://pogoteamlab.com/catalog"`,
+    ),
+    "The rankings page did not expose its canonical URL.",
   );
   const rankingPagination = await browser.evaluate<{
     readonly count: number;
@@ -1659,20 +1720,27 @@ async function runCriticalWorkflows(
   await assertStickyControls(browser, ".catalog-controls", 768);
   const rankingHeaderLayout = await browser.evaluate<{
     readonly asideTop: number;
+    readonly decoration: string;
+    readonly lastUpdated: string;
     readonly mainBottom: number;
     readonly summaryWidth: number;
   }>(`(() => {
+    const header = document.querySelector(".catalog-page .page-header");
     const main = document.querySelector(".catalog-page .page-header__main");
     const aside = document.querySelector(".catalog-page .page-header__aside");
     const summary = document.querySelector(".catalog-page .catalog-summary");
     return {
       asideTop: aside?.getBoundingClientRect().top ?? -1,
+      decoration: header ? getComputedStyle(header, "::after").content : "",
+      lastUpdated: summary?.querySelector("time")?.textContent?.trim() ?? "",
       mainBottom: main?.getBoundingClientRect().bottom ?? -1,
       summaryWidth: summary?.getBoundingClientRect().width ?? -1
     };
   })()`);
   invariant(
     rankingHeaderLayout.asideTop >= rankingHeaderLayout.mainBottom &&
+      rankingHeaderLayout.decoration === "none" &&
+      /^[A-Z][a-z]{2} \d{1,2}, \d{4}$/.test(rankingHeaderLayout.lastUpdated) &&
       rankingHeaderLayout.summaryWidth >= 600,
     `The Rankings count was cramped at 768px: ${JSON.stringify(rankingHeaderLayout)}.`,
   );
@@ -1820,13 +1888,73 @@ async function runCriticalWorkflows(
   const inventoryTimestampLabels = await browser.evaluate<boolean>(
     `[...document.querySelectorAll(".inventory-card__content > small")].every(
       (metadata) =>
-        metadata.textContent?.trim().startsWith("Created ") === true &&
-        metadata.textContent.includes(" · updated ")
+        metadata.textContent?.trim().startsWith("Created: ") === true &&
+        metadata.textContent.includes(" · Last updated: ")
     )`,
   );
   invariant(
     inventoryTimestampLabels,
     "Inventory records did not distinguish created and updated timestamps.",
+  );
+  await browser.navigate("/", "Turn your roster into a battle plan.");
+  await browser.waitFor(
+    `(() => {
+      const inventoryCard = [...document.querySelectorAll("a.metric-card")]
+        .find((card) => card.textContent?.includes("Inventory"));
+      return Number(
+        inventoryCard?.querySelector("strong")?.textContent
+          ?.replaceAll(",", "") ?? -1
+      ) === ${INVENTORY_SPECIES.length};
+    })()`,
+    "dashboard inventory metrics",
+  );
+  const glanceNavigation = await browser.evaluate<{
+    readonly assumedCount: number;
+    readonly assumedHref: string;
+    readonly destinations: number;
+  }>(`(() => {
+    const cards = [...document.querySelectorAll("a.metric-card")];
+    const assumed = cards.find((card) =>
+      card.textContent?.includes("Assumed IVs")
+    );
+    return {
+      assumedCount: Number(
+        assumed?.querySelector("strong")?.textContent?.replaceAll(",", "") ?? -1
+      ),
+      assumedHref: assumed?.getAttribute("href") ?? "",
+      destinations: new Set(cards.map((card) => card.getAttribute("href"))).size
+    };
+  })()`);
+  invariant(
+    glanceNavigation.assumedCount >= 0 &&
+      glanceNavigation.assumedHref.endsWith("/inventory?ivs=assumed") &&
+      glanceNavigation.destinations === 4,
+    `Dashboard glance cards were not useful links: ${JSON.stringify(glanceNavigation)}.`,
+  );
+  await browser.navigate("/inventory?ivs=assumed", "Your inventory");
+  const assumedInventoryFilter = await browser.evaluate<{
+    readonly checked: boolean;
+    readonly count: number;
+    readonly robots: string;
+  }>(`(() => {
+    const checkbox = [...document.querySelectorAll('input[type="checkbox"]')]
+      .find((control) => control.closest("label")?.textContent?.includes("Assumed IVs only"));
+    return {
+      checked: checkbox instanceof HTMLInputElement && checkbox.checked,
+      count: document.querySelectorAll(".inventory-card").length,
+      robots: document.querySelector('meta[name="robots"]')?.content ?? ""
+    };
+  })()`);
+  invariant(
+    assumedInventoryFilter.checked &&
+      assumedInventoryFilter.count === glanceNavigation.assumedCount &&
+      assumedInventoryFilter.robots === "noindex, nofollow",
+    `The assumed-IV dashboard link did not open its filtered inventory view: ${JSON.stringify(assumedInventoryFilter)}.`,
+  );
+  await browser.navigate("/inventory", "Your inventory");
+  await browser.waitFor(
+    `document.querySelectorAll(".inventory-card").length === ${INVENTORY_SPECIES.length}`,
+    "complete inventory after clearing the assumed-IV URL filter",
   );
   await assertStickyControls(browser, ".inventory-controls", 1440);
   await assertStickyControls(browser, ".inventory-controls", 768);
@@ -2016,6 +2144,12 @@ async function runCriticalWorkflows(
     "Top-20 saved-team matrix",
     ENGINE_TIMEOUT_MS,
   );
+  invariant(await browser.evaluate(`(() => {
+    const moves = window.GameMaster?.getInstance()?.data?.moves ?? [];
+    const bite = moves.find((move) => move.moveId === "BITE");
+    const bodySlam = moves.find((move) => move.moveId === "BODY_SLAM");
+    return bite?.power === 2 && bite?.energyGain === 4 && bodySlam?.power === 65 && bodySlam?.energy === 40;
+  })()`), "The simulation engine loaded outgoing-season move stats.");
   const savedTeamSimulation = await browser.finishPulse(simulationText);
   invariant(
     savedTeamSimulation.maxMainThreadGapMs <= MAX_MAIN_THREAD_GAP_MS,
@@ -2386,6 +2520,76 @@ async function runCriticalWorkflows(
     mobileAuditIssues.length === 0,
     `Mobile route audit found issues:\n${mobileAuditIssues.join("\n")}`,
   );
+
+  await browser.setViewport(1440, 1_000);
+  await browser.setLabeledControl("Battle league", "ultra-league", "select");
+  await browser.waitFor(`document.querySelector("#current-format-title")?.textContent?.trim() === "Open Ultra League"`, "Ultra League data");
+  await browser.navigate("/inventory", "Your inventory");
+  invariant(await browser.evaluate(`document.querySelectorAll(".inventory-card").length === 0`), "Great League records leaked into Ultra League.");
+  await createInventory(browser, ["feraligatr", "giratina_altered", "registeel"]);
+  await browser.navigate("/teams/new", "Create saved team");
+  await browser.setLabeledControl("Team name", "Ultra Browser Team", "input");
+  await browser.clickButton("Save team");
+  await browser.waitFor(`document.querySelector(".team-card h2")?.textContent === "Ultra Browser Team"`, "Ultra League team persistence");
+  invariant(await browser.evaluate(`document.querySelector(".team-card .context-badge")?.textContent?.trim() === "Ultra League"`), "Ultra League team badge is incorrect.");
+  const ultraSimulationHref = await browser.evaluate<string>(`[...document.querySelectorAll(".team-card a")].find((link) => link.textContent?.trim() === "Simulate")?.getAttribute("href")`);
+  await browser.navigate(ultraSimulationHref, "Ultra Browser Team");
+  await browser.setLabeledControl("Meta target count", "5", "select");
+  await browser.clickButton("Run exact team matrix");
+  await browser.waitFor(`(() => {
+    const alert = document.querySelector('[role="alert"]');
+    if (alert) throw new Error(alert.textContent);
+    return document.querySelector(".team-scorecard")?.textContent?.includes("35,000");
+  })()`, "Ultra League exact matrix and bulk goal", ENGINE_TIMEOUT_MS);
+  await browser.navigate("/catalog", "Rankings");
+  invariant(await browser.evaluate(`localStorage.getItem("team-lab-league") === "ultra-league" && document.body.textContent?.includes("Ultra League")`), "League selection did not survive reload.");
+  await browser.setViewport(320);
+  await browser.assertNoHorizontalOverflow("Ultra League rankings");
+  await browser.evaluate(`document.querySelector('[aria-label="Open navigation menu"]')?.click()`);
+  await browser.setLabeledControl("Battle league", "great-league", "select", 1);
+  await browser.navigate("/inventory", "Your inventory");
+  invariant(await browser.evaluate(`document.querySelectorAll(".inventory-card").length === ${INVENTORY_SPECIES.length}`), "Great League inventory did not survive switching leagues.");
+  console.log("[browser-workflows] Ultra League creation, simulation, persistence, and mobile switching passed");
+
+  await browser.setViewport(1440, 1_000);
+  await browser.setLabeledControl("Battle league", "master-league", "select");
+  await browser.waitFor(`document.querySelector("#current-format-title")?.textContent?.trim() === "Open Master League"`, "Master League data");
+  await browser.navigate("/inventory", "Your inventory");
+  invariant(await browser.evaluate(`document.querySelectorAll(".inventory-card").length === 0`), "Great League records leaked into Master League.");
+  await createInventory(browser, ["dragonite", "giratina_altered", "mewtwo"]);
+  await browser.navigate("/teams/new", "Create saved team");
+  await browser.setLabeledControl("Team name", "Master Browser Team", "input");
+  await browser.clickButton("Save team");
+  await browser.waitFor(`document.querySelector(".team-card h2")?.textContent === "Master Browser Team"`, "Master League team persistence");
+  invariant(await browser.evaluate(`document.querySelector(".team-card .context-badge")?.textContent?.trim() === "Master League"`), "Master League team badge is incorrect.");
+  const masterSimulationHref = await browser.evaluate<string>(`[...document.querySelectorAll(".team-card a")].find((link) => link.textContent?.trim() === "Simulate")?.getAttribute("href")`);
+  await browser.navigate(masterSimulationHref, "Master Browser Team");
+  await browser.setLabeledControl("Meta target count", "5", "select");
+  await browser.clickButton("Run exact team matrix");
+  await browser.waitFor(`(() => {
+    const alert = document.querySelector('[role="alert"]');
+    if (alert) throw new Error(alert.textContent);
+    return document.querySelector(".team-scorecard")?.textContent?.includes("35,000");
+  })()`, "Master League exact matrix and bulk goal", ENGINE_TIMEOUT_MS);
+  await browser.navigate("/recommend", "Build around your anchors");
+  await browser.clickButton("Continue to experiment");
+  await browser.setLabeledControl("Results", "1", "select");
+  await browser.setLabeledControl("Meta targets", "5", "select");
+  await browser.clickButton("Generate recommendations");
+  await browser.waitFor(`(() => {
+    const alert = document.querySelector('[role="alert"]');
+    if (alert) throw new Error(alert.textContent);
+    return document.querySelectorAll(".recommendation-result").length > 0;
+  })()`, "Master League exact recommendations", ENGINE_TIMEOUT_MS);
+  await browser.navigate("/catalog", "Rankings");
+  invariant(await browser.evaluate(`localStorage.getItem("team-lab-league") === "master-league" && document.body.textContent?.includes("Master League")`), "League selection did not survive reload.");
+  await browser.setViewport(320);
+  await browser.assertNoHorizontalOverflow("Master League rankings");
+  await browser.evaluate(`document.querySelector('[aria-label="Open navigation menu"]')?.click()`);
+  await browser.setLabeledControl("Battle league", "great-league", "select", 1);
+  await browser.navigate("/inventory", "Your inventory");
+  invariant(await browser.evaluate(`document.querySelectorAll(".inventory-card").length === ${INVENTORY_SPECIES.length}`), "Great League inventory did not survive switching leagues.");
+  console.log("[browser-workflows] Master League creation, simulation, persistence, and mobile switching passed");
 
   return {
     buildTarget,

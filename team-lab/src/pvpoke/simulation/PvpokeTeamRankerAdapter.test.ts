@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import type {
   ExactSimulationBuild,
@@ -86,7 +86,8 @@ class CharacterizationRanker implements PvpokeTeamRanker {
     this.calls.push(`prioritize-meta:${value}`);
   }
 
-  rank(team: readonly PvpokePokemon[]): RawPvpokeTeamRankerResult {
+  rank(team: readonly PvpokePokemon[], cp: number): RawPvpokeTeamRankerResult {
+    void cp;
     this.calls.push(`rank:${team.length}:${this.targets.length}`);
     const opponent = team[0]!;
 
@@ -154,6 +155,38 @@ function build(speciesId: string): ExactSimulationBuild {
 }
 
 describe("PvPoke TeamRanker adapter", () => {
+  it("passes 2500 CP to the staging battle and upstream ranker", async () => {
+    const runtime = new RankerRuntime();
+    const battle = new StagingBattle();
+    vi.spyOn(runtime, "createBattle").mockReturnValue(battle);
+    const setCp = vi.spyOn(battle, "setCP");
+    const rank = vi.spyOn(runtime.ranker, "rank");
+    const request: TeamRankerRequest = {
+      cpCap: 2500, team: [{ ...build("feraligatr"), cp: 2499 }],
+      targets: [build("registeel")], teamShields: 1, targetShields: 1, dataVersion: "test",
+    };
+    await new PvpokeTeamRankerAdapter(runtime).rank(request);
+    expect(setCp).toHaveBeenCalledWith(2500);
+    expect(rank.mock.calls[0]?.[1]).toBe(2500);
+    await expect(new PvpokeTeamRankerAdapter(runtime).rank({ ...request, cpCap: 1500 })).rejects.toThrow("CP limit");
+  });
+
+  it("passes 10000 CP to the staging battle and upstream ranker", async () => {
+    const runtime = new RankerRuntime();
+    const battle = new StagingBattle();
+    vi.spyOn(runtime, "createBattle").mockReturnValue(battle);
+    const setCp = vi.spyOn(battle, "setCP");
+    const rank = vi.spyOn(runtime.ranker, "rank");
+    const request: TeamRankerRequest = {
+      cpCap: 10000, team: [{ ...build("dragonite"), cp: 4500 }],
+      targets: [build("registeel")], teamShields: 1, targetShields: 1, dataVersion: "test",
+    };
+    await new PvpokeTeamRankerAdapter(runtime).rank(request);
+    expect(setCp).toHaveBeenCalledWith(10000);
+    expect(rank.mock.calls[0]?.[1]).toBe(10000);
+    await expect(new PvpokeTeamRankerAdapter(runtime).rank({ ...request, cpCap: 1500 })).rejects.toThrow("CP limit");
+  });
+
   it("ranks explicit targets against exact team builds and strips globals", async () => {
     const runtime = new RankerRuntime();
     const adapter = new PvpokeTeamRankerAdapter(runtime);

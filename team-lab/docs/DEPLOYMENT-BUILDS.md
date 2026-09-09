@@ -63,9 +63,20 @@ checkout:
 Every external Action is pinned to a full commit SHA with its release line
 recorded as a comment. `validate:workflows` makes immutable references a release
 invariant, while Dependabot checks both GitHub Actions and the npm lockfile
-weekly for maintainable updates.
+weekly for maintainable updates. Routine updates target `staging`; compatible
+minor and patch changes are grouped, CodeQL actions remain synchronized, and
+major upgrades stay isolated. See
+[`DEPENDENCY-MAINTENANCE.md`](./DEPENDENCY-MAINTENANCE.md) for the review
+policy.
 
 ### Repository release protections
+
+The dependency check uses `npm audit --audit-level=high` after `npm ci`, including
+development dependencies used to build and verify the artifact. High and
+critical findings fail the check; lower severities remain visible. Fix findings
+by updating and reviewing the dependency lockfile locally, then rerunning the
+checks. Do not run `npm audit fix` in CI, since it changes the dependency tree
+being verified.
 
 `.github/rulesets/master-protection.json` is the auditable source for the active
 `master` ruleset. It prevents deletion and force-push, requires changes through

@@ -1,3 +1,4 @@
+import { useLeague } from "@/features/leagues/leagueStore";
 import {
   queryOptions,
   useMutation,
@@ -21,13 +22,21 @@ export const savedTeamListQueryOptions = queryOptions({
 });
 
 export function useSavedTeamList() {
-  return useQuery(savedTeamListQueryOptions);
+  const league = useLeague();
+  return useQuery({
+    ...savedTeamListQueryOptions,
+    select: (records) => records.filter(
+      (record) => (record.formatId ?? "great-league") === league.id,
+    ),
+  });
 }
 
 export function useSavedTeam(teamId: string | undefined) {
+  const league = useLeague();
   return useQuery({
     queryKey: savedTeamQueryKeys.detail(teamId ?? ""),
     queryFn: () => savedTeamRepository.get(teamId!),
+    select: (record) => record && (record.formatId ?? "great-league") === league.id ? record : undefined,
     enabled: teamId !== undefined,
   });
 }

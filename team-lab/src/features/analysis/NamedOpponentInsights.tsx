@@ -1,3 +1,4 @@
+import { LeagueName } from "@/features/leagues/LeagueSelector";
 import { useMemo, useState } from "react";
 
 import {
@@ -41,7 +42,7 @@ export function NamedOpponentInsights({
       catalog.entries.filter(
         (entry) =>
           entry.isMeta &&
-          entry.defaultGreatLeagueIvs !== undefined &&
+          entry.defaultLeagueIvs !== undefined &&
           entry.ranking !== undefined &&
           entry.fastMoves.some((move) =>
             entry.ranking?.recommendedMoveIds.includes(move.id),
@@ -81,7 +82,7 @@ export function NamedOpponentInsights({
           <h2>CMP and fast-move thresholds</h2>
           <p>
             Compare one exact inventory build with a published PvPoke Open
-            Great League meta build.
+            <LeagueName /> meta build.
           </p>
         </div>
         <div className="matchup-controls">

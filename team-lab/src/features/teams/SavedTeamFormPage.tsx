@@ -1,3 +1,5 @@
+import { LeagueName } from "@/features/leagues/LeagueSelector";
+import { useLeague } from "@/features/leagues/leagueStore";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Save } from "lucide-react";
 import {
@@ -35,6 +37,7 @@ function SavedTeamForm({
   existingTeam,
   duplicateTeam,
 }: SavedTeamFormProps) {
+  const league = useLeague();
   const navigate = useNavigate();
   const inventoryResult = useInventoryList();
   const catalogResult = usePokemonCatalog();
@@ -235,7 +238,7 @@ function SavedTeamForm({
             must satisfy species clause.
           </p>
         }
-        eyebrow="Open Great League team"
+        eyebrow={`${league.title} team`}
         title={
           existingTeam
             ? "Edit saved team"
@@ -249,7 +252,7 @@ function SavedTeamForm({
         <section className="form-section">
           <h2>Three inventory Pokémon required</h2>
           <p>
-            Add at least three records before creating a complete Great League
+            Add at least three records before creating a complete <LeagueName />
             team. Separate records of the same species still conflict under
             species clause.
           </p>
