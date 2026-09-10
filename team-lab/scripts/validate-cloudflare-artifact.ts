@@ -50,15 +50,29 @@ if (missingSeoFragments.length > 0) {
   );
 }
 
+const hasSitemapLocation = (xml: string, expectedPathname: string) =>
+  Array.from(xml.matchAll(/<loc>([^<]+)<\/loc>/g)).some((match) => {
+    try {
+      const url = new URL(match[1].trim());
+      return (
+        url.protocol === "https:" &&
+        url.host === "pogoteamlab.com" &&
+        url.pathname === expectedPathname
+      );
+    } catch {
+      return false;
+    }
+  });
+
 if (
   !robotsText.includes("Sitemap: https://pogoteamlab.com/sitemap.xml") ||
   !robotsText.includes("Disallow: /diagnostics") ||
   !robotsText.includes("Disallow: /inventory") ||
   !robotsText.includes("Disallow: /recommend") ||
   !robotsText.includes("Disallow: /teams") ||
-  !sitemapXml.includes("https://pogoteamlab.com/") ||
-  !sitemapXml.includes("https://pogoteamlab.com/catalog") ||
-  !sitemapXml.includes("https://pogoteamlab.com/team-builder")
+  !hasSitemapLocation(sitemapXml, "/") ||
+  !hasSitemapLocation(sitemapXml, "/catalog") ||
+  !hasSitemapLocation(sitemapXml, "/team-builder")
 ) {
   throw new Error("The production robots.txt or sitemap.xml is incomplete.");
 }
