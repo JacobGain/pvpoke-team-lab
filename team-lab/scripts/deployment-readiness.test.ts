@@ -30,7 +30,7 @@ function releaseResponse(commitSha = COMMIT_SHA): Response {
   });
 }
 
-function readyFetch(): typeof fetch {
+function readyFetch(indexHtml = INDEX_HTML): typeof fetch {
   return vi.fn((input: string | URL | Request) => {
     const url = new URL(
       input instanceof Request ? input.url : input.toString(),
@@ -41,7 +41,7 @@ function readyFetch(): typeof fetch {
     }
     if (url.pathname === "/") {
       return Promise.resolve(
-        new Response(INDEX_HTML, {
+        new Response(indexHtml, {
           headers: { "content-type": "text/html" },
         }),
       );
@@ -55,6 +55,39 @@ function readyFetch(): typeof fetch {
 }
 
 describe("deployment readiness", () => {
+  it("accepts prerendered content inside the application root", async () => {
+    const fetchImplementation = readyFetch(
+      INDEX_HTML.replace(
+        '<div id="root"></div>',
+        '<div id="root"><main><h1>Pokémon GO PvP Team Builder</h1></main></div>',
+      ),
+    );
+
+    const result = await checkDeploymentReadiness({
+      origin: ORIGIN,
+      expectedCommitSha: COMMIT_SHA,
+      fetchImplementation,
+    });
+
+    expect(result.assetCount).toBe(2);
+    expect(fetchImplementation).toHaveBeenCalledTimes(4);
+  });
+
+  it("rejects an index without the application root", async () => {
+    const fetchImplementation = readyFetch(
+      INDEX_HTML.replace('<div id="root"></div>', '<main>Unavailable</main>'),
+    );
+
+    await expect(
+      checkDeploymentReadiness({
+        origin: ORIGIN,
+        expectedCommitSha: COMMIT_SHA,
+        fetchImplementation,
+      }),
+    ).rejects.toThrow("Deployment index did not contain the TeamLab application entry point.");
+    expect(fetchImplementation).toHaveBeenCalledTimes(2);
+  });
+
   it("requires the expected public release and every index asset", async () => {
     const fetchImplementation = readyFetch();
     const result = await checkDeploymentReadiness({
