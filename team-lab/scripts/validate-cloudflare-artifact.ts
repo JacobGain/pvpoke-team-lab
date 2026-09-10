@@ -24,7 +24,7 @@ const [indexHtml, headersPolicy, robotsText, sitemapXml, securityText, legacySec
   readFile(resolve(outputDirectory, "favicon.ico")),
 ]);
 
-if (!indexHtml.includes('<div id="root"></div>')) {
+if (!indexHtml.includes('<div id="root">')) {
   throw new Error(
     `${outputDirectory} does not contain the TeamLab application entry point.`,
   );
@@ -57,9 +57,33 @@ if (
   !robotsText.includes("Disallow: /recommend") ||
   !robotsText.includes("Disallow: /teams") ||
   !sitemapXml.includes("https://pogoteamlab.com/") ||
-  !sitemapXml.includes("https://pogoteamlab.com/catalog")
+  !sitemapXml.includes("https://pogoteamlab.com/catalog") ||
+  !sitemapXml.includes("https://pogoteamlab.com/team-builder")
 ) {
   throw new Error("The production robots.txt or sitemap.xml is incomplete.");
+}
+
+
+// Check what a crawler receives before running any JavaScript.
+for (const [file, pathname, heading] of [
+  ["index.html", "/", "Pokémon GO PvP Team Builder"],
+  ["team-builder.html", "/team-builder", "Pokémon GO PvP Team Builder"],
+  ["catalog.html", "/catalog", "Pokémon GO PvP Rankings"],
+]) {
+  const html = await readFile(resolve(outputDirectory, file), "utf8");
+  if (
+    (html.match(/<h1[ >]/g) ?? []).length !== 1 ||
+    !html.includes(heading) ||
+    !html.includes(`rel="canonical" href="https://pogoteamlab.com${pathname}"`) ||
+    !html.includes(`property="og:url" content="https://pogoteamlab.com${pathname}"`) ||
+    !html.includes('href="/team-builder"') && pathname !== "/team-builder"
+  ) {
+    throw new Error(`Public SEO HTML is incomplete: ${file}`);
+  }
+  for (const match of html.matchAll(/(?:src|href)="(\/[^"?#]*)"/g)) {
+    const path = match[1];
+    if (/\.[a-z0-9]+$/i.test(path)) await stat(resolve(outputDirectory, `.${path}`));
+  }
 }
 
 const requiredSecurityTextFragments = [

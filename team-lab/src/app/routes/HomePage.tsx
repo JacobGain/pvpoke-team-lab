@@ -1,3 +1,4 @@
+import { HomeIntroduction, HomeOverview } from "@/app/routes/PublicContent";
 import { useLeague } from "@/features/leagues/leagueStore";
 import { LeagueName } from "@/features/leagues/LeagueSelector";
 import {
@@ -115,14 +116,7 @@ export function HomePage() {
             <span><LeagueName open /></span>
           </div>
           <p className="eyebrow">Competitive battle workspace</p>
-          <h1>
-            Turn your roster into a
-            <span> battle plan.</span>
-          </h1>
-          <p>
-            Inventory exact Pokémon, understand their builds, and test teams
-            against the current PvPoke meta.
-          </p>
+          <HomeIntroduction />
           <div className="page-actions">
             <Link className="primary-link" to="/inventory/new">
               <Plus size={18} />
@@ -298,6 +292,7 @@ export function HomePage() {
           </div>
         )}
       </section>
+      <HomeOverview />
     </main>
   );
 }

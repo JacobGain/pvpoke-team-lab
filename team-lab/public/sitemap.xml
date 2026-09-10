@@ -2,10 +2,14 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://pogoteamlab.com/</loc>
-    <lastmod>2026-09-08</lastmod>
+    <lastmod>2026-09-10</lastmod>
   </url>
   <url>
     <loc>https://pogoteamlab.com/catalog</loc>
-    <lastmod>2026-09-08</lastmod>
+    <lastmod>2026-09-10</lastmod>
+  </url>
+  <url>
+    <loc>https://pogoteamlab.com/team-builder</loc>
+    <lastmod>2026-09-10</lastmod>
   </url>
 </urlset>

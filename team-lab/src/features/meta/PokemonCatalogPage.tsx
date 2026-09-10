@@ -1,3 +1,4 @@
+import { CatalogIntroduction } from "@/app/routes/PublicContent";
 import { LeagueName } from "@/features/leagues/LeagueSelector";
 import { useLeague } from "@/features/leagues/leagueStore";
 import { useMemo, useRef, useState } from "react";
@@ -69,6 +70,7 @@ export function PokemonCatalogPage() {
   if (isLoading) {
     return (
       <main className="catalog-page">
+        <PageHeader eyebrow="Pokémon catalog" title="Pokémon GO PvP Rankings" description={<CatalogIntroduction />} />
         <p>Building the <LeagueName open /> catalog…</p>
       </main>
     );
@@ -127,12 +129,7 @@ export function PokemonCatalogPage() {
             </small>
           </div>
         }
-        description={
-          <p>
-            Validated Pokémon, movepools, rankings, and current meta
-            membership from PvPoke.
-          </p>
-        }
+        description={<CatalogIntroduction />}
         eyebrow={`PvPoke ${league.shortTitle}`}
         title="Rankings"
       />

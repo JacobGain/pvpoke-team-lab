@@ -649,7 +649,7 @@ class BrowserWorkflow {
           url: attemptUrl.href,
         });
         await this.waitFor(
-          `location.pathname === ${JSON.stringify(destinationPath)} && document.querySelector(${JSON.stringify(headingSelector)})?.textContent?.trim() === ${JSON.stringify(heading)}`,
+          `location.pathname === ${JSON.stringify(destinationPath)} && document.querySelector(".app-frame") !== null && document.querySelector(${JSON.stringify(headingSelector)})?.textContent?.trim() === ${JSON.stringify(heading)}`,
           `${pathname} to render “${heading}”`,
         );
         return;
@@ -1239,7 +1239,7 @@ async function assertBuildTarget(
     "Page not found",
     "h2",
   );
-  await browser.navigate("/", "Turn your roster into a battle plan.");
+  await browser.navigate("/", "Pokémon GO PvP Team Builder for Your Own Roster");
 
   return release.releaseId!;
 }
@@ -1657,7 +1657,7 @@ async function runCriticalWorkflows(
   await browser.setViewport(1440, 1_000);
   await browser.navigate(
     "/",
-    "Turn your roster into a battle plan.",
+    "Pokémon GO PvP Team Builder for Your Own Roster",
     "h1",
     { attempts: initialNavigationAttempts },
   );
@@ -1687,6 +1687,16 @@ async function runCriticalWorkflows(
       homeSeo.title.includes("Pokémon GO PvP Team Builder"),
     `The public home metadata was incomplete: ${JSON.stringify(homeSeo)}.`,
   );
+  await browser.navigate("/team-builder", "Pokémon GO PvP Team Builder");
+  await browser.waitFor(
+    `document.title === "Pokémon GO PvP Team Builder | TeamLab" &&
+      document.querySelector('link[rel="canonical"]')?.href === "https://pogoteamlab.com/team-builder" &&
+      document.querySelector('meta[name="robots"]')?.content === "index, follow" &&
+      document.querySelectorAll("h1").length === 1 &&
+      document.querySelector('a[href="/inventory/new"]') !== null`,
+    "public team builder metadata and workflow link",
+  );
+  await browser.navigate("/", "Pokémon GO PvP Team Builder for Your Own Roster");
   const releaseId = await assertBuildTarget(
     browser,
     buildTarget,
@@ -1996,7 +2006,7 @@ async function runCriticalWorkflows(
     inventoryTimestampLabels,
     "Inventory records did not distinguish created and updated timestamps.",
   );
-  await browser.navigate("/", "Turn your roster into a battle plan.");
+  await browser.navigate("/", "Pokémon GO PvP Team Builder for Your Own Roster");
   await browser.waitFor(
     `(() => {
       const inventoryCard = [...document.querySelectorAll("a.metric-card")]
@@ -2726,8 +2736,9 @@ async function runCriticalWorkflows(
           "PvPoke engine diagnostics",
         ] as const);
   const mobileRoutes = [
-    ["/", "Turn your roster into a battle plan."],
+    ["/", "Pokémon GO PvP Team Builder for Your Own Roster"],
     ["/catalog", "Rankings"],
+    ["/team-builder", "Pokémon GO PvP Team Builder"],
     ["/inventory", "Your inventory"],
     ["/inventory/new", "Add Pokémon"],
     ["/inventory/bulk-add", "Bulk add Pokémon"],
@@ -2767,7 +2778,7 @@ async function runCriticalWorkflows(
     }
   }
 
-  await browser.navigate("/", "Turn your roster into a battle plan.");
+  await browser.navigate("/", "Pokémon GO PvP Team Builder for Your Own Roster");
   await browser.setViewport(320, 900);
   await browser.clickButton("More", ".mobile-tabbar button");
   const mobileMenuAudit = await browser.evaluate<{

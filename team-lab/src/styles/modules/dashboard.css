@@ -397,3 +397,20 @@
 .dashboard-empty p {
   margin-top: 0.25rem;
 }
+
+.seo-content {
+  display: grid;
+  gap: 1rem;
+}
+
+.seo-content p,
+.seo-content li {
+  max-width: 75ch;
+  line-height: 1.65;
+}
+
+.seo-content__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: 1.5rem;
+}
