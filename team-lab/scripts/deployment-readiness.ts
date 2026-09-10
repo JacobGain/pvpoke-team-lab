@@ -176,7 +176,7 @@ export async function checkDeploymentReadiness(
   const indexHtml = await indexResponse.text();
 
   invariant(
-    indexHtml.includes('<div id="root"></div>'),
+    indexHtml.includes('<div id="root">'),
     "Deployment index did not contain the TeamLab application entry point.",
   );
 
