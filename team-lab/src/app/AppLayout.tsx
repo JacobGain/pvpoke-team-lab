@@ -1,3 +1,4 @@
+import { publicSeo } from "@/app/seo";
 import { useLeague } from "@/features/leagues/leagueStore";
 import { LeagueSelector, LeagueName } from "@/features/leagues/LeagueSelector";
 import {
@@ -65,18 +66,6 @@ function BrandMark() {
     />
   );
 }
-const publicSeo = {
-  home: {
-    title: "Pokémon GO PvP Team Builder & Roster Planner | TeamLab",
-    description:
-      "Track your Pokémon GO PvP roster, compare current Great, Ultra, and Master League rankings, and build teams from the Pokémon you own.",
-  },
-  rankings: {
-    title: "Pokémon GO PvP Rankings | TeamLab",
-    description:
-      "Explore current Pokémon GO PvP rankings, recommended moves, matchups, and optimal IVs for Great, Ultra, and Master League.",
-  },
-} as const;
 
 function setMeta(name: string, content: string, attribute = "name") {
   let element = document.head.querySelector<HTMLMetaElement>(
@@ -93,9 +82,10 @@ function setMeta(name: string, content: string, attribute = "name") {
 function updateSeoMetadata(pathname: string) {
   const isHome = pathname === "/";
   const isRankings = pathname === "/catalog";
-  const seo = isRankings ? publicSeo.rankings : publicSeo.home;
-  const isPublic = isHome || isRankings;
-  const canonicalPath = isRankings ? "/catalog" : "/";
+  const isTeamBuilder = pathname === "/team-builder";
+  const seo = isTeamBuilder ? publicSeo.teamBuilder : isRankings ? publicSeo.rankings : publicSeo.home;
+  const isPublic = isHome || isRankings || isTeamBuilder;
+  const canonicalPath = isTeamBuilder ? "/team-builder" : isRankings ? "/catalog" : "/";
 
   document.title = isPublic ? seo.title : `TeamLab | Pokémon GO PvP`;
   setMeta("description", seo.description);

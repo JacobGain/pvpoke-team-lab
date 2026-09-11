@@ -1,3 +1,4 @@
+import { TeamBuilderPage } from "@/app/routes/TeamBuilderPage";
 import {
   createBrowserRouter,
   type RouteObject,
@@ -40,6 +41,7 @@ export const router = createBrowserRouter(
       path: "/",
       element: <AppLayout />,
       children: [
+        { path: "team-builder", element: <TeamBuilderPage /> },
         {
           index: true,
           element: <HomePage />,
