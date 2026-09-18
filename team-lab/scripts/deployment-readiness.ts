@@ -50,7 +50,7 @@ async function verifySearchDiscovery(
 
   const insecureOrigin = new URL(secureOrigin);
   insecureOrigin.protocol = "http:";
-  const redirectResponse = await fetchImplementation(requestUrl(insecureOrigin, token), {
+  const redirectResponse = await fetchImplementation(insecureOrigin, {
     cache: "no-store",
     redirect: "manual",
     signal: AbortSignal.timeout(requestTimeoutMs),
