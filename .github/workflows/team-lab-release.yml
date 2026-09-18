@@ -154,6 +154,18 @@ jobs:
       origin: ${{ needs.deploy-cloudflare-production.outputs.origin }}
       expected_commit: ${{ github.sha }}
 
+  verify-production-canonical-origin:
+    name: Verify canonical production origin
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: deploy-cloudflare-production
+    permissions:
+      contents: read
+    uses: ./.github/workflows/team-lab-deployment-check.yml
+    with:
+      origin: https://pogoteamlab.com
+      expected_commit: ${{ github.sha }}
+      require_indexable: true
+
   deploy-cloudflare-staging:
     name: Deploy verified artifact to staging
     if: github.event_name == 'push' && github.ref == 'refs/heads/staging'

@@ -4667,6 +4667,11 @@ export const pokemonSpriteManifest: Readonly<
     "pokeApiId": 398,
     "match": "exact"
   },
+  "staraptor_mega": {
+    "path": "/assets/pokemon/10308.webp",
+    "pokeApiId": 10308,
+    "match": "exact"
+  },
   "staravia": {
     "path": "/assets/pokemon/397.webp",
     "pokeApiId": 397,

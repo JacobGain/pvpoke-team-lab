@@ -9,7 +9,7 @@ import { ACTIVE_SEASON } from "./season";
 describe("active Season 28 bundle", () => {
   it("identifies the pinned Twilight Trails revision", () => {
     expect(manifest.season).toEqual(ACTIVE_SEASON);
-    expect(gameMaster.timestamp).toBe("2026-09-09 01:44:57");
+    expect(gameMaster.timestamp).toBe("2026-09-16 18:53:38");
     expect(manifest.dataVersion).toBe(gameMaster.timestamp);
   });
 
@@ -24,7 +24,7 @@ describe("active Season 28 bundle", () => {
   });
 
   it("ships the matching rankings for every supported league", () => {
-    expect(great[0]?.speciesId).toBe("tinkaton");
+    expect(great[0]?.speciesId).toBe("melmetal");
     expect(ultra[0]?.speciesId).toBe("tinkaton");
     expect(master[0]?.speciesId).toBe("palkia_origin");
     expect(master.find((entry) => entry.speciesId === "metagross")?.moveset).toContain("SHADOW_CLAW");

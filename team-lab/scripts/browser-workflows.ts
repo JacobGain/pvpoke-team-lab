@@ -1689,7 +1689,7 @@ async function runCriticalWorkflows(
   );
   await browser.navigate("/team-builder", "Pokémon GO PvP Team Builder");
   await browser.waitFor(
-    `document.title === "Pokémon GO PvP Team Builder | TeamLab" &&
+    `document.title === "Pokémon GO PvP Team Builder | PoGo Team Lab" &&
       document.querySelector('link[rel="canonical"]')?.href === "https://pogoteamlab.com/team-builder" &&
       document.querySelector('meta[name="robots"]')?.content === "index, follow" &&
       document.querySelectorAll("h1").length === 1 &&
