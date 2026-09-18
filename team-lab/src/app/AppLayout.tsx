@@ -53,7 +53,7 @@ const utilityNavigation: readonly NavigationItem[] = [
 ];
 
 const SITE_ORIGIN = "https://pogoteamlab.com";
-const BRAND_MARK_PATH = `${import.meta.env.BASE_URL}assets/brand/teamlab-mark.webp`;
+const BRAND_MARK_PATH = `${import.meta.env.BASE_URL}favicon-96x96.png?v=${__TEAMLAB_VERSION__}`;
 
 function BrandMark() {
   return (
