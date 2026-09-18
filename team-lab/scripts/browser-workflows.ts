@@ -1703,10 +1703,10 @@ async function runCriticalWorkflows(
     expectedCommitSha,
   );
   await browser.waitFor(
-    `document.querySelectorAll(".dashboard-meta-watch li").length === 3 &&
+    `document.querySelectorAll(".dashboard-meta-watch li").length === 10 &&
       document.querySelectorAll(
         ".dashboard-meta-watch li .pokemon-sprite img"
-      ).length === 3`,
+      ).length === 10`,
     "dashboard meta watch",
   );
   const dashboardContent = await browser.evaluate<{
@@ -1732,8 +1732,8 @@ async function runCriticalWorkflows(
     !dashboardContent.hasBattleProtocol &&
       dashboardContent.hasDisclaimer &&
       dashboardContent.hasLicenseLink &&
-      dashboardContent.metaRows === 3 &&
-      dashboardContent.spriteRows === 3,
+      dashboardContent.metaRows === 10 &&
+      dashboardContent.spriteRows === 10,
     `The dashboard meta watch or shared attribution was incomplete: ${JSON.stringify(dashboardContent)}.`,
   );
   await visual.capture(
