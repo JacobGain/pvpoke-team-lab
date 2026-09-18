@@ -2,11 +2,6 @@ const DEFAULT_TIMEOUT_MS = 120_000;
 const DEFAULT_REQUEST_TIMEOUT_MS = 15_000;
 const DEFAULT_RETRY_DELAY_MS = 1_000;
 const MAX_RETRY_DELAY_MS = 5_000;
-const READINESS_REQUEST_HEADERS = {
-  accept: "text/html,application/xhtml+xml,application/json,application/xml;q=0.9,*/*;q=0.8",
-  "accept-language": "en-US,en;q=0.9",
-  "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 TeamLab-Deployment-Readiness/1.0",
-} as const;
 
 interface DeploymentReleaseMetadata {
   readonly formatVersion?: number;
@@ -57,7 +52,6 @@ async function verifySearchDiscovery(
   insecureOrigin.protocol = "http:";
   const redirectResponse = await fetchImplementation(insecureOrigin, {
     cache: "no-store",
-    headers: READINESS_REQUEST_HEADERS,
     redirect: "manual",
     signal: AbortSignal.timeout(requestTimeoutMs),
   });
@@ -184,7 +178,6 @@ async function fetchAvailableResponse(
 ): Promise<Response> {
   const response = await fetchImplementation(url, {
     cache: "no-store",
-    headers: READINESS_REQUEST_HEADERS,
     signal: AbortSignal.timeout(requestTimeoutMs),
   });
 
