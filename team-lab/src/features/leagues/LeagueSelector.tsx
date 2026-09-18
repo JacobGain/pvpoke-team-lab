@@ -1,12 +1,10 @@
 import { ChevronDown } from "lucide-react";
-import { useNavigate } from "react-router";
 
 import { LEAGUES, type LeagueId } from "@/domain/leagues";
 import { useLeague, useLeagueStore } from "./leagueStore";
 
 export function LeagueSelector({ onSelect }: { readonly onSelect?: () => void }) {
   const { leagueId, setLeague } = useLeagueStore();
-  const navigate = useNavigate();
 
   return (
     <label className="league-selector">
@@ -18,7 +16,6 @@ export function LeagueSelector({ onSelect }: { readonly onSelect?: () => void })
           onChange={(event) => {
             setLeague(event.target.value as LeagueId);
             onSelect?.();
-            void navigate("/");
           }}
         >
           {Object.values(LEAGUES).map((league) => (

@@ -1772,6 +1772,19 @@ async function runCriticalWorkflows(
     `document.querySelectorAll(".ranking-row").length > 0`,
     "ranking rows",
   );
+  await browser.setLabeledControl("Battle league", "ultra-league");
+  await browser.waitFor(
+    `window.location.pathname === "/catalog" &&
+      document.querySelector(".catalog-page .eyebrow")?.textContent?.includes("Ultra") === true &&
+      document.querySelectorAll(".ranking-row").length > 0`,
+    "league change without leaving rankings",
+  );
+  await browser.setLabeledControl("Battle league", "great-league");
+  await browser.waitFor(
+    `window.location.pathname === "/catalog" &&
+      document.querySelector(".catalog-page .eyebrow")?.textContent?.includes("Great") === true`,
+    "restored Great League rankings",
+  );
   invariant(
     await browser.evaluate(
       `document.querySelector('link[rel="canonical"]')?.href === "https://pogoteamlab.com/catalog"`,
