@@ -219,14 +219,19 @@ describe("deployment readiness", () => {
   });
 
   it("verifies the canonical origin's redirect and search discovery contract", async () => {
+    const fetchImplementation = indexableFetch();
     const result = await checkDeploymentReadiness({
       origin: ORIGIN,
       expectedCommitSha: COMMIT_SHA,
       requireIndexablePublicPages: true,
-      fetchImplementation: indexableFetch(),
+      fetchImplementation,
     });
 
     expect(result.commitSha).toBe(COMMIT_SHA);
+    expect(fetchImplementation).toHaveBeenCalledWith(
+      new URL("http://deployment.example/"),
+      expect.objectContaining({ redirect: "manual" }),
+    );
   });
 
   it("rejects a noindex header on canonical public pages", async () => {
