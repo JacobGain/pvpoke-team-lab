@@ -87,7 +87,7 @@ function updateSeoMetadata(pathname: string) {
   const isPublic = isHome || isRankings || isTeamBuilder;
   const canonicalPath = isTeamBuilder ? "/team-builder" : isRankings ? "/catalog" : "/";
 
-  document.title = isPublic ? seo.title : `TeamLab | Pokémon GO PvP`;
+  document.title = isPublic ? seo.title : `PoGo Team Lab | Pokémon GO PvP`;
   setMeta("description", seo.description);
   setMeta("robots", isPublic ? "index, follow" : "noindex, nofollow");
   setMeta("og:title", document.title, "property");
@@ -157,7 +157,7 @@ export function AppLayout() {
 
       <aside className="app-rail">
         <NavLink
-          aria-label="TeamLab dashboard"
+          aria-label="PoGo Team Lab dashboard"
           className="brand-mark brand-mark--rail"
           to="/"
         >
@@ -165,7 +165,7 @@ export function AppLayout() {
             <BrandMark />
           </span>
           <span className="brand-mark__copy">
-            <strong>TeamLab</strong>
+            <strong>PoGo Team Lab</strong>
             <small>Pokémon GO PvP</small>
           </span>
         </NavLink>
@@ -196,12 +196,12 @@ export function AppLayout() {
 
       <header className="app-topbar app-topbar--mobile">
         <div className="app-topbar__inner">
-          <NavLink className="brand-mark" to="/" aria-label="TeamLab dashboard">
+          <NavLink className="brand-mark" to="/" aria-label="PoGo Team Lab dashboard">
             <span className="brand-mark__icon" aria-hidden="true">
               <BrandMark />
             </span>
             <span className="brand-mark__copy">
-              <strong>TeamLab</strong>
+              <strong>PoGo Team Lab</strong>
               <small><LeagueName open /></small>
             </span>
           </NavLink>
@@ -249,7 +249,7 @@ export function AppLayout() {
             <div className="app-footer__identity">
               <BrandMark />
               <span>
-                <strong>TeamLab</strong>
+                <strong>PoGo Team Lab</strong>
                 <small>
                   Independent battle-planning tool · v{__TEAMLAB_VERSION__}
                 </small>

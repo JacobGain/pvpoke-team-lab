@@ -31,11 +31,13 @@ if (!indexHtml.includes('<div id="root">')) {
 }
 
 const requiredSeoFragments = [
-  "Pokémon GO PvP Team Builder &amp; Roster Planner | TeamLab",
+  "Pokémon GO PvP Team Builder &amp; Roster Planner | PoGo Team Lab",
   'name="description"',
   'meta name="robots" content="index, follow"',
   'property="og:title"',
   'name="twitter:card"',
+  'property="og:site_name" content="PoGo Team Lab"',
+  'type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"PoGo Team Lab","alternateName":["TeamLab","PoGoTeamLab","pogoteamlab.com"],"url":"https://pogoteamlab.com/"}</script>',
   'rel="icon"',
   'type="image/png" sizes="48x48" href="/favicon-48x48.png"',
   'type="image/png" sizes="96x96" href="/favicon-96x96.png"',
