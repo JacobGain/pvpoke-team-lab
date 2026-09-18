@@ -25,15 +25,14 @@ three supported open leagues.
 ## Refresh from upstream
 
 The active season is **Season 28 — Twilight Trails**. The default import reads
-Git blobs from revision `d4c5b76a76fbd13194b72113d7ecdd495dc805be`, configured in
-`src/pvpoke/season.ts`. This is upstream’s `twilight-trails` branch, which its
-production site links to as the next-season preview. TeamLab uses it directly
-as the active season, including its battle engine, with no preview toggle.
+Git blobs from revision `925c2581fd7b339640d87b3582c974fddff17919`, configured in
+`src/pvpoke/season.ts`. This is upstream’s `master` branch for the active
+season. TeamLab uses it directly, including its battle engine.
 
 From `team-lab/`:
 
 ```bash
-git fetch https://github.com/pvpoke/pvpoke.git twilight-trails
+git fetch https://github.com/pvpoke/pvpoke.git master
 npm run sync:pvpoke
 npm run validate:data
 npm test
