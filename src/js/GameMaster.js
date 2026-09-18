@@ -560,6 +560,10 @@ var GameMaster = (function () {
 					defaultIVs["cp1500"] = [22, 4, 14, 15];
 					defaultIVs["cp2500"] = [38, 15, 15, 15];
 					break;
+
+				case "mimikyu":
+					defaultIVs["cp1500"] = [25, 4, 14, 15];
+					break;
 			}
 
 			return defaultIVs;
@@ -714,7 +718,7 @@ var GameMaster = (function () {
 
 			// Charged Moves
 
-			if(move.category == "charged"){
+			if(move.category == "charged" || (! move?.category && move.energy > 0)){
 				var dpe = move.power / move.energy;
 
 				// Categorize by energy

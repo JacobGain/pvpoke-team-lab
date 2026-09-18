@@ -1,3 +1,4 @@
 src/modules/config.php
 src/articles/article-assets
 .DS_Store
+src-deploy/
