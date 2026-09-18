@@ -26,11 +26,91 @@ export interface DeploymentReadiness {
 export interface DeploymentReadinessOptions {
   readonly origin: string;
   readonly expectedCommitSha: string;
+  readonly requireIndexablePublicPages?: boolean;
   readonly timeoutMs?: number;
   readonly requestTimeoutMs?: number;
   readonly retryDelayMs?: number;
   readonly fetchImplementation?: typeof fetch;
   readonly onRetry?: (message: string) => void;
+}
+
+const PUBLIC_PAGE_PATHS = ["/", "/catalog", "/team-builder"] as const;
+
+async function verifySearchDiscovery(
+  fetchImplementation: typeof fetch,
+  origin: URL,
+  requestTimeoutMs: number,
+  token: string,
+): Promise<void> {
+  const secureOrigin = new URL(origin);
+  invariant(
+    secureOrigin.protocol === "https:",
+    "Indexable production verification requires an HTTPS origin.",
+  );
+
+  const insecureOrigin = new URL(secureOrigin);
+  insecureOrigin.protocol = "http:";
+  const redirectResponse = await fetchImplementation(requestUrl(insecureOrigin, token), {
+    cache: "no-store",
+    redirect: "manual",
+    signal: AbortSignal.timeout(requestTimeoutMs),
+  });
+  invariant(
+    (redirectResponse.status === 301 || redirectResponse.status === 308) &&
+      redirectResponse.headers.get("location") === secureOrigin.href,
+    `HTTP origin must permanently redirect directly to ${secureOrigin.href}.`,
+  );
+
+  await Promise.all(PUBLIC_PAGE_PATHS.map(async (pathname) => {
+    const pageUrl = new URL(pathname, secureOrigin);
+    const response = await fetchAvailableResponse(
+      fetchImplementation,
+      requestUrl(pageUrl, token),
+      requestTimeoutMs,
+    );
+    const robotsHeader = response.headers.get("x-robots-tag")?.toLowerCase() ?? "";
+    invariant(
+      !robotsHeader.includes("noindex"),
+      `${pathname} returned a conflicting X-Robots-Tag: ${robotsHeader}.`,
+    );
+    const html = await response.text();
+    const canonical = new URL(pathname, secureOrigin).href;
+    invariant(
+      html.includes(`rel="canonical" href="${canonical}"`) &&
+        html.includes('meta name="robots" content="index, follow"') &&
+        html.includes('<div id="root"><main'),
+      `${pathname} did not return indexable prerendered HTML with its canonical URL.`,
+    );
+  }));
+
+  const [robotsResponse, sitemapResponse] = await Promise.all([
+    fetchAvailableResponse(
+      fetchImplementation,
+      requestUrl(new URL("robots.txt", secureOrigin), token),
+      requestTimeoutMs,
+    ),
+    fetchAvailableResponse(
+      fetchImplementation,
+      requestUrl(new URL("sitemap.xml", secureOrigin), token),
+      requestTimeoutMs,
+    ),
+  ]);
+  const [robotsText, sitemapXml] = await Promise.all([
+    robotsResponse.text(),
+    sitemapResponse.text(),
+  ]);
+  invariant(
+    robotsText.includes("User-agent: *") &&
+      robotsText.includes(`Sitemap: ${new URL("sitemap.xml", secureOrigin).href}`),
+    "The canonical origin did not serve TeamLab's robots.txt and sitemap declaration.",
+  );
+  for (const pathname of PUBLIC_PAGE_PATHS) {
+    const canonical = new URL(pathname, secureOrigin).href;
+    invariant(
+      sitemapXml.includes(`<loc>${canonical}</loc>`),
+      `The canonical sitemap is missing ${canonical}.`,
+    );
+  }
 }
 
 interface DeploymentAttemptResult {
@@ -195,6 +275,15 @@ export async function checkDeploymentReadiness(
       );
     }),
   );
+
+  if (options.requireIndexablePublicPages) {
+    await verifySearchDiscovery(
+      fetchImplementation,
+      origin,
+      requestTimeoutMs,
+      token,
+    );
+  }
 
   return {
     origin: origin.href,

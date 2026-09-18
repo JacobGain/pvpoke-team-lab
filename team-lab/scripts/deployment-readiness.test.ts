@@ -54,6 +54,48 @@ function readyFetch(indexHtml = INDEX_HTML): typeof fetch {
   });
 }
 
+function indexableFetch(xRobotsTag?: string): typeof fetch {
+  return vi.fn((input: string | URL | Request) => {
+    const url = new URL(
+      input instanceof Request ? input.url : input.toString(),
+    );
+    if (url.protocol === "http:") {
+      return Promise.resolve(new Response(null, {
+        status: 301,
+        headers: { location: ORIGIN },
+      }));
+    }
+    if (url.pathname === "/release.json") {
+      return Promise.resolve(releaseResponse());
+    }
+    if (url.pathname.startsWith("/assets/")) {
+      return Promise.resolve(new Response("asset contents"));
+    }
+    if (url.pathname === "/robots.txt") {
+      return Promise.resolve(new Response(
+        `User-agent: *\nAllow: /\nSitemap: ${ORIGIN}sitemap.xml\n`,
+      ));
+    }
+    if (url.pathname === "/sitemap.xml") {
+      return Promise.resolve(new Response(
+        ["/", "/catalog", "/team-builder"]
+          .map((pathname) => `<loc>${new URL(pathname, ORIGIN).href}</loc>`)
+          .join("\n"),
+      ));
+    }
+    if (["/", "/catalog", "/team-builder"].includes(url.pathname)) {
+      const canonical = new URL(url.pathname, ORIGIN).href;
+      return Promise.resolve(new Response(
+        INDEX_HTML
+          .replace("<head>", `<head><link rel="canonical" href="${canonical}"><meta name="robots" content="index, follow">`)
+          .replace('<div id="root"></div>', '<div id="root"><main><h1>TeamLab</h1></main></div>'),
+        { headers: xRobotsTag ? { "x-robots-tag": xRobotsTag } : undefined },
+      ));
+    }
+    return Promise.resolve(new Response("missing", { status: 404 }));
+  });
+}
+
 describe("deployment readiness", () => {
   it("accepts prerendered content inside the application root", async () => {
     const fetchImplementation = readyFetch(
@@ -174,5 +216,25 @@ describe("deployment readiness", () => {
         fetchImplementation,
       }),
     ).rejects.toThrow("/assets/index-123.js returned HTTP 404");
+  });
+
+  it("verifies the canonical origin's redirect and search discovery contract", async () => {
+    const result = await checkDeploymentReadiness({
+      origin: ORIGIN,
+      expectedCommitSha: COMMIT_SHA,
+      requireIndexablePublicPages: true,
+      fetchImplementation: indexableFetch(),
+    });
+
+    expect(result.commitSha).toBe(COMMIT_SHA);
+  });
+
+  it("rejects a noindex header on canonical public pages", async () => {
+    await expect(checkDeploymentReadiness({
+      origin: ORIGIN,
+      expectedCommitSha: COMMIT_SHA,
+      requireIndexablePublicPages: true,
+      fetchImplementation: indexableFetch("noindex"),
+    })).rejects.toThrow("conflicting X-Robots-Tag: noindex");
   });
 });

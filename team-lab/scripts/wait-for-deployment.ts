@@ -14,6 +14,9 @@ const origin =
 const expectedCommitSha =
   argumentValue("expected-commit") ??
   process.env.TEAMLAB_EXPECTED_COMMIT_SHA?.trim();
+const requireIndexablePublicPages =
+  argumentValue("require-indexable") === "true" ||
+  process.env.TEAMLAB_REQUIRE_INDEXABLE === "true";
 
 if (!origin || !expectedCommitSha) {
   throw new Error(
@@ -24,6 +27,7 @@ if (!origin || !expectedCommitSha) {
 const readiness = await waitForDeploymentReadiness({
   origin,
   expectedCommitSha,
+  requireIndexablePublicPages,
   onRetry: (message) => {
     process.stdout.write(`[deployment-readiness] ${message}\n`);
   },

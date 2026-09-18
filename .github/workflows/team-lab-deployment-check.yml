@@ -11,6 +11,11 @@ on:
         description: Git commit expected in the deployed release metadata
         required: true
         type: string
+      require_indexable:
+        description: Require canonical public pages and discovery files to be indexable
+        required: false
+        default: false
+        type: boolean
   workflow_dispatch:
     inputs:
       origin:
@@ -21,6 +26,11 @@ on:
         description: Git commit expected in the deployed release metadata
         required: false
         type: string
+      require_indexable:
+        description: Require canonical public pages and discovery files to be indexable
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -44,6 +54,7 @@ jobs:
       TEAMLAB_CHROME_PATH: /usr/bin/google-chrome
       TEAMLAB_DEPLOYMENT_ORIGIN: ${{ inputs.origin }}
       TEAMLAB_EXPECTED_COMMIT_SHA: ${{ inputs.expected_commit || github.sha }}
+      TEAMLAB_REQUIRE_INDEXABLE: ${{ inputs.require_indexable }}
 
     steps:
       - name: Check out verification source
@@ -71,7 +82,7 @@ jobs:
               ;;
           esac
 
-      - name: Wait for immutable deployment readiness
+      - name: Wait for deployment readiness
         run: npm run wait:deployment
 
       - name: Exercise deployed public artifact
