@@ -1736,6 +1736,15 @@ async function runCriticalWorkflows(
       dashboardContent.spriteRows === 10,
     `The dashboard meta watch or shared attribution was incomplete: ${JSON.stringify(dashboardContent)}.`,
   );
+  invariant(
+    await browser.evaluate<boolean>(`(() => {
+      const leaders = document.querySelector(".dashboard-meta-watch ol");
+      return Boolean(leaders &&
+        getComputedStyle(leaders).overflowY === "auto" &&
+        leaders.scrollHeight > leaders.clientHeight);
+    })()`),
+    "The desktop top-ten meta watch was not independently scrollable.",
+  );
   await visual.capture(
     browser,
     "dashboard-desktop",
@@ -1747,6 +1756,22 @@ async function runCriticalWorkflows(
     "dashboard-mobile",
     320,
     900,
+  );
+  await browser.setViewport(320, 900);
+  const mobileMetaWatch = await browser.evaluate<{
+    readonly overflowY: string;
+    readonly visibleRows: number;
+  }>(`(() => {
+      const leaders = document.querySelector(".dashboard-meta-watch ol");
+      const rows = [...document.querySelectorAll(".dashboard-meta-watch li")];
+      return {
+        overflowY: leaders ? getComputedStyle(leaders).overflowY : "missing",
+        visibleRows: rows.filter((row) => getComputedStyle(row).display !== "none").length
+      };
+    })()`);
+  invariant(
+    mobileMetaWatch.overflowY === "visible" && mobileMetaWatch.visibleRows === 3,
+    `The mobile meta watch should show three leaders without trapping page scrolling: ${JSON.stringify(mobileMetaWatch)}.`,
   );
   await browser.setViewport(1440, 1_000);
   const rankingsInDesktopNavigation = await browser.evaluate<boolean>(
@@ -2860,8 +2885,11 @@ async function runCriticalWorkflows(
 
   await browser.setViewport(1440, 1_000);
   await browser.setLabeledControl("Battle league", "master-league", "select");
-  await browser.waitFor(`document.querySelector("#current-format-title")?.textContent?.trim() === "Open Master League"`, "Master League data");
-  await browser.navigate("/inventory", "Your inventory");
+  await browser.waitFor(
+    `window.location.pathname === "/inventory" &&
+      document.querySelector(".page-header .eyebrow")?.textContent?.includes("Master League") === true`,
+    "Master League inventory data",
+  );
   invariant(await browser.evaluate(`document.querySelectorAll(".inventory-card").length === 0`), "Great League records leaked into Master League.");
   await createInventory(browser, ["dragonite", "giratina_altered", "mewtwo"]);
   await browser.navigate("/teams/new", "Create saved team");

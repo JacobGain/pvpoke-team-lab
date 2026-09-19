@@ -403,6 +403,10 @@
   gap: 1rem;
 }
 
+.seo-content--home {
+  width: 100%;
+}
+
 .seo-content p,
 .seo-content li {
   max-width: 75ch;
