@@ -127,7 +127,7 @@ async function main(): Promise<void> {
     gameMaster.pokemon.map((pokemon) => [pokemon.speciesId, pokemon]),
   );
   const leaders = (rankings: typeof greatRankings) =>
-    rankings.slice(0, 3).map((ranking, index) => {
+    rankings.slice(0, 10).map((ranking, index) => {
       const pokemon = pokemonById.get(ranking.speciesId);
       if (!pokemon) {
         throw new Error(

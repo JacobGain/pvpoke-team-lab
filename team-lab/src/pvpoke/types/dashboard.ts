@@ -13,9 +13,9 @@ export const dashboardDataSchema = z.object({
   dataVersion: z.string().min(1),
   speciesNames: z.record(z.string(), z.string().min(1)),
   leaders: z.object({
-    "great-league": z.array(dashboardLeaderSchema).length(3),
-    "ultra-league": z.array(dashboardLeaderSchema).length(3),
-    "master-league": z.array(dashboardLeaderSchema).length(3),
+    "great-league": z.array(dashboardLeaderSchema).length(10),
+    "ultra-league": z.array(dashboardLeaderSchema).length(10),
+    "master-league": z.array(dashboardLeaderSchema).length(10),
   }),
 });
 

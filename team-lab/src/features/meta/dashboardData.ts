@@ -22,7 +22,7 @@ function isDashboardData(value: unknown): value is DashboardData {
 
   return ["great-league", "ultra-league", "master-league"].every((leagueId) => {
     const leaders = leadersByLeague[leagueId];
-    return Array.isArray(leaders) && leaders.length === 3 && leaders.every(
+    return Array.isArray(leaders) && leaders.length === 10 && leaders.every(
       (leader) =>
         isRecord(leader) &&
         typeof leader.rank === "number" &&

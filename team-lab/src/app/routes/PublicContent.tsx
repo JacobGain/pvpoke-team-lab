@@ -15,28 +15,33 @@ export function HomeIntroduction() {
 
 export function HomeOverview() {
   return (
-    <section className="data-card seo-content" aria-labelledby="roster-team-building">
-      <h2 id="roster-team-building">Turn your Pokémon GO roster into PvP teams</h2>
-      <p>
-        Global rankings show how Pokémon compare in the meta. TeamLab connects
-        that information to your own collection: record CP, IVs, and moves,
-        distinguish ready Pokémon from planned builds, and save ordered teams.
-      </p>
-      <div className="seo-content__grid">
-        <div>
-          <h3>Plan for all three leagues</h3>
-          <p>Explore Great League, Ultra League, and Master League rankings,
-            then review the builds you have available for your chosen format.</p>
-        </div>
-        <div>
-          <h3>Compare moves and team options</h3>
-          <p>Use PvPoke-derived moves, rankings, and battle simulations to examine
-            your roster. Choose an anchor Pokémon to explore team recommendations
-            and review matchups before saving a lineup.</p>
-        </div>
+    <section className="data-card seo-content seo-content--home" aria-labelledby="roster-team-building">
+      <div className="seo-content__lead">
+        <p className="eyebrow">Build with what you own</p>
+        <h2 id="roster-team-building">Turn your Pokémon GO roster into PvP teams</h2>
+        <p>
+          Global rankings show how Pokémon compare in the meta. TeamLab connects
+          that information to your own collection: record CP, IVs, and moves,
+          distinguish ready Pokémon from planned builds, and save ordered teams.
+        </p>
       </div>
-      <p><Link className="text-link" to="/team-builder">Explore the Pokémon GO PvP Team Builder</Link>
-        {" · "}<Link className="text-link" to="/catalog">Browse PvP rankings and Pokémon builds</Link></p>
+      <div className="seo-content__body">
+        <div className="seo-content__grid">
+          <div>
+            <h3>Plan for all three leagues</h3>
+            <p>Explore Great League, Ultra League, and Master League rankings,
+              then review the builds you have available for your chosen format.</p>
+          </div>
+          <div>
+            <h3>Compare moves and team options</h3>
+            <p>Use PvPoke-derived moves, rankings, and battle simulations to examine
+              your roster. Choose an anchor Pokémon to explore team recommendations
+              and review matchups before saving a lineup.</p>
+          </div>
+        </div>
+        <p className="seo-content__actions"><Link className="text-link" to="/team-builder">Explore the Pokémon GO PvP Team Builder</Link>
+          <Link className="text-link" to="/catalog">Browse PvP rankings and Pokémon builds</Link></p>
+      </div>
     </section>
   );
 }
