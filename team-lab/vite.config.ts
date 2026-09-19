@@ -1,4 +1,6 @@
 import { fileURLToPath, URL } from "node:url";
+import { createHash } from "node:crypto";
+import { readFile } from "node:fs/promises";
 
 import react from "@vitejs/plugin-react";
 import {
@@ -37,6 +39,12 @@ export default defineConfig(async ({ mode }) => {
     process.cwd(),
     diagnosticsEnabled ? "admin" : "public",
   );
+  const dashboardContents = await readFile(
+    "public/vendor/pvpoke/data/dashboard.json",
+  );
+  const dashboardSha256 = createHash("sha256")
+    .update(dashboardContents)
+    .digest("hex");
 
   return {
     base: environment.VITE_BASE_PATH || "/",
@@ -46,6 +54,7 @@ export default defineConfig(async ({ mode }) => {
     define: {
       __TEAMLAB_DIAGNOSTICS__: JSON.stringify(diagnosticsEnabled),
       __TEAMLAB_VERSION__: JSON.stringify(releaseMetadata.appVersion),
+      __TEAMLAB_DASHBOARD_SHA256__: JSON.stringify(dashboardSha256),
     },
     plugins: [react(), releaseMetadataPlugin(releaseMetadata)],
     resolve: {

@@ -2,7 +2,6 @@ import { queryOptions } from "@tanstack/react-query";
 
 import { bundledPvpokeBaseUrl } from "../../pvpoke/config";
 import { PvpokeDataError } from "../../pvpoke/repositories/http";
-import { ACTIVE_SEASON } from "../../pvpoke/season";
 import type { DashboardData } from "../../pvpoke/types/dashboard";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -37,7 +36,7 @@ function isDashboardData(value: unknown): value is DashboardData {
 }
 
 async function loadDashboardData(): Promise<DashboardData> {
-  const resource = `${bundledPvpokeBaseUrl}/data/dashboard.json?v=${ACTIVE_SEASON.upstreamCommit}`;
+  const resource = `${bundledPvpokeBaseUrl}/data/dashboard.json?v=${__TEAMLAB_DASHBOARD_SHA256__}`;
   let response: Response;
   try {
     response = await fetch(resource);
@@ -66,7 +65,7 @@ async function loadDashboardData(): Promise<DashboardData> {
 }
 
 export const dashboardDataQueryOptions = queryOptions({
-  queryKey: ["pvpoke-data", "dashboard", ACTIVE_SEASON.upstreamCommit],
+  queryKey: ["pvpoke-data", "dashboard", __TEAMLAB_DASHBOARD_SHA256__],
   queryFn: loadDashboardData,
   staleTime: Number.POSITIVE_INFINITY,
 });
