@@ -153,6 +153,7 @@ const requiredHeaderPolicyFragments = [
   "frame-ancestors 'none'",
   "object-src 'none'",
   "script-src 'self'",
+  "https://static.cloudflareinsights.com",
   "Cross-Origin-Opener-Policy: same-origin",
   "Cross-Origin-Resource-Policy: same-origin",
   "Permissions-Policy:",

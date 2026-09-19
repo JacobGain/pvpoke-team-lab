@@ -97,6 +97,24 @@ function indexableFetch(xRobotsTag?: string): typeof fetch {
 }
 
 describe("deployment readiness", () => {
+  it("reports Cloudflare denial details for a blocked release request", async () => {
+    const fetchImplementation = vi.fn(() => Promise.resolve(new Response("blocked", {
+      status: 403,
+      headers: {
+        "cf-ray": "abc123-YYZ",
+        "cf-mitigated": "challenge",
+      },
+    })));
+
+    await expect(checkDeploymentReadiness({
+      origin: ORIGIN,
+      expectedCommitSha: COMMIT_SHA,
+      fetchImplementation,
+    })).rejects.toThrow(
+      "/release.json returned HTTP 403; Cloudflare Ray ID abc123-YYZ; Cloudflare mitigation challenge.",
+    );
+  });
+
   it("accepts prerendered content inside the application root", async () => {
     const fetchImplementation = readyFetch(
       INDEX_HTML.replace(

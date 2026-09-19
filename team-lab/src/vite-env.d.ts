@@ -2,6 +2,7 @@
 
 declare const __TEAMLAB_DIAGNOSTICS__: boolean;
 declare const __TEAMLAB_VERSION__: string;
+declare const __TEAMLAB_DASHBOARD_SHA256__: string;
 
 interface ImportMetaEnv {
   readonly VITE_BASE_PATH?: string;

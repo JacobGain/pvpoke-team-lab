@@ -926,6 +926,22 @@ h3 {
   line-height: 1.5;
 }
 
+.dashboard-meta-watch__empty p {
+  margin: 0 0 0.6rem;
+}
+
+.dashboard-meta-watch__retry {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0;
+  border: 0;
+  color: #a9e9ed;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 700;
+}
+
 .metric-grid {
   gap: 0;
   margin: 1.4rem 0;

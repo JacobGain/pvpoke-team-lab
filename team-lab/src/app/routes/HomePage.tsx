@@ -6,6 +6,7 @@ import {
   Boxes,
   CircleCheckBig,
   Plus,
+  RefreshCw,
   Sparkles,
   Target,
   Trophy,
@@ -165,6 +166,13 @@ export function HomePage() {
                 </li>
               ))}
             </ol>
+          ) : dashboardDataResult.isError ? (
+            <div className="dashboard-meta-watch__empty" role="alert">
+              <p>Could not load current rankings.</p>
+              <button className="dashboard-meta-watch__retry" type="button" onClick={() => void dashboardDataResult.refetch()}>
+                <RefreshCw aria-hidden="true" size={14} /> Retry
+              </button>
+            </div>
           ) : (
             <p className="dashboard-meta-watch__empty">
               Current rankings will appear when bundled battle data is ready.

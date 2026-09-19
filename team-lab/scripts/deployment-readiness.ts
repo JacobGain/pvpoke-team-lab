@@ -183,7 +183,10 @@ async function fetchAvailableResponse(
 
   invariant(
     response.ok,
-    `${url.pathname} returned HTTP ${response.status}.`,
+    `${url.pathname} returned HTTP ${response.status}${[
+      response.headers.get("cf-ray") && `Cloudflare Ray ID ${response.headers.get("cf-ray")}`,
+      response.headers.get("cf-mitigated") && `Cloudflare mitigation ${response.headers.get("cf-mitigated")}`,
+    ].filter(Boolean).map((detail) => `; ${detail}`).join("")}.`,
   );
 
   return response;
