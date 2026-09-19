@@ -798,6 +798,9 @@ h3 {
 .dashboard-meta-watch {
   position: relative;
   z-index: 2;
+  display: grid;
+  max-height: 31rem;
+  grid-template-rows: auto minmax(0, 1fr);
   align-self: stretch;
   padding: 1rem;
   border: 1px solid rgb(255 255 255 / 17%);
@@ -853,6 +856,9 @@ h3 {
   gap: 0;
   margin: 0;
   padding: 0;
+  overflow-y: auto;
+  scrollbar-color: var(--dossier-cyan) rgb(255 255 255 / 8%);
+  scrollbar-width: thin;
   list-style: none;
 }
 
@@ -1828,7 +1834,16 @@ h3 {
   }
 
   .dashboard-meta-watch {
+    max-height: none;
     padding: 0.75rem;
+  }
+
+  .dashboard-meta-watch ol {
+    overflow: visible;
+  }
+
+  .dashboard-meta-watch li:nth-child(n + 4) {
+    display: none;
   }
 
   .dashboard-meta-watch li {

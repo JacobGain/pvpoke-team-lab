@@ -140,7 +140,7 @@ export function HomePage() {
             </Link>
           </div>
           {metaWatch.length > 0 ? (
-            <ol>
+            <ol aria-label={`Top 10 ${league.shortTitle} Pokémon`} tabIndex={0}>
               {metaWatch.map((pokemon) => (
                 <li key={pokemon.speciesId}>
                   <span className="dashboard-meta-watch__rank">
