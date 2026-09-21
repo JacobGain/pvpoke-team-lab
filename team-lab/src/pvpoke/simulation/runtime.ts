@@ -1,6 +1,8 @@
 export interface PvpokePokemon {
   readonly speciesId: string;
   readonly stats: { readonly hp: number };
+  readonly activeFormId?: string;
+  readonly statBuffs?: readonly number[];
   hp: number;
   energy: number;
   shields: number;
@@ -22,6 +24,9 @@ export interface PvpokeWinner {
 }
 
 export interface PvpokeBattle {
+  step?(): unknown;
+  getTurns?(): number;
+  getTimeline?(): readonly { type: string; name: string; actor: 0 | 1; values: readonly (number | string)[] }[];
   setCP(cp: number): void;
   setLevelCap(levelCap: number): void;
   setCup(cup: string): boolean | void;

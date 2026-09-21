@@ -54,8 +54,16 @@ each GitHub deployment identifies the exact uploaded artifact.
 
 ## Release pipeline
 
-Pull requests run the complete **Verify public artifact** gate but never
-deploy. A push to either `master` or `staging`:
+PRs targeting `staging` or `master` run the complete **Verify public artifact**
+gate and both CodeQL analyses. A same-repository PR targeting `staging` deploys
+on `opened`, `synchronize`, `reopened`, and `ready_for_review`. Fork and Dependabot
+PRs validate without deploying because they do not receive deployment secrets.
+PRs targeting `master` validate without deploying. A merge into protected
+`master` produces the push that deploys production; the active master ruleset
+requires a PR and passing checks, with no bypass actors. Manual runs validate
+without deploying. Staging pushes do not repeat the PR's build and checks.
+
+Each deployment:
 
 1. builds the public root-hosted `dist/` exactly once;
 2. validates diagnostics are absent and Cloudflare static limits are met;
@@ -63,7 +71,7 @@ deploy. A push to either `master` or `staging`:
 4. uploads it as `team-lab-public-<commit SHA>`;
 5. downloads the verified artifact in the deployment job;
 6. deploys it to the matching `pvpoke-team-lab` Pages branch with pinned
-   Wrangler;
+   Wrangler (matching the project dependency);
 7. polls the returned immutable HTTPS URL until its public release metadata
    identifies the expected commit and every entry asset is available;
 8. browser-tests that exact URL, with bounded retries for only the initial
@@ -92,13 +100,19 @@ the retries cannot conceal product regressions. A terminal navigation failure
 reports the current URL, document state, rendered heading and body excerpt,
 HTTP failures, network load failures, runtime exceptions, and console errors.
 
-Verification intentionally targets the immutable URL returned by Wrangler, not
-`pvpoke-team-lab.pages.dev` or a custom domain such as `pogoteamlab.com`. This
-proves the exact new deployment before production aliases or DNS are involved.
-The custom domain still routes to the current production deployment and is not
-duplicated by this verification URL.
+Every deployment is browser-tested at the immutable URL returned by Wrangler.
+Production additionally verifies `https://pogoteamlab.com`, including HTTPS
+redirects, canonical tags, robots.txt, sitemap.xml, and the expected commit.
+Both checks remain mandatory; a healthy Pages URL does not prove the custom
+domain works.
 
-The workflow intentionally fails on `master` or `staging` if the project or
+A single deployment job selects the production or staging environment and
+branch alias from the event. Uploads to each shared alias are serialized.
+Superseded PR runs can be cancelled; production runs are not interrupted.
+The artifact is built once (including TypeScript checks), and artifact
+compression uses level 1 to avoid spending CPU recompressing bundled assets.
+
+The deployment job intentionally fails if the project or
 either credential is missing. This prevents a release commit from appearing
 successful when its environment was not updated.
 
@@ -108,6 +122,27 @@ stable `staging.pvpoke-team-lab.pages.dev` branch alias. Cloudflare also returns
 an immutable deployment URL for each upload; post-deployment verification uses
 that immutable URL to prove the exact commit before the stable alias is used for
 manual acceptance testing.
+
+## Cloudflare challenges
+
+A response with `cf-mitigated: challenge` is an access-policy failure, not
+slow deployment propagation. Readiness stops immediately and reports the
+Cloudflare Ray ID. In **Security → Events**, locate that request and inspect the
+matching rule/service. Adjust the responsible rule so authorized CI verification
+can reach the public application, release metadata, assets, and discovery files.
+A WAF Skip rule can exempt narrowly identified verification traffic from the
+applicable challenge rules; Bot Fight Mode requires changing its own setting
+and cannot be bypassed with a WAF Skip rule. Do not exempt traffic solely because
+it supplies the public readiness query parameter.
+
+Cloudflare policy changes require zone security permissions; the Pages deployment
+token and the usual Wrangler OAuth scopes do not include them. After fixing the
+policy, rerun only the failed canonical verification job or manually run **Team
+Lab deployment check** with `origin=https://pogoteamlab.com`, the deployed commit,
+and `require_indexable=true`. Do not redeploy production just to retry a check.
+
+References: [Cloudflare Skip rules](https://developers.cloudflare.com/waf/custom-rules/skip/)
+and [Bot Fight Mode limitations](https://developers.cloudflare.com/bots/get-started/free/).
 
 ## Local Cloudflare verification
 
