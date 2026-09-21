@@ -222,3 +222,50 @@ describe("PvPoke one-on-one adapter", () => {
     });
   });
 });
+
+describe('turn replay observation', () => {
+  it('captures quiet turns, shields, and detached snapshots without changing results', async () => {
+    const runtime = new CharacterizationRuntime();
+    let turn = 1;
+    const events: { type: string; name: string; actor: 0 | 1; values: (number | string)[] }[] = [];
+    const battle = Object.assign(runtime.battle, {
+      getTurns: () => turn,
+      getTimeline: () => events,
+      step(this: void) {
+        if (turn === 2) {
+          battle.pokemon[0]!.hp = 0;
+          battle.pokemon[1]!.energy = 12;
+          battle.pokemon[0]!.shields = 0;
+          events.push({ type: 'charged', name: 'Move', actor: 1, values: [100, -35] });
+        }
+        turn++;
+      },
+      simulate() { battle.step(); battle.step(); return events; },
+    });
+    const step = battle.step;
+    battle.step = step;
+    const result = await new PvpokeOneOnOneAdapter(runtime).simulate({
+      format: OPEN_GREAT_LEAGUE_SIMULATION_FORMAT,
+      combatants: [{ build: build('azumarill'), shields: 1 }, { build: build('altaria'), shields: 2 }],
+      dataVersion: 'test', captureReplay: true,
+    });
+    expect(battle.step).toBe(step);
+    expect(result.replay?.map(frame => frame.turn)).toEqual([0, 1, 2]);
+    expect(result.replay?.[1]?.events).toEqual([]);
+    expect(result.replay?.[0]?.combatants[0]).toMatchObject({ hp: 100, shields: 1 });
+    expect(result.replay?.[2]?.combatants[0]).toMatchObject({ hp: 0, shields: 0 });
+    expect(result.replay?.[2]?.combatants[1].energy).toBe(result.combatants[1].remainingEnergy);
+    events[0]!.values[0] = 999;
+    battle.pokemon[1]!.energy = 99;
+    expect(result.replay?.[2]?.events[0]?.values[0]).toBe(100);
+    expect(result.replay?.[2]?.combatants[1].energy).toBe(12);
+  });
+
+  it('rejects replay on an incompatible runtime rather than inventing a timeline', async () => {
+    await expect(new PvpokeOneOnOneAdapter(new CharacterizationRuntime()).simulate({
+      format: OPEN_GREAT_LEAGUE_SIMULATION_FORMAT,
+      combatants: [{ build: build('azumarill'), shields: 1 }, { build: build('altaria'), shields: 1 }],
+      dataVersion: 'test', captureReplay: true,
+    })).rejects.toThrow('does not support turn playback');
+  });
+});

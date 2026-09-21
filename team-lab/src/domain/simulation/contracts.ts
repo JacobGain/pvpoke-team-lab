@@ -27,7 +27,30 @@ export interface OneOnOneSimulationCombatant {
   readonly shields: ShieldCount;
 }
 
+export interface BattleReplayEvent {
+  readonly type: string;
+  readonly name: string;
+  readonly actor: CombatantIndex;
+  readonly values: readonly (number | string)[];
+}
+
+export interface BattleReplayState {
+  readonly hp: number;
+  readonly maximumHp: number;
+  readonly energy: number;
+  readonly shields: number;
+  readonly form: string;
+  readonly buffs: readonly number[];
+}
+
+export interface BattleReplayFrame {
+  readonly turn: number;
+  readonly events: readonly BattleReplayEvent[];
+  readonly combatants: readonly [BattleReplayState, BattleReplayState];
+}
+
 export interface OneOnOneSimulationRequest {
+  readonly captureReplay?: boolean;
   readonly format: { readonly id: "great-league" | "ultra-league" | "master-league"; readonly cpCap: 1500 | 2500 | 10000; readonly levelCap: 50; readonly cup: "all" };
   readonly combatants: readonly [
     OneOnOneSimulationCombatant,
@@ -47,6 +70,7 @@ export interface SimulationCombatantResult {
 }
 
 export interface OneOnOneSimulationResult {
+  readonly replay?: readonly BattleReplayFrame[];
   readonly winner: CombatantIndex | "tie";
   readonly combatants: readonly [
     SimulationCombatantResult,
