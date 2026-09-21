@@ -73,3 +73,5 @@ export function LazyRoute({ children }: { children: ReactNode }) {
     </Suspense>
   );
 }
+
+export const DuelPage = lazy(() => import("@/features/simulation/DuelPage").then(module => ({ default: module.DuelPage })));

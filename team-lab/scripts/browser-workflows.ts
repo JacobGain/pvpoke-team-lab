@@ -2941,6 +2941,136 @@ async function runCriticalWorkflows(
   };
 }
 
+async function runDuelWorkflow(browser: BrowserWorkflow, buildTarget: BrowserTestTarget): Promise<void> {
+  await browser.setViewport(1440, 1000);
+  await browser.navigate("/battle", "One matchup. Every turn.");
+  await browser.waitFor(`document.querySelectorAll('.duel-build').length === 2`, "duel editors");
+  invariant(await browser.evaluate(`Array.from(document.querySelectorAll('.duel-build input[role="combobox"]')).every(input => !input.value && !input.dataset.selectedSpeciesId) && document.querySelector('.duel-launch button').disabled`), 'Duel must start empty and cannot simulate without both contenders.');
+  invariant(await browser.evaluate(`Array.from(document.querySelectorAll('.app-nav[aria-label="Primary"] .app-nav__link span')).map(node => node.textContent).join(',') === 'Dashboard,Inventory,Teams,Rankings,Battle,Recommend'`), 'Desktop navigation order is incorrect.');
+  await browser.evaluate(`document.querySelector('.duel-build input[role="combobox"]').focus()`);
+  invariant(await browser.evaluate(`document.querySelectorAll('.pokemon-combobox__option').length > 1000`), 'The full roster is not available to browse.');
+  await browser.evaluate(`(() => {
+    const options = document.querySelectorAll('.pokemon-combobox__option');
+    const last = options[options.length - 1];
+    last.scrollIntoView({ block: 'nearest' });
+    last.click();
+  })()`);
+  invariant(await browser.evaluate(`Boolean(document.querySelector('.duel-build input[role="combobox"]').dataset.selectedSpeciesId) && document.querySelector('.duel-launch button').disabled`), 'Selecting beyond the first page failed or enabled an incomplete duel.');
+  await browser.setLabeledControl('Pokémon 1 / form', 'azumarill');
+  await browser.setLabeledControl('Pokémon 2 / form', 'altaria');
+  await browser.clickButton("Simulate matchup");
+  await browser.waitFor(`document.querySelector('.duel-replay') !== null`, "duel replay", ENGINE_TIMEOUT_MS);
+  if (buildTarget === "development") {
+  const parity = await browser.evaluate<boolean>(`(async () => {
+    const { createPvpokeOneOnOneAdapter } = await import('/src/pvpoke/simulation/index.ts');
+    const { createOpenGreatLeagueCharacterizationCases } = await import('/src/domain/simulation/characterization.ts');
+    const adapter = createPvpokeOneOnOneAdapter('browser-test');
+    const cases = [...createOpenGreatLeagueCharacterizationCases()];
+    const baseline = cases[0].builds;
+    cases.push({ builds: [baseline[1], baseline[1]] });
+    cases.push({ builds: [{ ...baseline[1], speciesId: 'feraligatr_shadow', speciesName: 'Feraligatr (Shadow)', level: 19, isShadow: true, fastMoveId: 'SHADOW_CLAW', chargedMoveIds: ['HYDRO_CANNON', 'ICE_BEAM'] }, baseline[0]] });
+    cases.push({ builds: [{ ...baseline[1], speciesId: 'talonflame', speciesName: 'Talonflame', level: 26, fastMoveId: 'INCINERATE', chargedMoveIds: ['FLAME_CHARGE', 'BRAVE_BIRD'] }, baseline[0]] });
+    for (const testCase of cases) {
+      for (const shields of [[0, 0], [1, 1], [2, 2], [0, 2]]) {
+        const request = {
+          format: { id: 'great-league', cpCap: 1500, levelCap: 50, cup: 'all' },
+          combatants: testCase.builds.map((build, index) => ({ build, shields: shields[index] })),
+          dataVersion: 'browser-test',
+        };
+        const plain = await adapter.simulate(request);
+        const replay = await adapter.simulate({ ...request, captureReplay: true });
+        if (plain.winner !== replay.winner || JSON.stringify(plain.combatants) !== JSON.stringify(replay.combatants)) return false;
+        const last = replay.replay.at(-1);
+        for (let index = 0; index < 2; index++) {
+          const state = last.combatants[index], expected = plain.combatants[index];
+          if (state.hp !== Math.max(0, expected.remainingHp) || state.energy !== expected.remainingEnergy || state.shields !== expected.remainingShields) return false;
+        }
+        if (!replay.replay.some(frame => frame.events.length === 0)) return false;
+      }
+    }
+    return true;
+  })()`);
+  invariant(parity, 'Recorded replay differs from direct PvPoke engine results.');
+  }
+  await browser.evaluate(`document.querySelector('[aria-label="Next turn"]').click()`);
+  invariant(await browser.evaluate(`document.querySelector('.duel-log__turn > strong')?.textContent === 'Turn 1'`), "Duel did not step forward.");
+  invariant(await browser.evaluate(`document.querySelector('.duel-controls select').value === '1' && Array.from(document.querySelector('.duel-controls select').options).map(option => option.value).join(',') === '0.5,1,2,4'`), 'Playback speeds or default changed.');
+  const turnIntervals = await browser.evaluate<number[]>(`new Promise(resolve => {
+    const log = document.querySelector('.duel-log');
+    let lastTurn = log.querySelector('.duel-log__turn > strong').textContent;
+    const times = [performance.now()];
+    const observer = new MutationObserver(() => {
+      const turn = log.querySelector('.duel-log__turn > strong').textContent;
+      if (turn === lastTurn) return;
+      lastTurn = turn; times.push(performance.now());
+      if (times.length === 4) {
+        observer.disconnect();
+        Array.from(document.querySelectorAll('.duel-controls button')).find(button => button.textContent === 'Pause').click();
+        resolve(times.slice(1).map((time, index) => time - times[index]));
+      }
+    });
+    observer.observe(log, { childList: true, subtree: true });
+    Array.from(document.querySelectorAll('.duel-controls button')).find(button => button.textContent === 'Play').click();
+  })`);
+  invariant(turnIntervals.every(ms => ms >= 450 && ms < 800), `1× playback was not 500 ms per turn: ${turnIntervals.join(',')}`);
+  const animatedResources = await browser.evaluate<boolean>(`(async () => {
+    let damage = false, gain = false, spend = false;
+    const next = document.querySelector('[aria-label="Next turn"]');
+    while (!next.disabled && !(damage && gain && spend)) {
+      next.click();
+      await new Promise(resolve => setTimeout(resolve, 0));
+      for (const badge of document.querySelectorAll('.duel-delta')) {
+        if (getComputedStyle(badge).animationName !== 'duel-resource-change') return false;
+        damage ||= badge.dataset.resource === 'hp' && badge.textContent.startsWith('-');
+        gain ||= badge.dataset.resource === 'energy' && badge.textContent.startsWith('+');
+        spend ||= badge.dataset.resource === 'energy' && badge.textContent.startsWith('-');
+      }
+    }
+    return damage && gain && spend;
+  })()`);
+  invariant(animatedResources, 'Missing HP loss, energy gain, or energy spending animation.');
+  await browser.evaluate(`(() => {
+    const slider = document.querySelector('[aria-label="Battle turn"]');
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(slider, '1');
+    slider.dispatchEvent(new Event('input', { bubbles: true }));
+    slider.dispatchEvent(new Event('change', { bubbles: true }));
+  })()`);
+  invariant(await browser.evaluate(`document.querySelector('.duel-log__turn > strong')?.textContent === 'Turn 1'`), 'Scrubbing did not restore the requested turn.');
+  await browser.clickButton("Show result");
+  invariant(await browser.evaluate(`document.querySelector('.duel-replay__heading')?.textContent?.includes('wins')`), "Missing duel winner.");
+  invariant(await browser.evaluate(`Array.from(document.querySelectorAll('.duel-fighter meter')).some(meter => meter.value === 0)`), "No fainted combatant in final frame.");
+  invariant(await browser.evaluate(`(() => {
+    const turns = Array.from(document.querySelectorAll('.duel-log__turn > strong')).map(node => Number(node.textContent.replace('Turn ', '')));
+    return turns.length === Number(document.querySelector('[aria-label="Battle turn"]').max) && turns.every((turn, index) => index === 0 || turn === turns[index - 1] - 1) && !document.querySelector('details.duel-log') && !document.querySelector('.duel-log').textContent.includes('charges the attack');
+  })()`), 'The log must contain one newest-first stack without minigame spam.');
+  await writeFile(resolve(tmpdir(), 'teamlab-duel-desktop.png'), await browser.captureViewport(1440, 1000, '.duel-replay'));
+  await browser.setViewport(390, 844);
+  await browser.assertNoHorizontalOverflow('1v1 replay mobile');
+  await writeFile(resolve(tmpdir(), 'teamlab-duel-mobile.png'), await browser.captureViewport(390, 844, '.duel-replay'));
+  await browser.setViewport(320, 800);
+  // Start at the narrow mobile viewport, as on a phone, rather than carrying
+  // Chrome's automatic page scaling across desktop screenshot emulation.
+  await browser.navigate('/battle', 'One matchup. Every turn.');
+  await browser.waitFor(`document.querySelectorAll('.duel-build').length === 2`, 'narrow mobile editors');
+  await browser.setLabeledControl('Pokémon 1 / form', 'azumarill');
+  await browser.setLabeledControl('Pokémon 2 / form', 'altaria');
+  await browser.clickButton('Simulate matchup');
+  await browser.waitFor(`document.querySelector('.duel-replay') !== null`, 'narrow mobile replay');
+  await browser.clickButton('Show result');
+  await browser.assertNoHorizontalOverflow('1v1 replay narrow mobile');
+  await browser.setLabeledControl('attack IV', '15');
+  invariant(await browser.evaluate(`!document.querySelector('.duel-replay')`), 'Editing a build left a stale replay.');
+  await browser.clickButton('Fit to league');
+  await browser.setLabeledControl('Shields', '0', 'select');
+  await browser.setLabeledControl('Charged move 2', '', 'select');
+  await browser.clickButton('Simulate matchup');
+  await browser.waitFor(`document.querySelector('.duel-replay') !== null`, 'custom duel');
+  await browser.clickButton('Show result');
+  await browser.clickButton('Clear contender 1');
+  invariant(await browser.evaluate(`!document.querySelector('.duel-replay') && !document.querySelector('.duel-build input[role="combobox"]').value && document.querySelector('.duel-launch button').disabled`), 'Clearing a contender left a stale battle.');
+  console.log('[browser-workflows] Duel empty selection, full roster, navigation, 500 ms timing, log stack, resource animations, customization, and responsive checks passed');
+}
+
 async function main(): Promise<void> {
   const projectRoot = process.cwd();
   const visualMode = resolveVisualMode();
@@ -3022,6 +3152,10 @@ async function main(): Promise<void> {
     client = await DevToolsClient.connect(webSocketUrl);
     const browser = new BrowserWorkflow(client, appUrl);
     await browser.initializeDiagnostics();
+    if (process.argv.includes('--duel')) {
+      await runDuelWorkflow(browser, buildTarget);
+      return;
+    }
     const report = await runCriticalWorkflows(
       browser,
       client,
@@ -3031,6 +3165,8 @@ async function main(): Promise<void> {
       deploymentBaseUrl ? 3 : 1,
       expectedCommitSha,
     );
+
+    await runDuelWorkflow(browser, buildTarget);
 
     console.log(
       `[browser-workflows] ${JSON.stringify(report)}`,

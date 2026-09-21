@@ -8,6 +8,7 @@ import {
   Home,
   Menu,
   Sparkles,
+  Swords,
   Users,
   X,
 } from "lucide-react";
@@ -32,8 +33,9 @@ const mobilePrimaryNavigation = [
 const desktopPrimaryNavigation = [
   { to: "/", label: "Dashboard", icon: Home, end: true },
   { to: "/inventory", label: "Inventory", icon: Boxes, end: false },
-  { to: "/catalog", label: "Rankings", icon: BookOpen, end: false },
   { to: "/teams", label: "Teams", icon: Users, end: false },
+  { to: "/catalog", label: "Rankings", icon: BookOpen, end: false },
+  { to: "/battle", label: "Battle", icon: Swords, end: false },
   { to: "/recommend", label: "Recommend", icon: Sparkles, end: false },
 ] as const satisfies readonly NavigationItem[];
 
@@ -44,6 +46,7 @@ const utilityNavigation: readonly NavigationItem[] = [
     icon: BookOpen,
     end: false,
   },
+  { to: "/battle", label: "Battle", icon: Swords, end: false },
   {
     to: "/inventory/backup",
     label: "Backups & reset",
@@ -183,7 +186,7 @@ export function AppLayout() {
 
         <nav className="app-nav app-nav--rail app-nav--utility" aria-label="Tools">
           <p className="app-rail__label">Manage</p>
-          {utilityNavigation.slice(1).map((item) => (
+          {utilityNavigation.filter(item => item.to === "/inventory/backup").map((item) => (
             <NavigationLink key={item.to} {...item} />
           ))}
         </nav>

@@ -15,7 +15,9 @@ export function PokemonCombobox({
   options,
   selected,
   onSelect,
+  showAll = false,
 }: {
+  readonly showAll?: boolean;
   readonly label: string;
   readonly options: readonly PokemonCatalogEntry[];
   readonly selected?: PokemonCatalogEntry;
@@ -36,8 +38,8 @@ export function PokemonCombobox({
         pokemon.speciesId.toLocaleLowerCase().includes(normalized),
     );
 
-    return filtered.slice(0, RESULT_LIMIT);
-  }, [options, query]);
+    return showAll ? filtered : filtered.slice(0, RESULT_LIMIT);
+  }, [options, query, showAll]);
 
   function choose(pokemon: PokemonCatalogEntry) {
     onSelect(pokemon);
@@ -46,15 +48,22 @@ export function PokemonCombobox({
     setActiveIndex(0);
   }
 
+  function scrollToOption(index: number) {
+    const pokemon = matches[index];
+    if (pokemon) document.getElementById(`${listboxId}-${pokemon.speciesId}`)?.scrollIntoView({ block: "nearest" });
+  }
+
   function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === "ArrowDown") {
       event.preventDefault();
+      scrollToOption(open ? Math.min(activeIndex + 1, matches.length - 1) : 0);
       setOpen(true);
       setActiveIndex((current) =>
-        Math.min(current + 1, Math.max(matches.length - 1, 0)),
+        open ? Math.min(current + 1, Math.max(matches.length - 1, 0)) : 0,
       );
     } else if (event.key === "ArrowUp") {
       event.preventDefault();
+      scrollToOption(Math.max(activeIndex - 1, 0));
       setActiveIndex((current) => Math.max(current - 1, 0));
     } else if (event.key === "Enter" && open && matches[activeIndex]) {
       event.preventDefault();

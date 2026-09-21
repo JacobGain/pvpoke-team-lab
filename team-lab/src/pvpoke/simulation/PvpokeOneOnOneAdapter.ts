@@ -1,4 +1,6 @@
 import type {
+  BattleReplayFrame,
+  BattleReplayState,
   CombatantIndex,
   ExactSimulationBuild,
   OneOnOneSimulationAdapter,
@@ -83,7 +85,47 @@ export class PvpokeOneOnOneAdapter implements OneOnOneSimulationAdapter {
       request.combatants[1].shields,
     );
 
-    battle.simulate();
+    // Observe the engine after each step rather than reconstructing HP from
+    // damage events: special forms and simultaneous attacks can alter state.
+    const replay: BattleReplayFrame[] = [];
+    const snapshot = (pokemon: PvpokePokemon): BattleReplayState => ({
+      hp: Math.max(0, pokemon.hp), maximumHp: pokemon.stats.hp,
+      energy: pokemon.energy, shields: pokemon.shields,
+      form: pokemon.activeFormId || pokemon.speciesId,
+      buffs: [...(pokemon.statBuffs ?? [0, 0])],
+    });
+    // Preserve the original method for restoration; invoke with its battle receiver.
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const originalStep = battle.step;
+    if (request.captureReplay) {
+      if (!originalStep || !battle.getTimeline || !battle.getTurns) {
+        throw new Error("This battle engine does not support turn playback.");
+      }
+      let eventOffset = 0;
+      battle.step = () => {
+        const turn = battle.getTurns!();
+        if (replay.length === 0) {
+          replay.push({ turn: 0, events: [], combatants: [snapshot(first), snapshot(second)] });
+        }
+        const value = originalStep.call(battle);
+        const timeline = battle.getTimeline!();
+        replay.push({
+          turn,
+          events: timeline.slice(eventOffset).map((event) => ({
+            type: event.type, name: event.name, actor: event.actor,
+            values: [...event.values],
+          })),
+          combatants: [snapshot(first), snapshot(second)],
+        });
+        eventOffset = timeline.length;
+        return value;
+      };
+    }
+    try {
+      battle.simulate();
+    } finally {
+      if (originalStep) battle.step = originalStep;
+    }
     const ratings = battle.getBattleRatings();
     const winner = battle.getWinner();
     const winnerIndex =
@@ -94,6 +136,7 @@ export class PvpokeOneOnOneAdapter implements OneOnOneSimulationAdapter {
           : 1;
 
     return {
+      ...(request.captureReplay ? { replay } : {}),
       winner: winnerIndex,
       combatants: [
         translateCombatant(0, first, ratings[0]),

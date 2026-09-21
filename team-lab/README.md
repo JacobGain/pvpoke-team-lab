@@ -7,6 +7,18 @@ It supports exact owned and planned builds, IV/build analysis, ordered saved
 teams, real PvPoke TeamRanker matrices, anchor-based recommendations, and
 portable full-data JSON backup and restore.
 
+The **Battle** page (`/battle`, also in the mobile More menu) runs configurable
+1v1 matchups in all three leagues. Choose species/forms, Shadow variants, moves,
+level, IVs, and independent shield counts. Fit to league selects the highest
+legal level for the entered IVs. Playback supports play/pause, speed, individual
+turns, scrubbing, and a full event log with HP, energy, shields, and stat stages.
+The replay observes the bundled PvPoke engine after each step; it does not
+reimplement damage or decision logic. Both combatants start at full HP and zero
+energy, with upstream default move/shield decisions and buff behavior.
+
+Run the focused real-browser replay and engine-parity checks with
+`npm run test:browser -- --duel`. The full browser suite also covers this page.
+
 ## Requirements
 
 - Node.js 22.12 or newer;
