@@ -6,6 +6,7 @@ import {
 
 import {
   BulkInventoryPage,
+  DuelPage,
   InventoryAnalysisPage,
   InventoryBackupPage,
   InventoryFormPage,
@@ -41,6 +42,7 @@ export const router = createBrowserRouter(
       path: "/",
       element: <AppLayout />,
       children: [
+        { path: "battle", element: <LazyRoute><DuelPage /></LazyRoute> },
         { path: "team-builder", element: <TeamBuilderPage /> },
         {
           index: true,
