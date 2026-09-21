@@ -1,5 +1,6 @@
 import { readFile, readdir } from "node:fs/promises";
 import { resolve } from "node:path";
+import { validateDeploymentPolicy } from "./workflow-policy.ts";
 
 const workflowsDirectory = resolve(process.cwd(), "../.github/workflows");
 const masterRulesetPath = resolve(
@@ -194,27 +195,7 @@ if (
 }
 
 const releaseWorkflow = await readFile(releaseWorkflowPath, "utf8");
-const requiredDeploymentPolicy = [
-  "- master\n      - staging",
-  "github.ref == 'refs/heads/master'",
-  "github.ref == 'refs/heads/staging'",
-  "name: cloudflare-pages\n",
-  "name: cloudflare-pages-staging\n",
-  "url: https://staging.pvpoke-team-lab.pages.dev",
-  "--branch=master",
-  "--branch=staging",
-] as const;
-
-if (
-  requiredDeploymentPolicy.some(
-    (policy) => !releaseWorkflow.includes(policy),
-  ) ||
-  (releaseWorkflow.match(/pages deploy dist/g)?.length ?? 0) !== 2
-) {
-  throw new Error(
-    "The release workflow must deploy verified master and staging artifacts to separate Cloudflare Pages environments and branch aliases.",
-  );
-}
+validateDeploymentPolicy(releaseWorkflow, codeqlWorkflow);
 
 process.stdout.write(
   `Workflow security check passed: ${actionCount} external Action references are immutable, no privileged untrusted-code triggers are present, one CodeQL workflow covers TeamLab and GitHub Actions, dependency maintenance is bounded, and all release checks are enforced.\n`,

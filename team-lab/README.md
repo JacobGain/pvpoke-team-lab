@@ -63,7 +63,7 @@ keeps diagnostics enabled. See
 [deployment build targets](docs/DEPLOYMENT-BUILDS.md).
 
 GitHub Actions runs the **Verify public artifact** release gate on pull
-requests, pushes to `master`, and manual dispatches. Feature-branch pushes with
+requests targeting `staging` or `master`, pushes to `master`, and manual dispatches. Feature-branch pushes with
 an open pull request produce only the pull-request run. The gate installs the
 locked dependencies, runs the complete static/unit/data checks, builds and
 browser-tests the exact public artifact, rejects `dist-admin/`, and uploads
@@ -72,7 +72,15 @@ verified bytes deploy to the static-only Cloudflare Pages project. The
 post-deployment gate waits for the immutable release metadata and entry assets,
 then browser-tests that URL against the expected commit. Its initial remote
 navigation has bounded retries and reports document, network, console, and
-runtime evidence on failure. Pull requests never deploy.
+runtime evidence on failure. Same-repository PRs targeting `staging` deploy the
+verified merge artifact when opened, updated, reopened, or marked ready. Fork
+and Dependabot PRs run checks without deployment secrets. Merging a PR into
+protected `master` triggers production deployment; PRs targeting `master` and
+manual runs only validate. Both release branches receive CodeQL checks.
+
+The canonical production domain is also checked for the expected release and
+indexable public pages. Cloudflare challenges fail with a Ray ID and an explicit
+policy error; see [deployment troubleshooting](docs/CLOUDFLARE-DEPLOYMENT.md#cloudflare-challenges).
 
 Verify the live application and its release
 identity with:
@@ -112,7 +120,7 @@ for its mapping and review contract.
 
 ## Updating PvPoke data and engine files
 
-TeamLab 1.0.4 uses Season 28, Twilight Trails, as the active season.
+TeamLab 1.1.0 uses Season 28, Twilight Trails, as the active season.
 The bundle is pinned to the upstream revision in `src/pvpoke/season.ts`.
 Fetch that branch and regenerate TeamLab’s owned copy:
 
