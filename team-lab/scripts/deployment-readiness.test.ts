@@ -97,6 +97,20 @@ function indexableFetch(xRobotsTag?: string): typeof fetch {
 }
 
 describe("deployment readiness", () => {
+  it("fails immediately on an interactive challenge instead of retrying for two minutes", async () => {
+    const fetchImplementation = vi.fn(() => Promise.resolve(new Response("challenge", {
+      status: 403,
+      headers: { "cf-mitigated": "challenge", "cf-ray": "blocked-YYZ" },
+    })));
+    const onRetry = vi.fn();
+    await expect(waitForDeploymentReadiness({
+      origin: ORIGIN, expectedCommitSha: COMMIT_SHA, fetchImplementation, onRetry,
+      timeoutMs: 100, retryDelayMs: 0,
+    })).rejects.toThrow("Inspect this Ray ID in Cloudflare Security Events");
+    expect(fetchImplementation).toHaveBeenCalledTimes(1);
+    expect(onRetry).not.toHaveBeenCalled();
+  });
+
   it("reports Cloudflare denial details for a blocked release request", async () => {
     const fetchImplementation = vi.fn(() => Promise.resolve(new Response("blocked", {
       status: 403,

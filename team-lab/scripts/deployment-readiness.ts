@@ -3,6 +3,8 @@ const DEFAULT_REQUEST_TIMEOUT_MS = 15_000;
 const DEFAULT_RETRY_DELAY_MS = 1_000;
 const MAX_RETRY_DELAY_MS = 5_000;
 
+class DeploymentAccessError extends Error {}
+
 interface DeploymentReleaseMetadata {
   readonly formatVersion?: number;
   readonly releaseId?: string;
@@ -181,6 +183,13 @@ async function fetchAvailableResponse(
     signal: AbortSignal.timeout(requestTimeoutMs),
   });
 
+  if (response.headers.get("cf-mitigated") === "challenge") {
+    throw new DeploymentAccessError(
+      `${url.pathname} returned HTTP ${response.status}; Cloudflare Ray ID ${response.headers.get("cf-ray") ?? "unknown"}; Cloudflare mitigation challenge. ` +
+      "Deployment polling cannot solve an interactive challenge. Inspect this Ray ID in Cloudflare Security Events and allow the verification traffic before retrying.",
+    );
+  }
+
   invariant(
     response.ok,
     `${url.pathname} returned HTTP ${response.status}${[
@@ -315,6 +324,8 @@ export async function waitForDeploymentReadiness(
         attempts: attempt,
       };
     } catch (error) {
+      // A challenge needs a Cloudflare policy change, not propagation time.
+      if (error instanceof DeploymentAccessError) throw error;
       lastFailure =
         error instanceof Error ? error.message : String(error);
       options.onRetry?.(
