@@ -2,8 +2,7 @@ name: TeamLab CodeQL
 
 on:
   pull_request:
-    branches:
-      - master
+    branches: [staging, master]
   push:
     branches:
       - master
