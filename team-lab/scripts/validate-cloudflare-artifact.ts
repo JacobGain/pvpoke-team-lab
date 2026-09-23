@@ -39,9 +39,9 @@ const requiredSeoFragments = [
   'property="og:site_name" content="PoGo Team Lab"',
   'type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"PoGo Team Lab","alternateName":["TeamLab","PoGoTeamLab","pogoteamlab.com"],"url":"https://pogoteamlab.com/"}</script>',
   'rel="icon"',
-  'type="image/png" sizes="48x48" href="/favicon-48x48.png?v=1.1.0"',
-  'type="image/png" sizes="96x96" href="/favicon-96x96.png?v=1.1.0"',
-  'type="image/x-icon" sizes="any" href="/favicon.ico?v=1.1.0"',
+  'type="image/png" sizes="48x48" href="/favicon-48x48.png?v=1.1.1"',
+  'type="image/png" sizes="96x96" href="/favicon-96x96.png?v=1.1.1"',
+  'type="image/x-icon" sizes="any" href="/favicon.ico?v=1.1.1"',
 ];
 const missingSeoFragments = requiredSeoFragments.filter(
   (fragment) => !indexHtml.includes(fragment),
