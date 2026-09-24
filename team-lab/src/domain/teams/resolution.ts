@@ -1,4 +1,6 @@
 import type { InventoryPokemon } from "@/domain/inventory/schemas";
+import { projectInventoryForCatalog } from "@/domain/inventory/leagueEligibility";
+import type { PokemonCatalog } from "@/domain/pokemon/catalog";
 import type { PokemonCatalogEntry } from "@/domain/pokemon/catalog";
 import type { SavedTeam, SavedTeamPosition } from "@/domain/teams/schemas";
 
@@ -31,6 +33,7 @@ export function resolveSavedTeam(
   team: SavedTeam,
   inventory: readonly InventoryPokemon[],
   catalogEntries: readonly PokemonCatalogEntry[],
+  catalog?: PokemonCatalog,
 ): ResolvedSavedTeam {
   const inventoryById = new Map(
     inventory.map((record) => [record.inventoryId, record]),
@@ -44,9 +47,10 @@ export function resolveSavedTeam(
     ["closer", team.members.closerInventoryId],
   ] as const;
   const members = references.map(([position, inventoryId]) => {
-    const record = inventoryById.get(inventoryId);
+    const original = inventoryById.get(inventoryId);
+    const selected = original && catalog ? projectInventoryForCatalog(original, catalog) : original;
 
-    if (!record) {
+    if (!original || !selected) {
       return {
         position,
         inventoryId,
@@ -55,23 +59,23 @@ export function resolveSavedTeam(
     }
 
     const speciesId =
-      record.buildStatus === "planned"
-        ? record.plannedBuild.targetSpeciesId
-        : record.speciesId;
+      selected.buildStatus === "planned"
+        ? selected.plannedBuild.targetSpeciesId
+        : selected.speciesId;
     const pokemon = catalogById.get(speciesId);
 
     return pokemon
       ? {
           position,
           inventoryId,
-          inventory: record,
+          inventory: original,
           pokemon,
           status: "resolved" as const,
         }
       : {
           position,
           inventoryId,
-          inventory: record,
+          inventory: original,
           status: "missing-species" as const,
         };
   });

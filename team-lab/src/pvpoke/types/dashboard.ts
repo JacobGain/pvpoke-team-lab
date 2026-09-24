@@ -16,6 +16,9 @@ export const dashboardDataSchema = z.object({
     "great-league": z.array(dashboardLeaderSchema).length(10),
     "ultra-league": z.array(dashboardLeaderSchema).length(10),
     "master-league": z.array(dashboardLeaderSchema).length(10),
+    "mega-great-league": z.array(dashboardLeaderSchema).length(10),
+    "mega-ultra-league": z.array(dashboardLeaderSchema).length(10),
+    "mega-master-league": z.array(dashboardLeaderSchema).length(10),
   }),
 });
 

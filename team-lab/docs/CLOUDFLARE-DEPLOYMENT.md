@@ -55,11 +55,11 @@ each GitHub deployment identifies the exact uploaded artifact.
 ## Release pipeline
 
 PRs targeting `staging` or `master` run the complete **Verify public artifact**
-gate and both CodeQL analyses. A same-repository PR targeting `staging` deploys
-on `opened`, `synchronize`, `reopened`, and `ready_for_review`. Fork and Dependabot
-PRs validate without deploying because they do not receive deployment secrets.
-PRs targeting `master` validate without deploying. A merge into protected
-`master` produces the push that deploys production; the active master ruleset
+gate and both CodeQL analyses. A same-repository PR targeting `staging` or
+`master` deploys to staging on `opened`, `synchronize`, `reopened`, and
+`ready_for_review`. Fork and Dependabot PRs validate without deploying because
+they do not receive deployment secrets. A merge into protected `master` produces
+the push that deploys production; the active master ruleset
 requires a PR and passing checks, with no bypass actors. Manual runs validate
 without deploying. Staging pushes do not repeat the PR's build and checks.
 

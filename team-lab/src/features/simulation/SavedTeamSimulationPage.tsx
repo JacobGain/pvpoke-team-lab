@@ -211,9 +211,7 @@ export function SavedTeamSimulationPage() {
           >
             {META_TARGET_LIMITS.map((limit) => (
               <option value={limit} key={limit}>
-                {limit === 48
-                  ? "Greater Meta (48) · closest PvPoke grade comparison"
-                  : `Top ${limit} · faster`}
+                {limit === 250 ? "Top 250 · extensive" : limit === 100 ? "Top 100 · broad" : `Top ${limit}`}
               </option>
             ))}
           </select>
@@ -280,7 +278,7 @@ export function SavedTeamSimulationPage() {
                 {run.result.battleCount} battles ·{" "}
                 {Math.round(run.durationMs)} ms ·{" "}
                 {run.scope.selectedTargetCount} of{" "}
-                {run.scope.availableTargetCount} simulation-ready meta targets
+                {run.scope.availableTargetCount} simulation-ready ranked targets
                 · data {run.result.dataVersion}
               </p>
             </div>

@@ -1,4 +1,5 @@
 import type { InventoryPokemon } from "@/domain/inventory/schemas";
+import { projectInventoryForCatalog } from "@/domain/inventory/leagueEligibility";
 import type { PokemonCatalog } from "@/domain/pokemon/catalog";
 import {
   getSavedTeamInventoryIds,
@@ -72,11 +73,12 @@ export function validateSavedTeamLegality(
       continue;
     }
 
-    if ((record.formatId ?? "great-league") !== team.formatId) {
-      issues.push({ code: "league-mismatch", path, message: `The ${position} Pokémon belongs to a different league.` });
+    const selected = projectInventoryForCatalog(record, catalog);
+    if (!selected) {
+      issues.push({ code: "league-mismatch", path, message: `The ${position} Pokémon is ineligible at this league's CP cap or Mega setting.` });
       continue;
     }
-    const speciesId = resolveTeamSpeciesId(record);
+    const speciesId = resolveTeamSpeciesId(selected);
     const pokemon = catalogById.get(speciesId);
 
     if (!pokemon) {

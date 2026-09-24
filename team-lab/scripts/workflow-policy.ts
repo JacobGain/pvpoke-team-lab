@@ -18,7 +18,8 @@ interface Workflow {
 
 const productionCondition = "github.event_name == 'push' && github.ref == 'refs/heads/master'";
 const deploymentCondition = `(${productionCondition}) ||
-  (github.event_name == 'pull_request' && github.base_ref == 'staging' &&
+  (github.event_name == 'pull_request' &&
+   (github.base_ref == 'staging' || github.base_ref == 'master') &&
    github.event.pull_request.head.repo.full_name == github.repository &&
    github.actor != 'dependabot[bot]')`;
 const normalize = (value: string | undefined) => value?.replace(/\s+/g, " ").trim();
@@ -34,7 +35,7 @@ export function validateDeploymentPolicy(releaseSource: string, codeqlSource: st
 
   const deploy = release.jobs["deploy-cloudflare"];
   assert.ok(deploy, "Keep one shared deployment job.");
-  assert.equal(normalize(deploy.if), normalize(deploymentCondition), "Deploy only master pushes and trusted staging PRs, never forks or Dependabot.");
+  assert.equal(normalize(deploy.if), normalize(deploymentCondition), "Deploy only master pushes and trusted PRs into staging or master, never forks or Dependabot.");
   assert.equal(deploy.needs, "verify-public-artifact", "Deploy only a verified artifact.");
   assert.equal(release.jobs["verify-public-artifact"]?.name, "Verify public artifact", "Preserve the required branch-protection check.");
   assert.equal(deploy.environment?.name, "${{ github.event_name == 'push' && 'cloudflare-pages' || 'cloudflare-pages-staging' }}");

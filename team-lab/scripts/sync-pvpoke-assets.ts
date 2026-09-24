@@ -115,6 +115,12 @@ async function main(): Promise<void> {
   metaGroupSchema.parse(JSON.parse(byPath.get("data/groups/ultra.json")!.toString("utf8")));
   const masterRankings = rankingCollectionSchema.parse(JSON.parse(byPath.get("data/rankings/all/overall/rankings-10000.json")!.toString("utf8")));
   metaGroupSchema.parse(JSON.parse(byPath.get("data/groups/master.json")!.toString("utf8")));
+  const megaGreatRankings = rankingCollectionSchema.parse(JSON.parse(byPath.get("data/rankings/mega/overall/rankings-1500.json")!.toString("utf8")));
+  metaGroupSchema.parse(JSON.parse(byPath.get("data/groups/megagreat.json")!.toString("utf8")));
+  const megaUltraRankings = rankingCollectionSchema.parse(JSON.parse(byPath.get("data/rankings/mega/overall/rankings-2500.json")!.toString("utf8")));
+  metaGroupSchema.parse(JSON.parse(byPath.get("data/groups/megaultra.json")!.toString("utf8")));
+  const megaMasterRankings = rankingCollectionSchema.parse(JSON.parse(byPath.get("data/rankings/mega/overall/rankings-10000.json")!.toString("utf8")));
+  metaGroupSchema.parse(JSON.parse(byPath.get("data/groups/mega.json")!.toString("utf8")));
   const fullGameMaster = gameMasterSchema.parse(JSON.parse(byPath.get("data/gamemaster.json")!.toString("utf8")));
   if (
     JSON.stringify(normalizeFormatRuleWhitespace(fullGameMaster)) !==
@@ -152,6 +158,9 @@ async function main(): Promise<void> {
       "great-league": leaders(greatRankings),
       "ultra-league": leaders(ultraRankings),
       "master-league": leaders(masterRankings),
+      "mega-great-league": leaders(megaGreatRankings),
+      "mega-ultra-league": leaders(megaUltraRankings),
+      "mega-master-league": leaders(megaMasterRankings),
     },
   };
   const dashboardContents = Buffer.from(

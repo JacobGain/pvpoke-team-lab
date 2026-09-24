@@ -1,5 +1,6 @@
 import { LeagueName } from "@/features/leagues/LeagueSelector";
 import { useLeague } from "@/features/leagues/leagueStore";
+import { projectInventoryForCatalog } from "@/domain/inventory/leagueEligibility";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Save } from "lucide-react";
 import {
@@ -46,7 +47,8 @@ function SavedTeamForm({
   const sourceTeam = existingTeam ?? duplicateTeam;
   const inventory = inventoryResult.data ?? [];
   const catalog = catalogResult.data;
-  const defaultIds = inventory.slice(0, 3).map((record) => record.inventoryId);
+  const eligibleInventory = catalog ? inventory.filter((record) => projectInventoryForCatalog(record, catalog)) : [];
+  const defaultIds = eligibleInventory.slice(0, 3).map((record) => record.inventoryId);
   const defaultLeadInventoryId = defaultIds[0];
   const defaultSwitchInventoryId = defaultIds[1];
   const defaultCloserInventoryId = defaultIds[2];
@@ -105,7 +107,7 @@ function SavedTeamForm({
   const pokemonById = new Map(
     loadedCatalog.entries.map((pokemon) => [pokemon.speciesId, pokemon]),
   );
-  const inventoryOptions = [...inventory].sort((left, right) => {
+  const inventoryOptions = [...eligibleInventory].sort((left, right) => {
     const leftSpeciesId =
       left.buildStatus === "planned"
         ? left.plannedBuild.targetSpeciesId
@@ -137,15 +139,16 @@ function SavedTeamForm({
       return `Missing inventory record · ${inventoryId}`;
     }
 
+    const selected = projectInventoryForCatalog(record, loadedCatalog) ?? record;
     const speciesId =
-      record.buildStatus === "planned"
-        ? record.plannedBuild.targetSpeciesId
-        : record.speciesId;
+      selected.buildStatus === "planned"
+        ? selected.plannedBuild.targetSpeciesId
+        : selected.speciesId;
     const pokemon = pokemonById.get(speciesId);
     const cp =
-      record.buildStatus === "planned" && record.plannedBuild.targetCp
-        ? record.plannedBuild.targetCp
-        : record.currentBuild.cp;
+      selected.buildStatus === "planned" && selected.plannedBuild.targetCp
+        ? selected.plannedBuild.targetCp
+        : selected.currentBuild.cp;
 
     return `${pokemon?.speciesName ?? speciesId} · CP ${cp} · ${
       record.buildStatus
@@ -287,10 +290,11 @@ function SavedTeamForm({
               const selectedRecord = inventory.find(
                 (record) => record.inventoryId === position.value,
               );
-              const selectedSpeciesId = selectedRecord
-                ? selectedRecord.buildStatus === "planned"
-                  ? selectedRecord.plannedBuild.targetSpeciesId
-                  : selectedRecord.speciesId
+              const selectedBuild = selectedRecord && projectInventoryForCatalog(selectedRecord, loadedCatalog);
+              const selectedSpeciesId = selectedBuild
+                ? selectedBuild.buildStatus === "planned"
+                  ? selectedBuild.plannedBuild.targetSpeciesId
+                  : selectedBuild.speciesId
                 : undefined;
               const selectedPokemon = selectedSpeciesId
                 ? pokemonById.get(selectedSpeciesId)

@@ -239,14 +239,22 @@ async function waitForProcessExit(
 async function findPageWebSocket(
   debuggingPort: number,
   appUrl: string,
+  browserProcess: ChildProcessWithoutNullStreams,
   browserOutput: () => string,
 ): Promise<string> {
   const endpoint = `http://${HOST}:${debuggingPort}/json`;
   const deadline = Date.now() + STEP_TIMEOUT_MS;
+  let lastObservation = "Chrome debugging endpoint did not respond.";
 
   while (Date.now() < deadline) {
+    if (browserProcess.exitCode !== null || browserProcess.signalCode !== null) {
+      throw new Error(
+        `Chrome exited before opening TeamLab (exit ${browserProcess.exitCode}, signal ${browserProcess.signalCode}).\n${browserOutput()}`,
+      );
+    }
     try {
       const response = await fetch(endpoint);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const targets = (await response.json()) as readonly {
         readonly type: string;
         readonly url: string;
@@ -262,15 +270,16 @@ async function findPageWebSocket(
       if (page?.webSocketDebuggerUrl) {
         return page.webSocketDebuggerUrl;
       }
-    } catch {
-      // Chrome is still starting.
+      lastObservation = `Chrome targets: ${targets.map((target) => `${target.type} ${target.url}`).join(", ") || "none"}`;
+    } catch (error) {
+      lastObservation = error instanceof Error ? error.message : String(error);
     }
 
     await delay(100);
   }
 
   throw new Error(
-    `Chrome did not expose the TeamLab page.\n${browserOutput()}`,
+    `Chrome did not expose the TeamLab page at ${appUrl}. Last observation: ${lastObservation}\n${browserOutput()}`,
   );
 }
 
@@ -573,15 +582,24 @@ class BrowserWorkflow {
     expression: string,
     timeoutMs = STEP_TIMEOUT_MS,
   ): Promise<T> {
-    const response = (await this.client.call(
-      "Runtime.evaluate",
-      {
-        expression,
-        awaitPromise: true,
-        returnByValue: true,
-      },
-      timeoutMs,
-    )) as CdpResult;
+    let response: CdpResult;
+    try {
+      response = (await this.client.call(
+        "Runtime.evaluate",
+        {
+          expression,
+          awaitPromise: true,
+          returnByValue: true,
+        },
+        timeoutMs,
+      )) as CdpResult;
+    } catch (error) {
+      const summary = expression.replace(/\s+/g, " ").slice(0, 180);
+      throw new Error(
+        `Browser evaluation failed while running ${summary}: ${error instanceof Error ? error.message : String(error)}`,
+        { cause: error },
+      );
+    }
 
     if (response.exceptionDetails) {
       throw new Error(
@@ -742,14 +760,7 @@ class BrowserWorkflow {
       );
       const control = owner?.querySelector('input[type="checkbox"]');
       if (!(control instanceof HTMLInputElement)) return false;
-      const setter = Object.getOwnPropertyDescriptor(
-        HTMLInputElement.prototype,
-        "checked"
-      )?.set;
-      if (!setter) return false;
-      setter.call(control, ${checked});
-      control.dispatchEvent(new Event("input", { bubbles: true }));
-      control.dispatchEvent(new Event("change", { bubbles: true }));
+      if (control.checked !== ${checked}) control.click();
       return control.checked === ${checked};
     })()`);
 
@@ -832,16 +843,20 @@ class BrowserWorkflow {
   }
 
   async assertNoHorizontalOverflow(state: string): Promise<void> {
+    await this.evaluate(`new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))`);
     const metrics = await this.evaluate<{
       readonly clientWidth: number;
       readonly bodyScrollWidth: number;
       readonly frameScrollWidth: number;
+      readonly horizontalScrollX: number;
       readonly offenders: readonly string[];
       readonly scrollWidth: number;
     }>(`(() => {
       const clientWidth = document.documentElement.clientWidth;
+      window.scrollTo({ left: 100, top: window.scrollY, behavior: 'instant' });
       return {
         clientWidth,
+        horizontalScrollX: window.scrollX,
         bodyScrollWidth: document.body.scrollWidth,
         frameScrollWidth: document.querySelector(".app-frame")?.scrollWidth ?? 0,
         scrollWidth: document.documentElement.scrollWidth,
@@ -860,8 +875,12 @@ class BrowserWorkflow {
     })()`);
 
     invariant(
-      metrics.scrollWidth === metrics.clientWidth,
-      `${state} overflows horizontally: ${metrics.scrollWidth}px document in ${metrics.clientWidth}px viewport; body ${metrics.bodyScrollWidth}px, frame ${metrics.frameScrollWidth}px; offenders ${metrics.offenders.join(", ")}.`,
+      metrics.scrollWidth === metrics.clientWidth || (
+        metrics.bodyScrollWidth === metrics.clientWidth &&
+        metrics.frameScrollWidth === metrics.clientWidth &&
+        metrics.horizontalScrollX === 0
+      ),
+      `${state} overflows horizontally: ${metrics.scrollWidth}px document in ${metrics.clientWidth}px viewport; body ${metrics.bodyScrollWidth}px, frame ${metrics.frameScrollWidth}px, scrollX ${metrics.horizontalScrollX}; offenders ${metrics.offenders.join(", ")}.`,
     );
   }
 
@@ -1211,7 +1230,7 @@ async function assertBuildTarget(
   invariant(
     productionState.dataHealthIndicators === 0 &&
       productionState.diagnosticsLinks === 0 &&
-      productionState.favicon.endsWith("/favicon-48x48.png?v=1.1.0") &&
+      productionState.favicon.endsWith("/favicon-48x48.png?v=1.1.1") &&
       productionState.visibleVersions.includes(`v${release.appVersion ?? ""}`),
     `Production exposed diagnostics navigation: ${JSON.stringify(productionState)}.`,
   );
@@ -1665,6 +1684,16 @@ async function runCriticalWorkflows(
     `document.querySelector("#current-format-title")?.textContent?.trim() === "Open Great League"`,
     "current battle format",
   );
+  await browser.setViewport(1024, 600);
+  invariant(await browser.evaluate<boolean>(`(() => {
+    const rail = document.querySelector(".app-rail");
+    const footer = rail?.querySelector(".app-rail__footer");
+    if (!(rail instanceof HTMLElement) || !(footer instanceof HTMLElement)) return false;
+    const scrollable = getComputedStyle(rail).overflowY === "auto";
+    rail.scrollTop = rail.scrollHeight;
+    return scrollable && footer.getBoundingClientRect().bottom <= rail.getBoundingClientRect().bottom + 1;
+  })()`), "Desktop navigation footer is unreachable in a short window.");
+  await browser.setViewport(1440, 1_000);
   invariant(
     await browser.evaluate(`document.querySelector(".format-card")?.textContent?.includes("Season 28 · Twilight Trails")`),
     "The dashboard did not identify Season 28 as active.",
@@ -2387,8 +2416,12 @@ async function runCriticalWorkflows(
     "Exact battle details retained the ambiguous fast-damage slash notation.",
   );
 
-  await browser.navigate("/recommend", "Build around your anchors");
+  await browser.navigate("/recommend", "Discover your best teams");
   await browser.clickButton("Continue to experiment");
+  invariant(await browser.evaluate(`(() => {
+    const label = [...document.querySelectorAll('label')].find(item => item.textContent?.includes('Results'));
+    return label?.querySelector('select')?.value === '5' && !!label?.querySelector('option[value="10"]');
+  })()`), "Recommendations should default to five and offer ten results.");
   const rankedPartnerSetting = await browser.evaluate<boolean>(`(() => {
     const label = [...document.querySelectorAll("label")].find((candidate) =>
       candidate.textContent?.includes("Include ranked Pokémon not in my inventory")
@@ -2483,6 +2516,35 @@ async function runCriticalWorkflows(
     `[...document.querySelectorAll("button")].some((button) => button.textContent?.trim() === "Saved to teams")`,
     "recommended team save",
   );
+
+  await browser.navigate("/recommend", "Discover your best teams");
+  invariant(await browser.evaluate<boolean>(`(() => {
+    const label = [...document.querySelectorAll("label")].find((candidate) =>
+      candidate.querySelector("strong")?.textContent?.trim() === "Build from my full inventory"
+    );
+    const control = label?.querySelector('input[type="checkbox"]');
+    if (!(control instanceof HTMLInputElement)) return false;
+    control.click();
+    return control.checked;
+  })()`), "Could not enable full inventory recommendations.");
+  invariant(await browser.evaluate<boolean>(
+    `!document.querySelector(".recommendation-anchor-grid")`,
+  ), "Full inventory mode still exposed anchor selection.");
+  await browser.clickButton("Continue to experiment");
+  invariant(await browser.evaluate<boolean>(
+    `![...document.querySelectorAll("label")].some((label) => label.textContent?.includes("Include ranked Pokémon not in my inventory"))`,
+  ), "Full inventory mode exposed ranked teammates.");
+  await browser.setLabeledControl("Results", "1", "select");
+  await browser.setLabeledControl("Meta targets", "5", "select");
+  await browser.clickButton("Generate recommendations");
+  await browser.waitFor(
+    `document.querySelectorAll(".recommendation-result").length > 0`,
+    "full inventory recommendation result",
+    ENGINE_TIMEOUT_MS,
+  );
+  invariant(await browser.evaluate<boolean>(
+    `document.querySelector(".recommendation-summary")?.textContent?.includes("Eligible owned builds") ?? false`,
+  ), "Full inventory recommendation did not use owned builds.");
 
   await browser.navigate("/inventory/backup", "Backup and restore");
   await browser.waitFor(
@@ -2788,7 +2850,7 @@ async function runCriticalWorkflows(
     [teamLinks.editHref, "Edit saved team"],
     diagnosticsMobileRoute,
     [teamLinks.simulationHref, "Browser Coverage Team"],
-    ["/recommend", "Build around your anchors"],
+    ["/recommend", "Discover your best teams"],
     ["/route-that-does-not-exist", "Page not found", "h2"],
   ] as const;
   const mobileAuditWidths = [320, 430, 540, 680] as const;
@@ -2906,7 +2968,7 @@ async function runCriticalWorkflows(
     if (alert) throw new Error(alert.textContent);
     return document.querySelector(".team-scorecard")?.textContent?.includes("35,000");
   })()`, "Master League exact matrix and bulk goal", ENGINE_TIMEOUT_MS);
-  await browser.navigate("/recommend", "Build around your anchors");
+  await browser.navigate("/recommend", "Discover your best teams");
   await browser.clickButton("Continue to experiment");
   await browser.setLabeledControl("Results", "1", "select");
   await browser.setLabeledControl("Meta targets", "5", "select");
@@ -2925,6 +2987,75 @@ async function runCriticalWorkflows(
   await browser.navigate("/inventory", "Your inventory");
   invariant(await browser.evaluate(`document.querySelectorAll(".inventory-card").length === ${INVENTORY_SPECIES.length + BULK_WORKFLOW_ADDED_RECORDS}`), "Great League inventory did not survive switching leagues.");
   console.log("[browser-workflows] Master League creation, simulation, persistence, and mobile switching passed");
+
+  await browser.setViewport(1440, 1_000);
+  await browser.evaluate(`document.querySelector('.app-rail .league-selector__mega input').click()`);
+  invariant(await browser.evaluate(`localStorage.getItem('team-lab-league') === 'mega-great-league'`), "Mega League toggle did not update the active format.");
+  await browser.navigate("/", "Pokémon GO PvP Team Builder for Your Own Roster");
+  await browser.waitFor(`document.querySelector('#current-format-title')?.textContent === 'Mega Great League' && document.querySelector('.dashboard-meta-watch')?.textContent?.includes('Sableye')`, "Mega Great League dashboard and rankings");
+  await browser.navigate("/inventory", "Your inventory");
+  invariant(await browser.evaluate(`document.querySelectorAll('.inventory-card').length === ${INVENTORY_SPECIES.length + BULK_WORKFLOW_ADDED_RECORDS}`), "Shared Great League inventory is missing from Mega Great League.");
+  await browser.navigate("/teams/new", "Create saved team");
+  await browser.setLabeledControl("Team name", "Mega Browser Team", "input");
+  await browser.clickButton("Save team");
+  await browser.waitFor(`document.querySelector('.team-card h2')?.textContent === 'Mega Browser Team'`, "Mega Great League team persistence");
+  const megaSimulationHref = await browser.evaluate<string>(`[...document.querySelectorAll('.team-card a')].find(link => link.textContent?.trim() === 'Simulate')?.getAttribute('href')`);
+  await browser.navigate(megaSimulationHref, "Mega Browser Team");
+  invariant(await browser.evaluate(`(() => {
+    const select = [...document.querySelectorAll('label')].find(item => item.textContent?.includes('Meta target count'))?.querySelector('select');
+    return !!select?.querySelector('option[value="100"]') && !!select?.querySelector('option[value="250"]');
+  })()`), "The wider ranked target options are missing.");
+  await browser.setLabeledControl("Meta target count", "250", "select");
+  await browser.clickButton("Run exact team matrix");
+  await browser.waitFor(`(() => {
+    const alert = document.querySelector('[role="alert"]');
+    if (alert) throw new Error(alert.textContent);
+    return document.querySelector('.diagnostics-banner')?.textContent?.includes('250 of 1201');
+  })()`, "Mega Great League Top-250 team matrix", ENGINE_TIMEOUT_MS);
+  await browser.navigate("/recommend", "Discover your best teams");
+  await browser.clickButton("Continue to experiment");
+  await browser.setLabeledControl("Results", "10", "select");
+  await browser.setLabeledControl("Meta targets", "5", "select");
+  await browser.evaluate(`document.querySelector('.recommendation-partner-scope input').click()`);
+  await browser.clickButton("Generate recommendations");
+  await browser.waitFor(`(() => {
+    const alert = document.querySelector('[role="alert"]');
+    if (alert) throw new Error(alert.textContent);
+    return document.querySelector('.diagnostics-banner')?.textContent?.includes('10 of 10 requested teams');
+  })()`, "ten-result Mega League recommendations", ENGINE_TIMEOUT_MS);
+  await browser.evaluate(`document.querySelector('.app-rail .league-selector__mega input').click()`);
+  await browser.navigate('/inventory/new', 'Add Pokémon');
+  await browser.setLabeledControl('Species, form, and Shadow state', 'greninja', 'input', 0, false);
+  await browser.waitFor(`document.querySelector('[data-selected-species-id="greninja"]') && !document.querySelector('.level-result .invalid-value')`, 'owned Greninja build');
+  await browser.setLabeledCheckbox('Mega evolve this Pokémon in Mega leagues', true);
+  await browser.clickButton('Continue');
+  await browser.clickButton('Continue');
+  await browser.clickButton('Add to inventory');
+  await browser.waitFor(`location.pathname.endsWith('/inventory') && [...document.querySelectorAll('.inventory-card h2')].some(item => item.textContent === 'Greninja')`, 'normal Great League Greninja');
+  invariant(await browser.evaluate(`[...document.querySelectorAll('.inventory-card')].some(card => card.querySelector('h2')?.textContent === 'Greninja' && card.textContent?.includes('Mega enabled: Greninja (Mega)'))`), 'Greninja Mega choice was not saved.');
+  await browser.evaluate(`document.querySelector('.app-rail .league-selector__mega input').click()`);
+  await browser.setLabeledControl("Battle league", "ultra-league", "select");
+  await browser.navigate("/", "Pokémon GO PvP Team Builder for Your Own Roster");
+  await browser.waitFor(`document.querySelector('#current-format-title')?.textContent === 'Mega Ultra League'`, "Mega Ultra League dashboard");
+  await browser.navigate('/inventory', 'Your inventory');
+  await browser.waitFor(`[...document.querySelectorAll('.inventory-card h2')].some(item => item.textContent === 'Greninja (Mega)')`, 'shared Mega Ultra Greninja');
+  await browser.setLabeledControl('League eligibility', 'all', 'select');
+  invariant(await browser.evaluate(`document.querySelectorAll('.inventory-card').length === ${INVENTORY_SPECIES.length + BULK_WORKFLOW_ADDED_RECORDS + 3 + 3 + 1}`), 'All-owned inventory filter did not expose shared records.');
+  await browser.setLabeledControl("Battle league", "master-league", "select");
+  await browser.navigate("/", "Pokémon GO PvP Team Builder for Your Own Roster");
+  await browser.waitFor(`document.querySelector('#current-format-title')?.textContent === 'Mega Master League' && document.querySelector('.dashboard-meta-watch')?.textContent?.includes('Kyogre')`, "Mega Master League dashboard and rankings");
+  await browser.navigate("/battle", "One matchup. Every turn.");
+  await browser.waitFor(`document.querySelectorAll('.duel-build').length === 2`, "Mega Master League duel editors");
+  await browser.setLabeledControl('Pokémon 1 / form', 'mewtwo_mega_y', 'input', 0, false);
+  await browser.setLabeledControl('Pokémon 2 / form', 'kyogre_primal', 'input', 0, false);
+  await browser.waitFor(`Boolean(document.querySelector('[data-selected-species-id="mewtwo_mega_y"]') && document.querySelector('[data-selected-species-id="kyogre_primal"]'))`, "Mega Master League contenders");
+  await browser.clickButton('Simulate matchup');
+  await browser.waitFor(`document.querySelector('.duel-replay') !== null`, "Mega Master League battle", ENGINE_TIMEOUT_MS);
+  await browser.evaluate(`document.querySelector('.app-rail .league-selector__mega input').click()`);
+  await browser.setLabeledControl("Battle league", "great-league", "select");
+  await browser.navigate("/inventory", "Your inventory");
+  invariant(await browser.evaluate(`document.querySelectorAll('.inventory-card').length === ${INVENTORY_SPECIES.length + BULK_WORKFLOW_ADDED_RECORDS + 1}`), "Open Great League inventory was lost after Mega League switching.");
+  console.log("[browser-workflows] Mega Great, Ultra, and Master formats, Top-250 matrix, ten-result recommendations, and Mega battle passed");
 
   return {
     buildTarget,
@@ -2960,6 +3091,9 @@ async function runDuelWorkflow(browser: BrowserWorkflow, buildTarget: BrowserTes
   await browser.setLabeledControl('Pokémon 2 / form', 'altaria');
   await browser.clickButton("Simulate matchup");
   await browser.waitFor(`document.querySelector('.duel-replay') !== null`, "duel replay", ENGINE_TIMEOUT_MS);
+  await browser.waitFor(`Number(document.querySelector('[aria-label="Battle turn"]')?.value) > 0`, "automatic duel playback");
+  await browser.clickButton('Pause');
+  await browser.evaluate(`document.querySelector('[aria-label="Restart replay"]').click()`);
   if (buildTarget === "development") {
   const parity = await browser.evaluate<boolean>(`(async () => {
     const { createPvpokeOneOnOneAdapter } = await import('/src/pvpoke/simulation/index.ts');
@@ -2999,20 +3133,28 @@ async function runDuelWorkflow(browser: BrowserWorkflow, buildTarget: BrowserTes
     const log = document.querySelector('.duel-log');
     let lastTurn = log.querySelector('.duel-log__turn > strong').textContent;
     const times = [performance.now()];
+    const pause = () => Array.from(document.querySelectorAll('.duel-controls button'))
+      .find(button => button.textContent === 'Pause')?.click();
+    const timeout = setTimeout(() => {
+      observer.disconnect();
+      pause();
+      resolve([]);
+    }, 5_000);
     const observer = new MutationObserver(() => {
       const turn = log.querySelector('.duel-log__turn > strong').textContent;
       if (turn === lastTurn) return;
       lastTurn = turn; times.push(performance.now());
       if (times.length === 4) {
+        clearTimeout(timeout);
         observer.disconnect();
-        Array.from(document.querySelectorAll('.duel-controls button')).find(button => button.textContent === 'Pause').click();
+        pause();
         resolve(times.slice(1).map((time, index) => time - times[index]));
       }
     });
     observer.observe(log, { childList: true, subtree: true });
     Array.from(document.querySelectorAll('.duel-controls button')).find(button => button.textContent === 'Play').click();
   })`);
-  invariant(turnIntervals.every(ms => ms >= 450 && ms < 800), `1× playback was not 500 ms per turn: ${turnIntervals.join(',')}`);
+  invariant(turnIntervals.length === 3 && turnIntervals.every(ms => ms >= 450 && ms < 800), `1× playback did not advance at 500 ms per turn: ${turnIntervals.join(',') || 'no turns observed'}`);
   const animatedResources = await browser.evaluate<boolean>(`(async () => {
     let damage = false, gain = false, spend = false;
     const next = document.querySelector('[aria-label="Next turn"]');
@@ -3058,6 +3200,8 @@ async function runDuelWorkflow(browser: BrowserWorkflow, buildTarget: BrowserTes
   await browser.waitFor(`document.querySelector('.duel-replay') !== null`, 'narrow mobile replay');
   await browser.clickButton('Show result');
   await browser.assertNoHorizontalOverflow('1v1 replay narrow mobile');
+  invariant(await browser.evaluate(`document.querySelector('.duel-advanced:not([open])') !== null`), 'Advanced IV controls should start collapsed.');
+  await browser.evaluate(`document.querySelector('.duel-advanced').open = true`);
   await browser.setLabeledControl('attack IV', '15');
   invariant(await browser.evaluate(`!document.querySelector('.duel-replay')`), 'Editing a build left a stale replay.');
   await browser.clickButton('Fit to league');
@@ -3147,6 +3291,7 @@ async function main(): Promise<void> {
     const webSocketUrl = await findPageWebSocket(
       debuggingPort,
       appUrl,
+      chrome.process,
       chrome.output,
     );
     client = await DevToolsClient.connect(webSocketUrl);

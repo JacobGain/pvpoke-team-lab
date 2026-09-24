@@ -17,6 +17,7 @@ import { Link } from "react-router";
 import { PageHeader } from "@/components/PageHeader";
 import { PokemonSprite } from "@/components/PokemonSprite";
 import type { InventoryPokemon } from "@/domain/inventory/schemas";
+import { projectInventoryForCatalog } from "@/domain/inventory/leagueEligibility";
 import type { PokemonCatalog } from "@/domain/pokemon/catalog";
 import { buildRecommendationCandidatePool } from "@/domain/recommendations/candidatePool";
 import {
@@ -70,7 +71,9 @@ function selectedSpeciesId(record: InventoryPokemon): string {
 function inventoryLabel(
   record: InventoryPokemon,
   catalogById: ReadonlyMap<string, PokemonCatalog["entries"][number]>,
+  catalog: PokemonCatalog,
 ): string {
+  record = projectInventoryForCatalog(record, catalog) ?? record;
   const speciesId = selectedSpeciesId(record);
   const pokemon = catalogById.get(speciesId);
   const cp =
@@ -312,10 +315,11 @@ export function RecommendationPage() {
   const [anchorOnePosition, setAnchorOnePosition] =
     useState<RecommendationAnchorPosition>("flex");
   const [useSecondAnchor, setUseSecondAnchor] = useState(false);
+  const [useFullInventory, setUseFullInventory] = useState(false);
   const [anchorTwoId, setAnchorTwoId] = useState("");
   const [anchorTwoPosition, setAnchorTwoPosition] =
     useState<RecommendationAnchorPosition>("flex");
-  const [resultCount, setResultCount] = useState(3);
+  const [resultCount, setResultCount] = useState(5);
   const [buildStatusScope, setBuildStatusScope] =
     useState<RecommendationBuildStatusScope>("all");
   const [includeRankedPartners, setIncludeRankedPartners] = useState(false);
@@ -360,9 +364,9 @@ export function RecommendationPage() {
   const catalogById = new Map(
     catalog.entries.map((pokemon) => [pokemon.speciesId, pokemon]),
   );
-  const inventoryOptions = [...inventory].sort((left, right) =>
-    inventoryLabel(left, catalogById).localeCompare(
-      inventoryLabel(right, catalogById),
+  const inventoryOptions = inventory.filter((record) => projectInventoryForCatalog(record, catalog)).sort((left, right) =>
+    inventoryLabel(left, catalogById, catalog).localeCompare(
+      inventoryLabel(right, catalogById, catalog),
     ),
   );
   const resolvedAnchorOneId =
@@ -384,7 +388,7 @@ export function RecommendationPage() {
     setProgress(undefined);
 
     try {
-      const anchors = [
+      const anchors = useFullInventory ? [] : [
         { inventoryId: resolvedAnchorOneId, position: anchorOnePosition },
         ...(useSecondAnchor
           ? [{ inventoryId: resolvedAnchorTwoId, position: anchorTwoPosition }]
@@ -395,7 +399,7 @@ export function RecommendationPage() {
         anchors,
         resultCount,
         buildStatusScope,
-        partnerScope: includeRankedPartners
+        partnerScope: !useFullInventory && includeRankedPartners
           ? "owned-and-ranked"
           : "owned-only",
       });
@@ -410,7 +414,7 @@ export function RecommendationPage() {
 
       if (nextGeneration.finalists.length === 0) {
         throw new Error(
-          "No eligible species-distinct finalist teams remain under the current anchors and teammate scope.",
+          "No eligible species-distinct finalist teams remain for these settings. Choose at least three eligible owned species or adjust the scope.",
         );
       }
 
@@ -501,20 +505,19 @@ export function RecommendationPage() {
       <PageHeader
         description={
           <p>
-            Choose one or two exact owned anchors, then compare lineups made
-            from your inventory, ranked PvPoke options, or both.
+            Build teams from your full inventory, or choose one or two owned
+            anchors and explore inventory and ranked PvPoke options.
           </p>
         }
         eyebrow="Guided team discovery"
-        title="Build around your anchors"
+        title="Discover your best teams"
       />
 
       {inventory.length < 1 ? (
         <section className="form-section">
-          <h2>Add one Pokémon to choose an anchor</h2>
+          <h2>Add Pokémon to discover teams</h2>
           <p>
-            Your anchor always uses an exact owned build. Ranked Pokémon can
-            fill the remaining positions once an anchor exists.
+            Add owned builds to start exploring team recommendations.
           </p>
           <Link className="primary-link" to="/inventory/new">
             Add Pokémon
@@ -562,9 +565,9 @@ export function RecommendationPage() {
             <div className="form-section__heading">
               <div>
                 <p className="eyebrow">Required constraints</p>
-                <h2>Anchors</h2>
+                <h2>Choose your Pokémon</h2>
               </div>
-              <label className="inline-check">
+              {!useFullInventory ? <label className="inline-check">
                 <input
                   type="checkbox"
                   checked={useSecondAnchor}
@@ -574,9 +577,16 @@ export function RecommendationPage() {
                   }
                 />
                 Use two anchors
-              </label>
+              </label> : null}
             </div>
-            <div className="recommendation-anchor-grid">
+            <label className="recommendation-partner-scope">
+              <input type="checkbox" checked={useFullInventory} disabled={running}
+                onChange={(event) => setUseFullInventory(event.target.checked)} />
+              <span><strong>Build from my full inventory</strong>
+                <small>Consider every eligible owned build for all three team positions. Larger inventories may take longer to generate.</small>
+              </span>
+            </label>
+            {!useFullInventory ? <div className="recommendation-anchor-grid">
               <label className="form-field">
                 <span>First anchor</span>
                 <select
@@ -587,7 +597,7 @@ export function RecommendationPage() {
                 >
                   {inventoryOptions.map((record) => (
                     <option key={record.inventoryId} value={record.inventoryId}>
-                      {inventoryLabel(record, catalogById)}
+                      {inventoryLabel(record, catalogById, catalog)}
                     </option>
                   ))}
                 </select>
@@ -628,7 +638,7 @@ export function RecommendationPage() {
                             record.inventoryId === resolvedAnchorOneId
                           }
                         >
-                          {inventoryLabel(record, catalogById)}
+                          {inventoryLabel(record, catalogById, catalog)}
                         </option>
                       ))}
                     </select>
@@ -653,7 +663,7 @@ export function RecommendationPage() {
                   </label>
                 </>
               ) : null}
-            </div>
+            </div> : null}
             <div className="recommendation-run-actions">
               <button
                 className="primary-button"
@@ -684,7 +694,7 @@ export function RecommendationPage() {
                     setResultCount(Number(event.target.value))
                   }
                 >
-                  {[1, 2, 3, 4, 5].map((count) => (
+                  {[1, 2, 3, 4, 5, 10].map((count) => (
                     <option key={count} value={count}>
                       {count}
                     </option>
@@ -720,9 +730,7 @@ export function RecommendationPage() {
                 >
                   {META_TARGET_LIMITS.map((limit) => (
                     <option key={limit} value={limit}>
-                      {limit === 48
-                        ? "Greater Meta (48) · best grade accuracy"
-                        : `Top ${limit} · faster`}
+                      {limit === 250 ? "Top 250 · extensive" : limit === 100 ? "Top 100 · broad" : `Top ${limit}`}
                     </option>
                   ))}
                 </select>
@@ -764,7 +772,7 @@ export function RecommendationPage() {
                 </select>
               </label>
             </div>
-            <label className="recommendation-partner-scope">
+            {!useFullInventory ? <label className="recommendation-partner-scope">
               <input
                 type="checkbox"
                 checked={includeRankedPartners}
@@ -781,7 +789,7 @@ export function RecommendationPage() {
                   added to inventory before saving.
                 </small>
               </span>
-            </label>
+            </label> : <p className="analysis-notice">Full inventory mode uses only your owned Pokémon. Add more to your inventory to expand the team options.</p>}
             {targetLimit >= 20 ? (
               <p className="analysis-notice">
                 Large scopes can run hundreds or thousands of synchronous
@@ -848,7 +856,7 @@ export function RecommendationPage() {
       {generation ? (
         <section className="recommendation-summary">
           <div>
-            <span>Eligible partners</span>
+            <span>{useFullInventory ? "Eligible owned builds" : "Eligible partners"}</span>
             <strong>{generation.eligiblePartnerCount}</strong>
           </div>
           <div>

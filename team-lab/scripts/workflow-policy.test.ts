@@ -6,12 +6,13 @@ const release = readFileSync(new URL("../../.github/workflows/team-lab-release.y
 const codeql = readFileSync(new URL("../../.github/workflows/team-lab-codeql.yml", import.meta.url), "utf8");
 
 describe("release workflow policy", () => {
-  it("preserves PR staging deployments, protected master releases, and artifact provenance", () => {
+  it("preserves staging deployments for both PR targets, protected master releases, and artifact provenance", () => {
     expect(() => validateDeploymentPolicy(release, codeql)).not.toThrow();
   });
 
   it.each([
     ["PR creation", "types: [opened, synchronize", "types: [synchronize"],
+    ["master PR staging deployment", "github.base_ref == 'master'", "github.base_ref == 'main'"],
     ["fork isolation", "github.event.pull_request.head.repo.full_name == github.repository", "true"],
     ["Dependabot isolation", "github.actor != 'dependabot[bot]'", "true"],
     ["production trigger", "github.ref == 'refs/heads/master'", "github.ref == 'refs/heads/staging'"],

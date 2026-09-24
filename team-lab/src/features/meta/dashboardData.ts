@@ -19,7 +19,7 @@ function isDashboardData(value: unknown): value is DashboardData {
   const leadersByLeague = value.leaders;
   if (!isRecord(leadersByLeague)) return false;
 
-  return ["great-league", "ultra-league", "master-league"].every((leagueId) => {
+  return ["great-league", "ultra-league", "master-league", "mega-great-league", "mega-ultra-league", "mega-master-league"].every((leagueId) => {
     const leaders = leadersByLeague[leagueId];
     return Array.isArray(leaders) && leaders.length === 10 && leaders.every(
       (leader) =>

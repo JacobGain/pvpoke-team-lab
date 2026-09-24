@@ -4,9 +4,15 @@ export const PVPOKE_BUNDLED_DATA_PATHS = [
   "data/groups/great.json",
   "data/groups/ultra.json",
   "data/groups/master.json",
+  "data/groups/megagreat.json",
+  "data/groups/megaultra.json",
+  "data/groups/mega.json",
   "data/rankings/all/overall/rankings-10000.json",
   "data/rankings/all/overall/rankings-2500.json",
   "data/rankings/all/overall/rankings-1500.json",
+  "data/rankings/mega/overall/rankings-1500.json",
+  "data/rankings/mega/overall/rankings-2500.json",
+  "data/rankings/mega/overall/rankings-10000.json",
 ] as const;
 
 export const PVPOKE_ENGINE_SCRIPT_PATHS = [

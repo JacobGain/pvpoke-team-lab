@@ -14,6 +14,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { PageHeader } from "@/components/PageHeader";
 import { PokemonSprite } from "@/components/PokemonSprite";
 import { findHighestLegalLevel } from "@/domain/analysis/ivRankings";
+import { isPreferredInLeague, projectInventoryForCatalog } from "@/domain/inventory/leagueEligibility";
 import { inferCombatPowerLevel } from "@/domain/pokemon/combatPower";
 import { requiresCandyXl } from "@/domain/pokemon/xl";
 import {
@@ -46,6 +47,7 @@ export function InventoryPage() {
   const [search, setSearch] = useState("");
   const [favoriteOnly, setFavoriteOnly] = useState(false);
   const [sort, setSort] = useState<InventoryViewSort>("updated");
+  const [leagueFilter, setLeagueFilter] = useState<"preferred" | "eligible" | "all">("preferred");
   const statusParam = searchParams.get("status");
   const status: InventoryViewStatus =
     statusParam === "current" || statusParam === "planned"
@@ -62,7 +64,11 @@ export function InventoryPage() {
 
   const filteredRecords = useMemo(() => {
     return filterAndSortInventory(
-      inventoryResult.data ?? [],
+      leagueFilter !== "all" && catalogResult.data
+        ? (inventoryResult.data ?? []).filter((record) => leagueFilter === "preferred"
+          ? isPreferredInLeague(record, catalogResult.data!)
+          : projectInventoryForCatalog(record, catalogResult.data!) !== undefined)
+        : inventoryResult.data ?? [],
       catalogResult.data,
       { search, status, favoriteOnly, assumedIvsOnly, sort },
     );
@@ -71,6 +77,7 @@ export function InventoryPage() {
     assumedIvsOnly,
     favoriteOnly,
     inventoryResult.data,
+    leagueFilter,
     search,
     sort,
     status,
@@ -140,6 +147,14 @@ export function InventoryPage() {
       />
 
       <section className="inventory-controls" aria-label="Inventory filters">
+        <label>
+          <span>League eligibility</span>
+          <select value={leagueFilter} onChange={(event) => setLeagueFilter(event.target.value as "preferred" | "eligible" | "all")}>
+            <option value="preferred">Best fit for {league.shortTitle}</option>
+            <option value="eligible">Eligible for {league.shortTitle}</option>
+            <option value="all">All owned Pokémon</option>
+          </select>
+        </label>
         <label>
           <span>Search species or notes</span>
           <input
@@ -216,6 +231,9 @@ export function InventoryPage() {
 
       <section className="inventory-grid" aria-label="Saved inventory">
         {filteredRecords.map((record) => {
+          const eligibleBuild = projectInventoryForCatalog(record, catalog);
+          const displayed = eligibleBuild ?? record;
+          const displayPokemon = catalog.entries.find((entry) => entry.speciesId === displayed.speciesId);
           const pokemon = catalog.entries.find(
             (entry) => entry.speciesId === record.speciesId,
           );
@@ -255,8 +273,8 @@ export function InventoryPage() {
             <article className="inventory-card" key={record.inventoryId}>
               <PokemonSprite
                 size="large"
-                speciesId={record.speciesId}
-                speciesName={pokemon?.speciesName ?? record.speciesId}
+                speciesId={displayed.speciesId}
+                speciesName={displayPokemon?.speciesName ?? displayed.speciesId}
               />
               <div className="inventory-card__content">
                 <div className="inventory-card__heading">
@@ -265,15 +283,15 @@ export function InventoryPage() {
                       {record.buildStatus} build
                       {record.favorite ? " · favorite" : ""}
                     </p>
-                    <h2>{pokemon?.speciesName ?? record.speciesId}</h2>
+                    <h2>{displayPokemon?.speciesName ?? displayed.speciesId}</h2>
                   </div>
                   <span className="context-badge">
-                    CP {record.currentBuild.cp}
+                    CP {displayed.currentBuild.cp}
                   </span>
                 </div>
-                {pokemon ? (
+                {displayPokemon ? (
                   <div className="type-list">
-                    {pokemon.types
+                    {displayPokemon.types
                       .filter((type) => type !== "none")
                       .map((type) => (
                       <span
@@ -283,7 +301,7 @@ export function InventoryPage() {
                         {type}
                       </span>
                       ))}
-                    {pokemon.isMeta ? (
+                    {displayPokemon.isMeta ? (
                       <span className="type-pill type-pill--meta">Meta</span>
                     ) : null}
                   </div>
@@ -294,6 +312,8 @@ export function InventoryPage() {
                   {record.currentBuild.ivProfile.ivs.hp} ·{" "}
                   {formatIdentifier(record.currentBuild.ivProfile.source)}
                 </p>
+                {record.megaSpeciesId ? <p className="planned-summary">Mega enabled: {catalog.entries.find((entry) => entry.speciesId === record.megaSpeciesId)?.speciesName ?? record.megaSpeciesId}</p> : null}
+                {!eligibleBuild ? <p className="planned-summary">Outside the {league.shortTitle} CP cap</p> : null}
                 <p>
                   Level{" "}
                   {levelInference?.matches
@@ -352,12 +372,12 @@ export function InventoryPage() {
                 >
                   Edit
                 </Link>
-                <Link
+                {eligibleBuild ? <Link
                   className="primary-link"
                   to={`/inventory/${record.inventoryId}/analysis`}
                 >
                   Analyze
-                </Link>
+                </Link> : null}
                 <Link
                   className="secondary-link"
                   to={`/inventory/new?duplicate=${record.inventoryId}`}

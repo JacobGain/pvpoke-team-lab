@@ -41,12 +41,13 @@ export function usePokemonCatalog(overrideLeague?: League) {
           rankingResult.data,
           metaResult.data,
           league.cp,
+          league.id,
         ),
       };
     } catch (error) {
       return { error };
     }
-  }, [gameMasterResult.data, rankingResult.data, metaResult.data, league.cp]);
+  }, [gameMasterResult.data, rankingResult.data, metaResult.data, league.cp, league.id]);
 
   return {
     data: catalogResult.data,

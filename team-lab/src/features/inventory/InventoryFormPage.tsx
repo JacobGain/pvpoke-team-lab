@@ -24,6 +24,7 @@ import {
   type CreateInventoryPokemonInput,
 } from "@/domain/inventory/factory";
 import type { InventoryPokemon } from "@/domain/inventory/schemas";
+import { megaFormsForSpecies } from "@/domain/inventory/leagueEligibility";
 import {
   calculateCombatPower,
   inferCombatPowerLevel,
@@ -63,6 +64,8 @@ function getAvailablePokemon(
     .filter(
       (pokemon) =>
         pokemon.isReleased &&
+        !pokemon.speciesId.includes("_mega") &&
+        !pokemon.speciesId.endsWith("_primal") &&
         pokemon.fastMoves.length > 0 &&
         pokemon.chargedMoves.length > 0,
     )
@@ -122,6 +125,7 @@ function InventoryFormFields({
       : league.cp === 10000 ? 10 : league.cp);
   const initialDefaultMoves = getDefaultMoves(initialPokemon);
   const [speciesId, setSpeciesId] = useState(initialPokemon.speciesId);
+  const [megaSpeciesId, setMegaSpeciesId] = useState(sourceRecord?.megaSpeciesId ?? "");
   const [buildStatus, setBuildStatus] = useState<"current" | "planned">(
     sourceRecord?.buildStatus ?? "current",
   );
@@ -189,6 +193,7 @@ function InventoryFormFields({
   const selectedPokemon =
     catalog.entries.find((pokemon) => pokemon.speciesId === speciesId) ??
     initialPokemon;
+  const megaForms = megaFormsForSpecies(selectedPokemon.speciesId, catalog);
   const targetOptions = [
     selectedPokemon,
     ...selectedPokemon.evolutionIds.flatMap((evolutionId) => {
@@ -201,20 +206,17 @@ function InventoryFormFields({
   const selectedTarget =
     targetOptions.find((pokemon) => pokemon.speciesId === targetSpeciesId) ??
     selectedPokemon;
-  const effectiveIvs =
-    ivSource === "assumed-rank-1"
-      ? selectedPokemon.defaultLeagueIvs
-      : {
-          attack: Number(attackIv),
-          defense: Number(defenseIv),
-          hp: Number(hpIv),
-        };
+  const effectiveIvs = {
+    attack: Number(attackIv),
+    defense: Number(defenseIv),
+    hp: Number(hpIv),
+  };
   const cpInference =
     hasSelectedPokemon &&
     effectiveIvs &&
     Number.isInteger(Number(cp)) &&
     Number(cp) >= 10 &&
-    Number(cp) <= league.cp
+    Number(cp) <= 10000
       ? inferCombatPowerLevel(selectedPokemon, effectiveIvs, Number(cp))
       : undefined;
 
@@ -252,7 +254,7 @@ function InventoryFormFields({
         cp: Number(cp),
         ivProfile:
           ivSource === "assumed-rank-1"
-            ? ({ source: "assumed-rank-1" } as const)
+            ? ({ source: "assumed-rank-1", ivs: effectiveIvs } as const)
             : ({
                 source: "user-entered",
                 ivs: {
@@ -268,6 +270,7 @@ function InventoryFormFields({
       };
       const commonInput = {
         speciesId,
+        megaSpeciesId: megaSpeciesId || undefined,
         currentBuild,
         favorite,
         notes,
@@ -408,6 +411,7 @@ function InventoryFormFields({
             onSelect={(pokemon) => {
               setHasSelectedPokemon(true);
               setSpeciesId(pokemon.speciesId);
+              setMegaSpeciesId("");
               resetMoves(pokemon);
               resetTarget(pokemon);
               if (!pokemon.defaultLeagueIvs) {
@@ -440,13 +444,35 @@ function InventoryFormFields({
               required
               type="number"
               min="10"
-              max={league.cp === 10000 ? undefined : league.cp}
+              max="10000"
               value={cp}
               onChange={(event) => {
                 setCp(event.target.value);
               }}
             />
           </label>
+
+          {megaForms.length > 0 ? (
+            <div className="form-field form-field--wide">
+              <label className="inline-check">
+                <input
+                  type="checkbox"
+                  checked={megaSpeciesId !== ""}
+                  onChange={(event) => setMegaSpeciesId(event.target.checked ? megaForms[0]!.speciesId : "")}
+                />
+                Mega evolve this Pokémon in Mega leagues
+              </label>
+              {megaSpeciesId && megaForms.length > 1 ? (
+                <label className="form-field">
+                  <span>Mega form</span>
+                  <select value={megaSpeciesId} onChange={(event) => setMegaSpeciesId(event.target.value)}>
+                    {megaForms.map((form) => <option key={form.speciesId} value={form.speciesId}>{form.speciesName}</option>)}
+                  </select>
+                </label>
+              ) : null}
+              {megaSpeciesId ? <small>The Mega form uses this Pokémon’s IVs and level. Its CP determines which Mega leagues it can enter.</small> : null}
+            </div>
+          ) : null}
 
           <fieldset className="form-field form-field--wide">
             <legend>IV source</legend>
@@ -665,7 +691,7 @@ function InventoryFormFields({
               <input
                 type="number"
                 min="10"
-                max={league.cp === 10000 ? undefined : league.cp}
+                max="10000"
                 value={targetCp}
                 onChange={(event) => {
                   setTargetCp(event.target.value);
@@ -769,6 +795,7 @@ function InventoryFormFields({
               <dt>Intent</dt>
               <dd>{buildStatus === "current" ? "Ready now" : "Planned build"}</dd>
             </div>
+            {megaSpeciesId ? <div><dt>Mega form</dt><dd>{megaForms.find((form) => form.speciesId === megaSpeciesId)?.speciesName}</dd></div> : null}
           </dl>
         </div>
       </section>

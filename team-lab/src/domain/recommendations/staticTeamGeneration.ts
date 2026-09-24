@@ -40,7 +40,7 @@ export const DEFAULT_RECOMMENDATION_STATIC_POLICY: RecommendationStaticPolicy =
     maxGeneratedTeams: 250,
     finalistMultiplier: 3,
     minimumFinalists: 6,
-    maximumFinalists: 15,
+    maximumFinalists: 30,
     maxOptionalCoreRepeats: 2,
     scoreWeights: Object.freeze({
       complementarity: 0.4,
@@ -196,7 +196,7 @@ function evaluateEligibility(
 
 function choosePartners(
   partners: readonly RecommendationCandidate[],
-  requiredCount: 1 | 2,
+  requiredCount: 1 | 2 | 3,
 ): readonly (readonly RecommendationCandidate[])[] {
   if (requiredCount === 1) {
     return partners.map((partner) => [partner]);
@@ -219,7 +219,18 @@ function choosePartners(
     }
   }
 
-  return pairs;
+  if (requiredCount === 2) return pairs;
+
+  const triples: RecommendationCandidate[][] = [];
+  for (let first = 0; first < partners.length; first += 1) {
+    for (let second = first + 1; second < partners.length; second += 1) {
+      for (let third = second + 1; third < partners.length; third += 1) {
+        const members = [partners[first]!, partners[second]!, partners[third]!];
+        if (new Set(members.map((member) => member.dex)).size === 3) triples.push(members);
+      }
+    }
+  }
+  return triples;
 }
 
 function permutations(
@@ -535,7 +546,9 @@ export function generateStaticRecommendationTeams(
 ): StaticRecommendationGeneration {
   assertStaticPolicy(policy);
   const eligibilityExclusions: RecommendationEligibilityExclusion[] = [];
+  const fullInventory = pool.anchors.length === 0;
   const eligiblePartners = pool.partners.filter((candidate) => {
+    if (fullInventory) return true;
     const exclusion = evaluateEligibility(candidate, policy);
 
     if (exclusion) {
@@ -544,10 +557,9 @@ export function generateStaticRecommendationTeams(
     }
     return true;
   });
-  const consideredPartners = eligiblePartners.slice(
-    0,
-    policy.maxEligiblePartners,
-  );
+  const consideredPartners = fullInventory
+    ? eligiblePartners
+    : eligiblePartners.slice(0, policy.maxEligiblePartners);
   const partnerGroups = choosePartners(
     consideredPartners,
     pool.requiredPartnerCount,
@@ -605,9 +617,13 @@ export function generateStaticRecommendationTeams(
     finalistTarget,
     finalists,
     assumptions: [
-      "Anchors are user constraints and do not need to pass partner ranking thresholds",
-      `Partners require overall rank ${policy.maxOverallRank} or better and a lead, switch, or closer score of at least ${policy.minRelevantRoleScore}`,
-      `At most ${policy.maxEligiblePartners} partners and ${policy.maxGeneratedTeams} static teams are retained before finalist selection`,
+      ...(fullInventory
+        ? ["All eligible owned builds are considered, regardless of ranking"]
+        : [
+            "Anchors are user constraints and do not need to pass partner ranking thresholds",
+            `Partners require overall rank ${policy.maxOverallRank} or better and a lead, switch, or closer score of at least ${policy.minRelevantRoleScore}`,
+          ]),
+      `At most ${policy.maxGeneratedTeams} static teams are retained before finalist selection`,
       `Optional two-Pokémon cores may appear in at most ${policy.maxOptionalCoreRepeats} finalists`,
       "Exact TeamRanker simulation has not run yet",
     ],

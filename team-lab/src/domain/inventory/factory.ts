@@ -1,4 +1,4 @@
-import { leagueForCp } from "@/domain/leagues";
+import { leagueForCatalog } from "@/domain/leagues";
 import {
   INVENTORY_RECORD_SCHEMA_VERSION,
   inventoryPokemonSchema,
@@ -19,6 +19,7 @@ export interface InventoryFactoryDependencies {
 
 interface InventoryInputBase {
   readonly speciesId: string;
+  readonly megaSpeciesId?: string;
   readonly currentBuild: InventoryBuildInput;
   readonly favorite?: boolean;
   readonly notes?: string;
@@ -26,7 +27,7 @@ interface InventoryInputBase {
 
 export type InventoryIvInput =
   | { readonly source: "user-entered"; readonly ivs: InventoryIvs }
-  | { readonly source: "assumed-rank-1" };
+  | { readonly source: "assumed-rank-1"; readonly ivs?: InventoryIvs };
 
 export interface InventoryBuildInput {
   readonly cp: number;
@@ -63,7 +64,7 @@ function resolveBuild(
   const pokemon = catalog.entries.find(
     (entry) => entry.speciesId === speciesId,
   );
-  const defaultIvs = pokemon?.defaultLeagueIvs;
+  const defaultIvs = input.ivProfile.ivs ?? pokemon?.defaultLeagueIvs;
 
   if (!pokemon || !defaultIvs) {
     throw new Error(
@@ -91,7 +92,8 @@ export function createInventoryPokemon(
 ): InventoryPokemon {
   const now = (dependencies.now ?? (() => new Date()))().toISOString();
   const metadata = {
-    formatId: leagueForCp(dependencies.catalog.cpCap).id,
+    formatId: leagueForCatalog(dependencies.catalog).id,
+    ...(input.megaSpeciesId ? { megaSpeciesId: input.megaSpeciesId } : {}),
     schemaVersion: INVENTORY_RECORD_SCHEMA_VERSION,
     inventoryId:
       dependencies.createId?.() ?? globalThis.crypto.randomUUID(),
@@ -142,7 +144,6 @@ export function updateInventoryPokemon(
   input: CreateInventoryPokemonInput,
   dependencies: InventoryFactoryDependencies,
 ): InventoryPokemon {
-  if ((existingRecord.formatId ?? "great-league") !== leagueForCp(dependencies.catalog.cpCap).id) throw new Error("Select the record’s league before editing it.");
   const updatedAt = (dependencies.now ?? (() => new Date()))().toISOString();
   const currentBuild = resolveBuild(
     input.currentBuild,
@@ -150,7 +151,8 @@ export function updateInventoryPokemon(
     dependencies.catalog,
   );
   const metadata = {
-    formatId: leagueForCp(dependencies.catalog.cpCap).id,
+    formatId: existingRecord.formatId ?? leagueForCatalog(dependencies.catalog).id,
+    ...(input.megaSpeciesId ? { megaSpeciesId: input.megaSpeciesId } : {}),
     schemaVersion: INVENTORY_RECORD_SCHEMA_VERSION,
     inventoryId: existingRecord.inventoryId,
     favorite: input.favorite ?? false,
