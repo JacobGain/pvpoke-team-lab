@@ -114,6 +114,13 @@ function request(
 }
 
 describe("recommendation request contract", () => {
+  it("allows full inventory only with owned partners", () => {
+    expect(request({ anchors: [] }).anchors).toEqual([]);
+    expect(recommendationRequestSchema.safeParse({
+      formatId: "great-league", anchors: [], resultCount: 3,
+      buildStatusScope: "all", partnerScope: "owned-and-ranked",
+    }).success).toBe(false);
+  });
   it("accepts one or two anchors and a one-to-ten result count", () => {
     expect(request()).toMatchObject({
       anchors: [{ inventoryId: ids.azumarill, position: "flex" }],

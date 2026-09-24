@@ -308,19 +308,22 @@ of battle outcomes.
 
 Open **Generate team recommendations**.
 
-At least one valid inventory record is required because every recommendation
-starts from an exact owned anchor.
+At least one valid inventory record is required to open recommendations. Full
+inventory generation needs at least three eligible owned species.
 
 ### Choose constraints
 
-- Select one required anchor.
+- Select **Build from my full inventory** to consider every eligible owned
+  build for all three positions. This mode only uses Pokémon in your inventory
+  and may take longer with a large collection.
+- Or select one required anchor.
 - Optionally enable a second anchor.
 - Leave an anchor on **Best-fit role**, or lock it to Lead, Safe Switch, or
   Closer.
 - Request one to five or ten result teams (five by default).
 - Choose ready-now and planned builds together, ready-now only, or planned
   only.
-- Optionally include highly ranked Pokémon outside your inventory. These use
+- With an anchor, optionally include highly ranked Pokémon outside your inventory. These use
   PvPoke’s recommended moves and default IVs for the selected league.
 - Choose the meta-target and shield scope.
 

@@ -67,7 +67,7 @@ export interface RecommendationCandidateExclusion {
 export interface RecommendationCandidatePool {
   readonly request: RecommendationRequest;
   readonly anchors: readonly RecommendationAnchorCandidate[];
-  readonly requiredPartnerCount: 1 | 2;
+  readonly requiredPartnerCount: 1 | 2 | 3;
   readonly partners: readonly RecommendationCandidate[];
   readonly exclusions: readonly RecommendationCandidateExclusion[];
   readonly dataVersion: string;
@@ -427,7 +427,7 @@ export function buildRecommendationCandidatePool(
   return {
     request: validatedRequest,
     anchors,
-    requiredPartnerCount: anchors.length === 1 ? 2 : 1,
+    requiredPartnerCount: anchors.length === 0 ? 3 : anchors.length === 1 ? 2 : 1,
     partners: partners.sort(
       validatedRequest.partnerScope === "owned-and-ranked"
         ? compareRankedCandidateScope

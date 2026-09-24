@@ -129,6 +129,21 @@ function pool(
 }
 
 describe("static recommendation generation", () => {
+  it("generates anchorless teams from every owned build", () => {
+    const inventory = [
+      record("azumarill", ids.azumarill),
+      record("altaria", ids.altaria),
+      record("whiscash", ids.whiscash),
+    ];
+    const candidatePool = pool(inventory, rankedCatalog, []);
+    const generation = generateStaticRecommendationTeams(candidatePool);
+    expect(candidatePool.requiredPartnerCount).toBe(3);
+    expect(generation.generatedTeamCount).toBe(1);
+    expect(generation.finalists[0]?.anchorInventoryIds).toEqual([]);
+    const members = generation.finalists[0]!.orderedMembers;
+    expect(new Set([members.lead.inventoryId, members.switch.inventoryId, members.closer.inventoryId]))
+      .toEqual(new Set(inventory.map((member) => member.inventoryId)));
+  });
   it("builds a fully simulatable team from one owned anchor and ranked defaults", () => {
     const candidatePool = buildRecommendationCandidatePool(
       recommendationRequestSchema.parse({

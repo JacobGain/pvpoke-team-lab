@@ -32,7 +32,7 @@ export const recommendationPartnerScopeSchema = z.enum([
 export const recommendationRequestSchema = z
   .object({
     formatId: z.enum(LEAGUE_IDS),
-    anchors: z.array(recommendationAnchorSchema).min(1).max(2),
+    anchors: z.array(recommendationAnchorSchema).max(2),
     resultCount: z
       .number()
       .int()
@@ -42,6 +42,13 @@ export const recommendationRequestSchema = z
     partnerScope: recommendationPartnerScopeSchema.default("owned-only"),
   })
   .superRefine((request, context) => {
+    if (request.anchors.length === 0 && request.partnerScope !== "owned-only") {
+      context.addIssue({
+        code: "custom",
+        message: "Full inventory recommendations can only use owned Pokémon.",
+        path: ["partnerScope"],
+      });
+    }
     const inventoryIds = request.anchors.map((anchor) => anchor.inventoryId);
 
     if (new Set(inventoryIds).size !== inventoryIds.length) {
