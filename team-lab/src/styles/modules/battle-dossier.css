@@ -184,6 +184,11 @@ h3 {
   align-items: center;
 }
 
+.league-selector__primary {
+  display: grid;
+  gap: 0.4rem;
+}
+
 .league-selector select {
   min-height: 3rem;
   appearance: none;
@@ -215,6 +220,23 @@ h3 {
   right: 0.7rem;
   color: var(--dossier-cyan);
   pointer-events: none;
+}
+
+.league-selector__mega {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 2.5rem;
+  color: #f6f8f4;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.league-selector__mega input {
+  width: 1.1rem;
+  height: 1.1rem;
+  margin: 0;
+  accent-color: var(--dossier-lime);
 }
 
 .app-rail__format span,
@@ -373,7 +395,7 @@ h3 {
   font-size: clamp(2.65rem, 5vw, 4.4rem);
   font-weight: 800;
   letter-spacing: 0.005em;
-  line-height: 0.88;
+  line-height: 1;
   text-transform: uppercase;
 }
 
@@ -765,10 +787,11 @@ h3 {
 
 .dashboard-hero h1 {
   max-width: 45rem;
+  margin-top: 0.85rem;
   font-size: clamp(3.5rem, 6.7vw, 6.3rem);
   font-weight: 800;
   letter-spacing: 0.005em;
-  line-height: 0.8;
+  line-height: 1;
   text-transform: uppercase;
 }
 
@@ -1836,7 +1859,7 @@ h3 {
 
   .dashboard-hero h1 {
     font-size: clamp(3.2rem, 18vw, 5rem);
-    line-height: 0.8;
+    line-height: 1;
   }
 
   .dashboard-hero__serial {
