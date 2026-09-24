@@ -239,14 +239,22 @@ async function waitForProcessExit(
 async function findPageWebSocket(
   debuggingPort: number,
   appUrl: string,
+  browserProcess: ChildProcessWithoutNullStreams,
   browserOutput: () => string,
 ): Promise<string> {
   const endpoint = `http://${HOST}:${debuggingPort}/json`;
   const deadline = Date.now() + STEP_TIMEOUT_MS;
+  let lastObservation = "Chrome debugging endpoint did not respond.";
 
   while (Date.now() < deadline) {
+    if (browserProcess.exitCode !== null || browserProcess.signalCode !== null) {
+      throw new Error(
+        `Chrome exited before opening TeamLab (exit ${browserProcess.exitCode}, signal ${browserProcess.signalCode}).\n${browserOutput()}`,
+      );
+    }
     try {
       const response = await fetch(endpoint);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const targets = (await response.json()) as readonly {
         readonly type: string;
         readonly url: string;
@@ -262,15 +270,16 @@ async function findPageWebSocket(
       if (page?.webSocketDebuggerUrl) {
         return page.webSocketDebuggerUrl;
       }
-    } catch {
-      // Chrome is still starting.
+      lastObservation = `Chrome targets: ${targets.map((target) => `${target.type} ${target.url}`).join(", ") || "none"}`;
+    } catch (error) {
+      lastObservation = error instanceof Error ? error.message : String(error);
     }
 
     await delay(100);
   }
 
   throw new Error(
-    `Chrome did not expose the TeamLab page.\n${browserOutput()}`,
+    `Chrome did not expose the TeamLab page at ${appUrl}. Last observation: ${lastObservation}\n${browserOutput()}`,
   );
 }
 
@@ -2388,7 +2397,7 @@ async function runCriticalWorkflows(
     "Exact battle details retained the ambiguous fast-damage slash notation.",
   );
 
-  await browser.navigate("/recommend", "Build around your anchors");
+  await browser.navigate("/recommend", "Discover your best teams");
   await browser.clickButton("Continue to experiment");
   invariant(await browser.evaluate(`(() => {
     const label = [...document.querySelectorAll('label')].find(item => item.textContent?.includes('Results'));
@@ -2488,6 +2497,35 @@ async function runCriticalWorkflows(
     `[...document.querySelectorAll("button")].some((button) => button.textContent?.trim() === "Saved to teams")`,
     "recommended team save",
   );
+
+  await browser.navigate("/recommend", "Discover your best teams");
+  invariant(await browser.evaluate<boolean>(`(() => {
+    const label = [...document.querySelectorAll("label")].find((candidate) =>
+      candidate.querySelector("strong")?.textContent?.trim() === "Build from my full inventory"
+    );
+    const control = label?.querySelector('input[type="checkbox"]');
+    if (!(control instanceof HTMLInputElement)) return false;
+    control.click();
+    return control.checked;
+  })()`), "Could not enable full inventory recommendations.");
+  invariant(await browser.evaluate<boolean>(
+    `!document.querySelector(".recommendation-anchor-grid")`,
+  ), "Full inventory mode still exposed anchor selection.");
+  await browser.clickButton("Continue to experiment");
+  invariant(await browser.evaluate<boolean>(
+    `![...document.querySelectorAll("label")].some((label) => label.textContent?.includes("Include ranked Pokémon not in my inventory"))`,
+  ), "Full inventory mode exposed ranked teammates.");
+  await browser.setLabeledControl("Results", "1", "select");
+  await browser.setLabeledControl("Meta targets", "5", "select");
+  await browser.clickButton("Generate recommendations");
+  await browser.waitFor(
+    `document.querySelectorAll(".recommendation-result").length > 0`,
+    "full inventory recommendation result",
+    ENGINE_TIMEOUT_MS,
+  );
+  invariant(await browser.evaluate<boolean>(
+    `document.querySelector(".recommendation-summary")?.textContent?.includes("Eligible owned builds") ?? false`,
+  ), "Full inventory recommendation did not use owned builds.");
 
   await browser.navigate("/inventory/backup", "Backup and restore");
   await browser.waitFor(
@@ -2793,7 +2831,7 @@ async function runCriticalWorkflows(
     [teamLinks.editHref, "Edit saved team"],
     diagnosticsMobileRoute,
     [teamLinks.simulationHref, "Browser Coverage Team"],
-    ["/recommend", "Build around your anchors"],
+    ["/recommend", "Discover your best teams"],
     ["/route-that-does-not-exist", "Page not found", "h2"],
   ] as const;
   const mobileAuditWidths = [320, 430, 540, 680] as const;
@@ -2911,7 +2949,7 @@ async function runCriticalWorkflows(
     if (alert) throw new Error(alert.textContent);
     return document.querySelector(".team-scorecard")?.textContent?.includes("35,000");
   })()`, "Master League exact matrix and bulk goal", ENGINE_TIMEOUT_MS);
-  await browser.navigate("/recommend", "Build around your anchors");
+  await browser.navigate("/recommend", "Discover your best teams");
   await browser.clickButton("Continue to experiment");
   await browser.setLabeledControl("Results", "1", "select");
   await browser.setLabeledControl("Meta targets", "5", "select");
@@ -2955,7 +2993,7 @@ async function runCriticalWorkflows(
     if (alert) throw new Error(alert.textContent);
     return document.querySelector('.diagnostics-banner')?.textContent?.includes('250 of 1201');
   })()`, "Mega Great League Top-250 team matrix", ENGINE_TIMEOUT_MS);
-  await browser.navigate("/recommend", "Build around your anchors");
+  await browser.navigate("/recommend", "Discover your best teams");
   await browser.clickButton("Continue to experiment");
   await browser.setLabeledControl("Results", "10", "select");
   await browser.setLabeledControl("Meta targets", "5", "select");
@@ -3226,6 +3264,7 @@ async function main(): Promise<void> {
     const webSocketUrl = await findPageWebSocket(
       debuggingPort,
       appUrl,
+      chrome.process,
       chrome.output,
     );
     client = await DevToolsClient.connect(webSocketUrl);
