@@ -582,15 +582,24 @@ class BrowserWorkflow {
     expression: string,
     timeoutMs = STEP_TIMEOUT_MS,
   ): Promise<T> {
-    const response = (await this.client.call(
-      "Runtime.evaluate",
-      {
-        expression,
-        awaitPromise: true,
-        returnByValue: true,
-      },
-      timeoutMs,
-    )) as CdpResult;
+    let response: CdpResult;
+    try {
+      response = (await this.client.call(
+        "Runtime.evaluate",
+        {
+          expression,
+          awaitPromise: true,
+          returnByValue: true,
+        },
+        timeoutMs,
+      )) as CdpResult;
+    } catch (error) {
+      const summary = expression.replace(/\s+/g, " ").slice(0, 180);
+      throw new Error(
+        `Browser evaluation failed while running ${summary}: ${error instanceof Error ? error.message : String(error)}`,
+        { cause: error },
+      );
+    }
 
     if (response.exceptionDetails) {
       throw new Error(
@@ -3124,20 +3133,28 @@ async function runDuelWorkflow(browser: BrowserWorkflow, buildTarget: BrowserTes
     const log = document.querySelector('.duel-log');
     let lastTurn = log.querySelector('.duel-log__turn > strong').textContent;
     const times = [performance.now()];
+    const pause = () => Array.from(document.querySelectorAll('.duel-controls button'))
+      .find(button => button.textContent === 'Pause')?.click();
+    const timeout = setTimeout(() => {
+      observer.disconnect();
+      pause();
+      resolve([]);
+    }, 5_000);
     const observer = new MutationObserver(() => {
       const turn = log.querySelector('.duel-log__turn > strong').textContent;
       if (turn === lastTurn) return;
       lastTurn = turn; times.push(performance.now());
       if (times.length === 4) {
+        clearTimeout(timeout);
         observer.disconnect();
-        Array.from(document.querySelectorAll('.duel-controls button')).find(button => button.textContent === 'Pause').click();
+        pause();
         resolve(times.slice(1).map((time, index) => time - times[index]));
       }
     });
     observer.observe(log, { childList: true, subtree: true });
     Array.from(document.querySelectorAll('.duel-controls button')).find(button => button.textContent === 'Play').click();
   })`);
-  invariant(turnIntervals.every(ms => ms >= 450 && ms < 800), `1× playback was not 500 ms per turn: ${turnIntervals.join(',')}`);
+  invariant(turnIntervals.length === 3 && turnIntervals.every(ms => ms >= 450 && ms < 800), `1× playback did not advance at 500 ms per turn: ${turnIntervals.join(',') || 'no turns observed'}`);
   const animatedResources = await browser.evaluate<boolean>(`(async () => {
     let damage = false, gain = false, spend = false;
     const next = document.querySelector('[aria-label="Next turn"]');
