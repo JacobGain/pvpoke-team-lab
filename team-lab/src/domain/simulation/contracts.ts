@@ -1,4 +1,5 @@
 import type { InventoryIvs } from "@/domain/inventory/schemas";
+import type { LeagueId } from "@/domain/leagues";
 
 export const OPEN_GREAT_LEAGUE_SIMULATION_FORMAT = {
   id: "great-league",
@@ -51,7 +52,7 @@ export interface BattleReplayFrame {
 
 export interface OneOnOneSimulationRequest {
   readonly captureReplay?: boolean;
-  readonly format: { readonly id: "great-league" | "ultra-league" | "master-league"; readonly cpCap: 1500 | 2500 | 10000; readonly levelCap: 50; readonly cup: "all" };
+  readonly format: { readonly id: LeagueId; readonly cpCap: 1500 | 2500 | 10000; readonly levelCap: 50; readonly cup: "all" | "mega" };
   readonly combatants: readonly [
     OneOnOneSimulationCombatant,
     OneOnOneSimulationCombatant,
@@ -90,6 +91,7 @@ export interface OneOnOneSimulationAdapter {
 
 export interface TeamRankerRequest {
   readonly cpCap?: number;
+  readonly cup?: "all" | "mega";
   readonly team: readonly ExactSimulationBuild[];
   readonly targets: readonly ExactSimulationBuild[];
   readonly teamShields: ShieldCount;

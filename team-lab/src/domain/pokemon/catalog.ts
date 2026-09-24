@@ -106,6 +106,7 @@ export interface PokemonCatalogDiagnostics {
 
 export interface PokemonCatalog {
   readonly cpCap?: number;
+  readonly formatId?: import("../leagues.ts").LeagueId;
   readonly dataVersion: string;
   readonly entries: readonly PokemonCatalogEntry[];
   readonly diagnostics: PokemonCatalogDiagnostics;

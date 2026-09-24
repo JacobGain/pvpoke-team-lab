@@ -1,5 +1,6 @@
 import { HomeIntroduction, HomeOverview } from "@/app/routes/PublicContent";
 import { useLeague } from "@/features/leagues/leagueStore";
+import { baseLeagueId } from "@/domain/leagues";
 import { LeagueName } from "@/features/leagues/LeagueSelector";
 import {
   ArrowRight,
@@ -113,7 +114,7 @@ export function HomePage() {
       <section className="dashboard-hero">
         <div className="dashboard-hero__copy">
           <div className="dashboard-hero__serial">
-            <span>TL–{league.id === "master-league" ? "ML" : league.id === "ultra-league" ? "UL" : "GL"} / 001</span>
+            <span>TL–{league.cup === "mega" ? "M" : ""}{baseLeagueId(league.id) === "master-league" ? "ML" : baseLeagueId(league.id) === "ultra-league" ? "UL" : "GL"} / 001</span>
             <span><LeagueName open /></span>
           </div>
           <p className="eyebrow">Competitive battle workspace</p>

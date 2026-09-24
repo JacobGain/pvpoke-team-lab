@@ -1,32 +1,59 @@
 import { ChevronDown } from "lucide-react";
 
-import { LEAGUES, type LeagueId } from "@/domain/leagues";
+import {
+  BASE_LEAGUE_IDS,
+  LEAGUES,
+  baseLeagueId,
+  leagueIdFor,
+} from "@/domain/leagues";
 import { useLeague, useLeagueStore } from "./leagueStore";
 
 export function LeagueSelector({ onSelect }: { readonly onSelect?: () => void }) {
-  const { leagueId, setLeague } = useLeagueStore();
+  const { leagueId, setLeague, setMega } = useLeagueStore();
+  const mega = leagueId.startsWith("mega-");
 
   return (
-    <label className="league-selector">
-      <span className="league-selector__label">Battle league</span>
-      <span className="league-selector__control">
-        <select
-          aria-label="Active league"
-          value={leagueId}
+    <div className="league-selector">
+      <label className="league-selector__primary">
+        <span className="league-selector__label">Battle league</span>
+        <span className="league-selector__control">
+          <select
+            aria-label="Active league"
+            value={baseLeagueId(leagueId)}
+            onChange={(event) => {
+              setLeague(
+                leagueIdFor(
+                  event.target.value as (typeof BASE_LEAGUE_IDS)[number],
+                  mega,
+                ),
+              );
+              onSelect?.();
+            }}
+          >
+            {BASE_LEAGUE_IDS.map((id) => LEAGUES[id]).map((option) => (
+              <option key={option.id} value={option.id}>
+                {option.shortTitle.replace(" League", "")} ·{" "}
+                {option.cp === 10000
+                  ? "No CP limit"
+                  : `${option.cp.toLocaleString()} CP`}
+              </option>
+            ))}
+          </select>
+          <ChevronDown aria-hidden="true" size={17} strokeWidth={2.2} />
+        </span>
+      </label>
+      <label className="league-selector__mega">
+        <input
+          type="checkbox"
+          checked={mega}
           onChange={(event) => {
-            setLeague(event.target.value as LeagueId);
+            setMega(event.target.checked);
             onSelect?.();
           }}
-        >
-          {Object.values(LEAGUES).map((league) => (
-            <option key={league.id} value={league.id}>
-              {league.shortTitle.replace(" League", "")} · {league.cp === 10000 ? "No CP limit" : `${league.cp.toLocaleString()} CP`}
-            </option>
-          ))}
-        </select>
-        <ChevronDown aria-hidden="true" size={17} strokeWidth={2.2} />
-      </span>
-    </label>
+        />
+        <span>Mega League</span>
+      </label>
+    </div>
   );
 }
 

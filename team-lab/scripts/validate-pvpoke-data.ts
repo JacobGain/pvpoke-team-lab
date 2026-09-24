@@ -101,5 +101,12 @@ const masterMeta = metaGroupSchema.parse(await readJson("groups/master.json"));
 const masterCatalog = buildPokemonCatalog(gameMaster, masterRankings, masterMeta, 10000);
 console.log(`Open Master League rankings: ${masterRankings.length}\nMaster League meta entries: ${masterMeta.length}\nMaster catalog diagnostics: ${countCatalogDiagnostics(masterCatalog.diagnostics)}`);
 
+for (const [name, cp, group, id] of [["Great", 1500, "megagreat", "mega-great-league"], ["Ultra", 2500, "megaultra", "mega-ultra-league"], ["Master", 10000, "mega", "mega-master-league"]] as const) {
+  const rankings = rankingCollectionSchema.parse(await readJson(`rankings/mega/overall/rankings-${cp}.json`));
+  const meta = metaGroupSchema.parse(await readJson(`groups/${group}.json`));
+  const megaCatalog = buildPokemonCatalog(gameMaster, rankings, meta, cp, id);
+  console.log(`Mega ${name} League rankings: ${rankings.length}\nMega ${name} League meta entries: ${meta.length}\nMega ${name} catalog diagnostics: ${countCatalogDiagnostics(megaCatalog.diagnostics)}`);
+}
+
 const dashboardData = dashboardDataSchema.parse(await readJson("dashboard.json"));
 console.log(`Dashboard species names: ${Object.keys(dashboardData.speciesNames).length}\nDashboard leaders: ${Object.values(dashboardData.leaders).flat().length}`);

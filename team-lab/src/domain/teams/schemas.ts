@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { LEAGUE_IDS } from "@/domain/leagues";
 
 import { SAVED_TEAM_SCHEMA_VERSION } from "@/domain/schemaVersions";
 
@@ -34,7 +35,7 @@ export const savedTeamSchema = z
     schemaVersion: z.literal(SAVED_TEAM_SCHEMA_VERSION),
     teamId: teamIdSchema,
     name: z.string().trim().min(1).max(100),
-    formatId: z.enum(["great-league", "ultra-league", "master-league"]),
+    formatId: z.enum(LEAGUE_IDS),
     members: savedTeamMembersSchema,
     notes: z.string().trim().max(2000),
     lastAnalyzedDataVersion: z.string().trim().min(1).max(200).optional(),
