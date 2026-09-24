@@ -1,6 +1,6 @@
 # TeamLab Local User Guide
 
-TeamLab 1.1.0 treats **Season 28 — Twilight Trails** as the active season for
+TeamLab 1.1.1 treats **Season 28 — Twilight Trails** as the active season for
 rankings, recommended moves, meta opponents, and simulations. The dashboard
 identifies the active season. Existing inventory and saved teams remain stored;
 re-run analyses to evaluate them against the new season. There is no preview
@@ -10,16 +10,19 @@ mode or season selector.
 
 Use **Active league** in the desktop sidebar or the mobile navigation menu to
 switch between Great League (1500 CP), Ultra League (2500 CP), and Master League
-(no CP limit). The selection is remembered on this browser. Switching returns to the dashboard; save any
+(no CP limit). Check **Mega** to use the corresponding Mega league. The selection is remembered on this browser. Switching returns to the dashboard; save any
 form edits first.
 
 Rankings, default IVs, build analysis, teams, recommendations, and simulation
-opponents follow the selected league. Each inventory record and saved team
-belongs to one league. Records saved before 0.0.7 remain in Great League.
+opponents follow the selected league. Owned inventory is shared across all
+leagues; saved teams remain specific to the selected league. The inventory
+defaults to builds best suited to that league. Change **League eligibility** to
+show every eligible build or all owned Pokémon. Older records remain available
+across leagues whenever their CP is legal.
 Master League defaults use 15/15/15 IVs at level 50 (or a lower species level
 cap). Planned builds maximize level with the entered IVs. Existing support for
 exact Best Buddy builds remains available; default rankings use level 50.
-Backups and reset tools cover all three leagues together; switching leagues does
+Backups and reset tools cover all formats together; switching leagues does
 not remove any records.
 
 ## What TeamLab does
@@ -173,10 +176,17 @@ autocomplete field. Then record:
 - current fast move;
 - one or two current charged moves;
 - favorite status;
+- an optional Mega form for species that can Mega evolve;
 - optional notes.
 
 TeamLab infers level from species, CP, and IVs. A CP/IV combination must map to
 a legal supported level before the record can be saved.
+In a Mega league, a Mega enabled current build uses the same IVs, moves, and
+level with the Mega form's stats. TeamLab calculates its Mega CP and offers it
+only in leagues whose cap it fits. The normal build remains available in open
+leagues. The default inventory filter places a normal build in its lowest CP
+league and its Mega form in the next eligible league; choose **Eligible** to
+see the same build in other leagues it can enter.
 
 New records default to **Enter actual IVs**. The form begins with legal
 suggested values; replace them with the Attack, Defense, and HP values shown by
@@ -269,7 +279,7 @@ Choose **Simulate** on a complete saved team.
 
 Select:
 
-- the number of current meta targets: Top 5, 10, 20, or 48;
+- the number of ranked targets: Top 5, 10, 20, 48, 100, or 250;
 - your shield count;
 - the target shield count.
 
@@ -307,7 +317,7 @@ starts from an exact owned anchor.
 - Optionally enable a second anchor.
 - Leave an anchor on **Best-fit role**, or lock it to Lead, Safe Switch, or
   Closer.
-- Request one to five result teams.
+- Request one to five or ten result teams (five by default).
 - Choose ready-now and planned builds together, ready-now only, or planned
   only.
 - Optionally include highly ranked Pokémon outside your inventory. These use
@@ -443,7 +453,7 @@ inside TeamLab; recovery requires a previously downloaded backup.
 
 ## Data versions and refreshes
 
-TeamLab reads the Game Master, all three leagues’ rankings and meta
+TeamLab reads the Game Master, open and Mega league rankings and meta
 groups, and simulation scripts from its checked-in
 `public/vendor/pvpoke/` directory.
 

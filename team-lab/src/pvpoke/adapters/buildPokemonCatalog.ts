@@ -13,6 +13,7 @@ import type {
   PokemonData,
   Ranking,
 } from "../types/schemas.ts";
+import type { LeagueId } from "../../domain/leagues.ts";
 
 const MISSING_MOVE_ID = "none";
 
@@ -170,6 +171,7 @@ export function buildPokemonCatalog(
   rankings: readonly Ranking[],
   metaGroup: readonly MetaGroupEntry[],
   cpCap = 1500,
+  formatId?: LeagueId,
 ): PokemonCatalog {
   const duplicatePokemonIds = findDuplicates(
     gameMaster.pokemon.map((pokemon) => pokemon.speciesId),
@@ -349,6 +351,7 @@ export function buildPokemonCatalog(
 
   return Object.freeze({
     cpCap,
+    formatId,
     dataVersion: gameMaster.timestamp,
     entries: Object.freeze(entries),
     diagnostics,

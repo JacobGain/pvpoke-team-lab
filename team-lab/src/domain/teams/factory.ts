@@ -1,4 +1,4 @@
-import { leagueForCp } from "@/domain/leagues";
+import { leagueForCatalog } from "@/domain/leagues";
 import type { InventoryPokemon } from "@/domain/inventory/schemas";
 import type { PokemonCatalog } from "@/domain/pokemon/catalog";
 import {
@@ -31,7 +31,7 @@ export function createSavedTeam(
     schemaVersion: SAVED_TEAM_SCHEMA_VERSION,
     teamId: dependencies.createId?.() ?? globalThis.crypto.randomUUID(),
     name: input.name,
-    formatId: leagueForCp(dependencies.catalog.cpCap).id,
+    formatId: leagueForCatalog(dependencies.catalog).id,
     members: input.members,
     notes: input.notes ?? "",
     createdAt: timestamp,

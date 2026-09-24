@@ -1,4 +1,4 @@
-import { leagueForCp } from "@/domain/leagues";
+import { leagueForCatalog } from "@/domain/leagues";
 import { analyzeInventoryBuild } from "@/domain/analysis/buildAnalysis";
 import { serializeAnalyzedBuildForSimulation } from "@/domain/simulation/buildSerialization";
 import type { ShieldCount } from "@/domain/simulation/contracts";
@@ -39,8 +39,8 @@ export function prepareSavedTeamRankerRequest(
     readonly targetShields: ShieldCount;
   },
 ): TeamRankerPreparedRequest {
-  if (team.formatId !== leagueForCp(catalog.cpCap).id) throw new TeamRankerPreparationError("Select the team’s league before simulating it.");
-  const resolved = resolveSavedTeam(team, inventory, catalog.entries);
+  if (team.formatId !== leagueForCatalog(catalog).id) throw new TeamRankerPreparationError("Select the team’s league before simulating it.");
+  const resolved = resolveSavedTeam(team, inventory, catalog.entries, catalog);
 
   if (!resolved.isComplete) {
     throw new TeamRankerPreparationError(

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { LEAGUES } from "@/domain/leagues";
 
 import { TEAM_LAB_BACKUP_SCHEMA_VERSION } from "@/domain/schemaVersions";
 import {
@@ -160,7 +161,7 @@ export function createTeamLabBackup(
     const teamIssues = validateSavedTeamLegality(
       team,
       validatedInventory,
-      catalog,
+      { ...catalog, cpCap: LEAGUES[team.formatId].cp, formatId: team.formatId },
     );
     if (teamIssues.length > 0) {
       issues.push(
@@ -327,7 +328,7 @@ export function inspectTeamLabBackup(
     }
 
     firstTeamIndexById.set(team.teamId, index);
-    const teamIssues = validateSavedTeamLegality(team, inventory, catalog);
+    const teamIssues = validateSavedTeamLegality(team, inventory, { ...catalog, cpCap: LEAGUES[team.formatId].cp, formatId: team.formatId });
 
     if (teamIssues.length > 0) {
       issues.push({

@@ -2,6 +2,7 @@ import {
   calculateEffectiveStats,
   type EffectiveStats,
 } from "@/domain/analysis/ivRankings";
+import { leagueForCatalog } from "@/domain/leagues";
 import { calculateCombatPower } from "@/domain/pokemon/combatPower";
 import type {
   CatalogRoleScores,
@@ -16,7 +17,7 @@ import type {
   TeamRankerResult,
 } from "@/domain/simulation/contracts";
 
-export const META_TARGET_LIMITS = [5, 10, 20, 48] as const;
+export const META_TARGET_LIMITS = [5, 10, 20, 48, 100, 250] as const;
 export type MetaTargetLimit = (typeof META_TARGET_LIMITS)[number];
 
 export type OrderedExactTeamBuilds = readonly [
@@ -159,7 +160,7 @@ export function prepareTeamRankerRequest(
   }
 
   const availableTargets = catalog.entries.flatMap((pokemon) => {
-    if (!pokemon.isMeta) return [];
+    if (!pokemon.ranking) return [];
     const build = createMetaDefaultBuild(pokemon);
     return build ? [build] : [];
   });
@@ -167,13 +168,14 @@ export function prepareTeamRankerRequest(
 
   if (targets.length === 0) {
     throw new TeamRankerPreparationError(
-      "The current catalog has no simulation-ready meta targets.",
+      "The current catalog has no simulation-ready ranked targets.",
     );
   }
 
   return {
     request: {
       cpCap: catalog.cpCap ?? 1500,
+      cup: leagueForCatalog(catalog).cup,
       team,
       targets,
       teamShields: options.teamShields,

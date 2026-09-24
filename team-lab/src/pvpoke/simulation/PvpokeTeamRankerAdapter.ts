@@ -79,7 +79,7 @@ export class PvpokeTeamRankerAdapter implements TeamRankerAdapter {
     const stagingBattle = this.runtime.createBattle();
     stagingBattle.setLevelCap(50);
     stagingBattle.setCP(request.cpCap ?? 1500);
-    stagingBattle.setCup("all");
+    stagingBattle.setCup(request.cup ?? "all");
     const team = configureBuilds(
       this.runtime,
       stagingBattle,
@@ -108,7 +108,7 @@ export class PvpokeTeamRankerAdapter implements TeamRankerAdapter {
       const result = ranker.rank(
         team,
         request.cpCap ?? 1500,
-        { name: "all", include: [], exclude: [] },
+        { name: request.cup ?? "all", include: [], exclude: [] },
         [],
         "matrix",
       );

@@ -50,8 +50,8 @@ describe("Master League", () => {
     expect(analysis.current.ivRanking.rankOne.cp).toBeLessThanOrEqual(10000);
     expect(analysis.current.ivRanking.rankOne.cp).toBeGreaterThan(3000);
     expect(master.entries.find((p) => p.speciesId === "dragonite")!.defaultLeagueIvs).not.toEqual(great.entries.find((p) => p.speciesId === "dragonite")!.defaultLeagueIvs);
-    expect(() => analyzeInventoryBuild(owned, great)).toThrow("league");
-    expect(inventoryPokemonSchema.safeParse({ ...owned, formatId: "great-league" }).success).toBe(false);
+    expect(() => analyzeInventoryBuild(owned, great)).toThrow("not eligible");
+    expect(inventoryPokemonSchema.safeParse({ ...owned, formatId: "great-league" }).success).toBe(true);
     expect(inventoryPokemonSchema.safeParse({ ...owned, currentBuild: { ...owned.currentBuild, cp: 10001 } }).success).toBe(false);
   });
 
@@ -86,21 +86,21 @@ describe("Master League", () => {
     expect(inventoryPokemonSchema.parse(legacy).formatId).toBeUndefined();
   });
 
-  it("prepares Master League targets and rejects mixed-league teams", () => {
+  it("prepares Master League targets and shares eligible owned records", () => {
     const { inventory, saved } = team(master);
     const prepared = prepareSavedTeamRankerRequest(saved, inventory, master, { targetLimit: 5, teamShields: 1, targetShields: 1 });
     expect(prepared.request.cpCap).toBe(10000);
     expect(prepared.request.targets).toHaveLength(5);
     expect(prepared.request.targets.every((p) => p.cp <= 10000)).toBe(true);
     expect(prepared.request.targets.some((p) => p.cp > 1500)).toBe(true);
-    expect(() => createSavedTeam({ name: "Mixed", members: saved.members }, { inventory: [ { ...inventory[0]!, formatId: "great-league" }, ...inventory.slice(1) ], catalog: master })).toThrow("different league");
+    expect(() => createSavedTeam({ name: "Mixed", members: saved.members }, { inventory: [ { ...inventory[0]!, formatId: "great-league" }, ...inventory.slice(1) ], catalog: master })).not.toThrow();
     expect(() => prepareSavedTeamRankerRequest(saved, inventory, great, { targetLimit: 5, teamShields: 1, targetShields: 1 })).toThrow("league");
   });
 
-  it("excludes Great League inventory from Master League recommendations", () => {
+  it("includes Great League inventory in Master League recommendations when eligible", () => {
     const { inventory } = team(master);
     const foreign = record("azumarill", great);
     const pool = buildRecommendationCandidatePool({ formatId: "master-league", anchors: [{ inventoryId: inventory[0]!.inventoryId, position: "lead" }], resultCount: 1, buildStatusScope: "all", partnerScope: "owned-only" }, [...inventory, foreign], master);
-    expect(JSON.stringify(pool)).not.toContain(foreign.inventoryId);
+    expect(pool.partners.some((partner) => partner.inventoryId === foreign.inventoryId)).toBe(true);
   });
 });

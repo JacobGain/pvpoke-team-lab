@@ -17,6 +17,7 @@ import { Link } from "react-router";
 import { PageHeader } from "@/components/PageHeader";
 import { PokemonSprite } from "@/components/PokemonSprite";
 import type { InventoryPokemon } from "@/domain/inventory/schemas";
+import { projectInventoryForCatalog } from "@/domain/inventory/leagueEligibility";
 import type { PokemonCatalog } from "@/domain/pokemon/catalog";
 import { buildRecommendationCandidatePool } from "@/domain/recommendations/candidatePool";
 import {
@@ -70,7 +71,9 @@ function selectedSpeciesId(record: InventoryPokemon): string {
 function inventoryLabel(
   record: InventoryPokemon,
   catalogById: ReadonlyMap<string, PokemonCatalog["entries"][number]>,
+  catalog: PokemonCatalog,
 ): string {
+  record = projectInventoryForCatalog(record, catalog) ?? record;
   const speciesId = selectedSpeciesId(record);
   const pokemon = catalogById.get(speciesId);
   const cp =
@@ -315,7 +318,7 @@ export function RecommendationPage() {
   const [anchorTwoId, setAnchorTwoId] = useState("");
   const [anchorTwoPosition, setAnchorTwoPosition] =
     useState<RecommendationAnchorPosition>("flex");
-  const [resultCount, setResultCount] = useState(3);
+  const [resultCount, setResultCount] = useState(5);
   const [buildStatusScope, setBuildStatusScope] =
     useState<RecommendationBuildStatusScope>("all");
   const [includeRankedPartners, setIncludeRankedPartners] = useState(false);
@@ -360,9 +363,9 @@ export function RecommendationPage() {
   const catalogById = new Map(
     catalog.entries.map((pokemon) => [pokemon.speciesId, pokemon]),
   );
-  const inventoryOptions = [...inventory].sort((left, right) =>
-    inventoryLabel(left, catalogById).localeCompare(
-      inventoryLabel(right, catalogById),
+  const inventoryOptions = inventory.filter((record) => projectInventoryForCatalog(record, catalog)).sort((left, right) =>
+    inventoryLabel(left, catalogById, catalog).localeCompare(
+      inventoryLabel(right, catalogById, catalog),
     ),
   );
   const resolvedAnchorOneId =
@@ -587,7 +590,7 @@ export function RecommendationPage() {
                 >
                   {inventoryOptions.map((record) => (
                     <option key={record.inventoryId} value={record.inventoryId}>
-                      {inventoryLabel(record, catalogById)}
+                      {inventoryLabel(record, catalogById, catalog)}
                     </option>
                   ))}
                 </select>
@@ -628,7 +631,7 @@ export function RecommendationPage() {
                             record.inventoryId === resolvedAnchorOneId
                           }
                         >
-                          {inventoryLabel(record, catalogById)}
+                          {inventoryLabel(record, catalogById, catalog)}
                         </option>
                       ))}
                     </select>
@@ -684,7 +687,7 @@ export function RecommendationPage() {
                     setResultCount(Number(event.target.value))
                   }
                 >
-                  {[1, 2, 3, 4, 5].map((count) => (
+                  {[1, 2, 3, 4, 5, 10].map((count) => (
                     <option key={count} value={count}>
                       {count}
                     </option>
@@ -720,9 +723,7 @@ export function RecommendationPage() {
                 >
                   {META_TARGET_LIMITS.map((limit) => (
                     <option key={limit} value={limit}>
-                      {limit === 48
-                        ? "Greater Meta (48) · best grade accuracy"
-                        : `Top ${limit} · faster`}
+                      {limit === 250 ? "Top 250 · extensive" : limit === 100 ? "Top 100 · broad" : `Top ${limit}`}
                     </option>
                   ))}
                 </select>

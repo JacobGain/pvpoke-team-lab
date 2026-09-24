@@ -22,6 +22,10 @@
 }
 
 @media (max-width: 680px) {
+  .app-frame {
+    container-type: inline-size;
+  }
+
   body {
     padding-bottom: calc(4.3rem + env(safe-area-inset-bottom));
   }
@@ -53,7 +57,7 @@
     right: auto;
     bottom: calc(4.8rem + env(safe-area-inset-bottom));
     left: 0.65rem;
-    width: calc(100vw - 1.3rem);
+    width: calc(100cqw - 1.3rem);
     transform: translateY(0.6rem) scale(0.98);
   }
 
@@ -67,7 +71,7 @@
     right: auto;
     bottom: 0;
     left: 0;
-    width: 100vw;
+    width: 100cqw;
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
     padding: 0.42rem max(0.3rem, env(safe-area-inset-right))

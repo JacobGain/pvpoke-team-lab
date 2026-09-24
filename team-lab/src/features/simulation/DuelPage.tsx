@@ -39,8 +39,12 @@ function BuildEditor({ index, catalog, value, onChange }: {
       }}>{slot === 1 && <option value="">None</option>}{pokemon.chargedMoves.map(move => <option key={move.id} value={move.id}>{move.name}{move.isElite || move.isLegacy ? ' *' : ''} · {move.energy} energy</option>)}</select></label>)}
       <label><span>Shields</span><select value={value.shields} onChange={event => onChange({ ...value, shields: Number(event.target.value) as ShieldCount })}>{[0, 1, 2].map(count => <option key={count} value={count}>{count} shields</option>)}</select></label>
     </div>
-    <div className="duel-ivs"><label><span>Level</span><input type="number" min={pokemon.levelFloor} max={Math.min(50, pokemon.levelCap)} step="0.5" value={build.level} onChange={event => update({ level: Number(event.target.value) })} /></label>{(['attack', 'defense', 'hp'] as const).map(stat => <label key={stat}><span>{stat === 'hp' ? 'HP IV' : `${stat} IV`}</span><input type="number" min="0" max="15" step="1" value={build.ivs[stat]} onChange={event => update({ ivs: { ...build.ivs, [stat]: Number(event.target.value) } })} /></label>)}</div>
-    <div className="duel-build__footer"><button type="button" onClick={() => update({ level: fitDuelLevel(pokemon, build.ivs, league.cp) })}>Fit to league</button><small>* Elite / legacy move</small></div>
+    <details className="duel-advanced">
+      <summary>Level &amp; IVs <span>Lv {build.level} · {build.ivs.attack}/{build.ivs.defense}/{build.ivs.hp}</span></summary>
+      <div className="duel-ivs"><label><span>Level</span><input type="number" min={pokemon.levelFloor} max={Math.min(50, pokemon.levelCap)} step="0.5" value={build.level} onChange={event => update({ level: Number(event.target.value) })} /></label>{(['attack', 'defense', 'hp'] as const).map(stat => <label key={stat}><span>{stat === 'hp' ? 'HP IV' : `${stat} IV`}</span><input type="number" min="0" max="15" step="1" value={build.ivs[stat]} onChange={event => update({ ivs: { ...build.ivs, [stat]: Number(event.target.value) } })} /></label>)}</div>
+      <button className="duel-fit" type="button" onClick={() => update({ level: fitDuelLevel(pokemon, build.ivs, league.cp) })}>Fit to league</button>
+    </details>
+    <small className="duel-move-note">* Elite / legacy move</small>
     {error && <p className="duel-error" role="alert">{error}</p>}
   </fieldset>;
 }
@@ -75,11 +79,11 @@ function DuelWorkspace({ catalog }: { catalog: PokemonCatalog }) {
     setBusy(true); setError(''); setPlaying(false);
     try {
       const response = await createPvpokeOneOnOneAdapter(catalog.dataVersion).simulate({
-        format: { id: league.id, cpCap: league.cp, levelCap: 50, cup: 'all' },
+        format: { id: league.id, cpCap: league.cp, levelCap: 50, cup: league.cup },
         combatants: [combatants[0], combatants[1]].map(value => ({ ...value, build: { ...value.build, cp: calculateCombatPower(catalog.entries.find(entry => entry.speciesId === value.build.speciesId)!.baseStats, value.build.ivs, value.build.level) } })) as [OneOnOneSimulationCombatant, OneOnOneSimulationCombatant],
         dataVersion: catalog.dataVersion, captureReplay: true,
       });
-      setResult(response); setCursor(0);
+      setResult(response); setCursor(0); setPlaying((response.replay?.length ?? 0) > 1);
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'Battle could not be simulated. Please try again.'); }
     finally { setBusy(false); }
   }
@@ -122,7 +126,7 @@ function DuelWorkspace({ catalog }: { catalog: PokemonCatalog }) {
       <label className="duel-scrubber">Turn {frame.turn}<input aria-label="Battle turn" type="range" min="0" max={frames.length - 1} value={cursor} onChange={event => { setPlaying(false); setCursor(Number(event.target.value)); }} /></label>
       <section className="duel-log" aria-label="Turn log">
         <h3>Turn log <small>Latest first</small></h3>
-        {cursor === 0 ? <p>Full HP, zero energy. Press Play or step through the battle.</p> :
+        {cursor === 0 ? <p>Full HP, zero energy. Playback starts automatically; use the controls to pause or step through the battle.</p> :
           <ol aria-live={playing && !finished ? 'off' : 'polite'}>
             {frames.slice(1, cursor + 1).reverse().map(item => {
               const events = visibleBattleEvents(item.events);

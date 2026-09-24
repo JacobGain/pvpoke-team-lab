@@ -40,7 +40,7 @@ export const DEFAULT_RECOMMENDATION_STATIC_POLICY: RecommendationStaticPolicy =
     maxGeneratedTeams: 250,
     finalistMultiplier: 3,
     minimumFinalists: 6,
-    maximumFinalists: 15,
+    maximumFinalists: 30,
     maxOptionalCoreRepeats: 2,
     scoreWeights: Object.freeze({
       complementarity: 0.4,

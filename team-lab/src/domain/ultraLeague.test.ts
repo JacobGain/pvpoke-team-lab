@@ -6,7 +6,7 @@ import ultraMeta from "../../public/vendor/pvpoke/data/groups/ultra.json";
 import { describe, expect, it } from "vitest";
 import { buildPokemonCatalog } from "@/pvpoke/adapters/buildPokemonCatalog";
 import { gameMasterSchema, metaGroupSchema, rankingCollectionSchema } from "@/pvpoke/types/schemas";
-import { createInventoryPokemon } from "@/domain/inventory/factory";
+import { createInventoryPokemon, updateInventoryPokemon } from "@/domain/inventory/factory";
 import { inventoryPokemonSchema } from "@/domain/inventory/schemas";
 import { analyzeInventoryBuild } from "@/domain/analysis/buildAnalysis";
 import { createMetaDefaultBuild } from "@/domain/simulation/teamRanker";
@@ -44,9 +44,9 @@ describe("Ultra League", () => {
     expect(analysis.current.ivRanking.rankOne.cp).toBeLessThanOrEqual(2500);
     expect(analysis.current.ivRanking.rankOne.cp).toBeGreaterThan(2400);
     expect(ultra.entries.find((p) => p.speciesId === "feraligatr")!.defaultLeagueIvs).not.toEqual(great.entries.find((p) => p.speciesId === "feraligatr")!.defaultLeagueIvs);
-    expect(() => analyzeInventoryBuild(owned, great)).toThrow("league");
-    expect(inventoryPokemonSchema.safeParse({ ...owned, formatId: "great-league" }).success).toBe(false);
-    expect(inventoryPokemonSchema.safeParse({ ...owned, currentBuild: { ...owned.currentBuild, cp: 2501 } }).success).toBe(false);
+    expect(() => analyzeInventoryBuild(owned, great)).toThrow("not eligible");
+    expect(inventoryPokemonSchema.safeParse({ ...owned, formatId: "great-league" }).success).toBe(true);
+    expect(inventoryPokemonSchema.safeParse({ ...owned, currentBuild: { ...owned.currentBuild, cp: 10001 } }).success).toBe(false);
   });
 
   it("derives planned builds at 2500 CP and enforces their target cap", () => {
@@ -62,7 +62,7 @@ describe("Ultra League", () => {
     expect(inventoryPokemonSchema.safeParse({
       ...planned,
       plannedBuild: { targetSpeciesId: owned.speciesId, desiredMoveset: owned.currentBuild.moveset, targetCp: 2501 },
-    }).success).toBe(false);
+    }).success).toBe(true);
   });
 
   it("keeps legacy Great League records and both leagues in portable backups", () => {
@@ -80,21 +80,37 @@ describe("Ultra League", () => {
     expect(inventoryPokemonSchema.parse(legacy).formatId).toBeUndefined();
   });
 
-  it("prepares Ultra League targets and rejects mixed-league teams", () => {
+  it("preserves an assumed owned spread when edited from another league", () => {
+    const owned = record("azumarill", great);
+    const edited = updateInventoryPokemon(owned, {
+      buildStatus: "current",
+      speciesId: owned.speciesId,
+      currentBuild: {
+        cp: owned.currentBuild.cp,
+        ivProfile: { source: "assumed-rank-1", ivs: owned.currentBuild.ivProfile.ivs },
+        moveset: owned.currentBuild.moveset,
+      },
+    }, { catalog: ultra });
+    expect(edited.inventoryId).toBe(owned.inventoryId);
+    expect(edited.currentBuild).toEqual(owned.currentBuild);
+    expect(edited.formatId).toBe("great-league");
+  });
+
+  it("prepares Ultra League targets and shares eligible owned records", () => {
     const { inventory, saved } = team(ultra);
     const prepared = prepareSavedTeamRankerRequest(saved, inventory, ultra, { targetLimit: 5, teamShields: 1, targetShields: 1 });
     expect(prepared.request.cpCap).toBe(2500);
     expect(prepared.request.targets).toHaveLength(5);
     expect(prepared.request.targets.every((p) => p.cp <= 2500)).toBe(true);
     expect(prepared.request.targets.some((p) => p.cp > 1500)).toBe(true);
-    expect(() => createSavedTeam({ name: "Mixed", members: saved.members }, { inventory: [ { ...inventory[0]!, formatId: "great-league" }, ...inventory.slice(1) ], catalog: ultra })).toThrow("different league");
+    expect(() => createSavedTeam({ name: "Mixed", members: saved.members }, { inventory: [ { ...inventory[0]!, formatId: "great-league" }, ...inventory.slice(1) ], catalog: ultra })).not.toThrow();
     expect(() => prepareSavedTeamRankerRequest(saved, inventory, great, { targetLimit: 5, teamShields: 1, targetShields: 1 })).toThrow("league");
   });
 
-  it("excludes Great League inventory from Ultra League recommendations", () => {
+  it("includes Great League inventory in Ultra League recommendations when eligible", () => {
     const { inventory } = team(ultra);
     const foreign = record("azumarill", great);
     const pool = buildRecommendationCandidatePool({ formatId: "ultra-league", anchors: [{ inventoryId: inventory[0]!.inventoryId, position: "lead" }], resultCount: 1, buildStatusScope: "all", partnerScope: "owned-only" }, [...inventory, foreign], ultra);
-    expect(JSON.stringify(pool)).not.toContain(foreign.inventoryId);
+    expect(pool.partners.some((partner) => partner.inventoryId === foreign.inventoryId)).toBe(true);
   });
 });
