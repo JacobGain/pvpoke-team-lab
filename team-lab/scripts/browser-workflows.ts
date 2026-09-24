@@ -1675,6 +1675,16 @@ async function runCriticalWorkflows(
     `document.querySelector("#current-format-title")?.textContent?.trim() === "Open Great League"`,
     "current battle format",
   );
+  await browser.setViewport(1024, 600);
+  invariant(await browser.evaluate<boolean>(`(() => {
+    const rail = document.querySelector(".app-rail");
+    const footer = rail?.querySelector(".app-rail__footer");
+    if (!(rail instanceof HTMLElement) || !(footer instanceof HTMLElement)) return false;
+    const scrollable = getComputedStyle(rail).overflowY === "auto";
+    rail.scrollTop = rail.scrollHeight;
+    return scrollable && footer.getBoundingClientRect().bottom <= rail.getBoundingClientRect().bottom + 1;
+  })()`), "Desktop navigation footer is unreachable in a short window.");
+  await browser.setViewport(1440, 1_000);
   invariant(
     await browser.evaluate(`document.querySelector(".format-card")?.textContent?.includes("Season 28 · Twilight Trails")`),
     "The dashboard did not identify Season 28 as active.",
