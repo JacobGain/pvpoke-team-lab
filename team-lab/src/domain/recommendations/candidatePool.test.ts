@@ -114,7 +114,7 @@ function request(
 }
 
 describe("recommendation request contract", () => {
-  it("accepts one or two anchors and a one-to-five result count", () => {
+  it("accepts one or two anchors and a one-to-ten result count", () => {
     expect(request()).toMatchObject({
       anchors: [{ inventoryId: ids.azumarill, position: "flex" }],
       resultCount: 3,
@@ -125,7 +125,7 @@ describe("recommendation request contract", () => {
           { inventoryId: ids.azumarill, position: "lead" },
           { inventoryId: ids.altaria, position: "switch" },
         ],
-        resultCount: 5,
+        resultCount: 10,
       }).anchors,
     ).toHaveLength(2);
   });
@@ -157,7 +157,7 @@ describe("recommendation request contract", () => {
       recommendationRequestSchema.safeParse({
         formatId: "great-league",
         anchors: [{ inventoryId: ids.azumarill, position: "flex" }],
-        resultCount: 6,
+        resultCount: 11,
         buildStatusScope: "all",
       }).success,
     ).toBe(false);

@@ -148,6 +148,34 @@ describe("saved-team ranking preparation", () => {
     });
   });
 
+  it("can reach ranked threats beyond the small meta group", () => {
+    const { inventory, team } = setup();
+    const ranked = inventoryTestCatalog.entries.find((entry) => entry.ranking)!;
+    const extendedCatalog = {
+      ...inventoryTestCatalog,
+      entries: [
+        ...inventoryTestCatalog.entries,
+        ...Array.from({ length: 250 }, (_, index) => ({
+          ...ranked,
+          speciesId: `ranked-threat-${index + 1}`,
+          speciesName: `Ranked threat ${index + 1}`,
+          dex: 2000 + index,
+          ranking: { ...ranked.ranking!, rank: index + 3 },
+          isMeta: false,
+        })),
+      ],
+    };
+    for (const targetLimit of [100, 250] as const) {
+      const prepared = prepareSavedTeamRankerRequest(team, inventory, extendedCatalog, {
+        targetLimit,
+        teamShields: 1,
+        targetShields: 1,
+      });
+      expect(prepared.scope.selectedTargetCount).toBe(targetLimit);
+      expect(prepared.scope.targetSpeciesIds).toContain("ranked-threat-1");
+    }
+  });
+
   it("measures execution and labels a slow synchronous run", async () => {
     const { inventory, team } = setup();
     const prepared = prepareSavedTeamRankerRequest(

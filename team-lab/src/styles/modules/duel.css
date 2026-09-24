@@ -11,7 +11,12 @@
 .duel-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .duel-fields label, .duel-ivs label { display: grid; gap: 6px; font-size: .8rem; font-weight: 650; text-transform: capitalize; min-width: 0; }
 .duel-page select, .duel-page input[type=number] { width: 100%; min-height: 42px; border: 1px solid var(--line-strong); border-radius: 8px; padding: 8px; background: white; color: var(--ink-900); }
-.duel-ivs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 16px 0; }
+.duel-advanced { margin-top: 16px; border-top: 1px solid var(--line); }
+.duel-advanced summary { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; min-height: 44px; color: var(--ink-900); }
+.duel-advanced summary span { color: var(--ink-600); font-size: .8rem; font-weight: 500; }
+.duel-ivs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 8px 0 12px; }
+.duel-fit { border: 1px solid var(--line); background: white; color: var(--ink-900); padding: 10px 12px; border-radius: 8px; min-height: 44px; }
+.duel-move-note { display: block; margin-top: 8px; color: var(--ink-600); }
 .duel-build__footer { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .duel-build__footer small { color: var(--ink-600); }
 .duel-page button { cursor: pointer; }
