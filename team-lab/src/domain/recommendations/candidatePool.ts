@@ -1,4 +1,5 @@
-import { leagueForCp } from "@/domain/leagues";
+import { leagueForCatalog } from "@/domain/leagues";
+import { projectInventoryForCatalog } from "@/domain/inventory/leagueEligibility";
 import {
   analyzeInventoryBuild,
   type BuildRequirement,
@@ -239,8 +240,8 @@ export function buildRecommendationCandidatePool(
   inventory: readonly InventoryPokemon[],
   catalog: PokemonCatalog,
 ): RecommendationCandidatePool {
-  if (request.formatId !== leagueForCp(catalog.cpCap).id) throw new Error("Recommendation league must match the catalog.");
-  inventory = inventory.filter((record) => (record.formatId ?? "great-league") === request.formatId);
+  if (request.formatId !== leagueForCatalog(catalog).id) throw new Error("Recommendation league must match the catalog.");
+  inventory = inventory.filter((record) => projectInventoryForCatalog(record, catalog) !== undefined);
   const validatedRequest = recommendationRequestSchema.parse(request);
   const inventoryById = new Map(
     inventory.map((record) => [record.inventoryId, record]),
@@ -283,7 +284,7 @@ export function buildRecommendationCandidatePool(
       continue;
     }
 
-    const pokemon = catalogById.get(selectedSpeciesId(record));
+    const pokemon = catalogById.get(selectedSpeciesId(projectInventoryForCatalog(record, catalog)!));
 
     if (!pokemon) {
       anchorIssues.push({
@@ -365,7 +366,7 @@ export function buildRecommendationCandidatePool(
       continue;
     }
 
-    const pokemon = catalogById.get(selectedSpeciesId(record));
+    const pokemon = catalogById.get(selectedSpeciesId(projectInventoryForCatalog(record, catalog)!));
 
     if (!pokemon) {
       exclusions.push({

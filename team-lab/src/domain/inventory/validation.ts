@@ -8,6 +8,7 @@ import type {
   PokemonCatalogEntry,
 } from "@/domain/pokemon/catalog";
 import { inferCombatPowerLevel } from "@/domain/pokemon/combatPower";
+import { megaFormsForSpecies } from "@/domain/inventory/leagueEligibility";
 
 export interface InventoryValidationIssue {
   readonly code:
@@ -17,7 +18,8 @@ export interface InventoryValidationIssue {
     | "charged-move-not-found"
     | "assumed-ivs-unavailable"
     | "combat-power-no-match"
-    | "invalid-evolution";
+    | "invalid-evolution"
+    | "invalid-mega";
   readonly path: string;
   readonly message: string;
 }
@@ -38,6 +40,7 @@ function validateMoveset(
   path: string,
 ): InventoryValidationIssue[] {
   const issues: InventoryValidationIssue[] = [];
+
   const fastMoveIds = new Set(pokemon.fastMoves.map((move) => move.id));
   const chargedMoveIds = new Set(
     pokemon.chargedMoves.map((move) => move.id),
@@ -73,6 +76,10 @@ export function validateInventoryPokemonAgainstCatalog(
   );
   const currentPokemon = entries.get(record.speciesId);
   const issues: InventoryValidationIssue[] = [];
+
+  if (record.megaSpeciesId && !megaFormsForSpecies(record.speciesId, catalog).some((entry) => entry.speciesId === record.megaSpeciesId)) {
+    issues.push({ code: "invalid-mega", path: "megaSpeciesId", message: `${record.megaSpeciesId} is not an available Mega form of ${record.speciesId}.` });
+  }
 
   if (!currentPokemon) {
     return [

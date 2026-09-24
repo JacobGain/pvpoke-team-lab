@@ -1,4 +1,5 @@
-import { leagueForCp } from "@/domain/leagues";
+import { leagueForCatalog } from "@/domain/leagues";
+import { projectInventoryForCatalog } from "@/domain/inventory/leagueEligibility";
 import type {
   InventoryIvs,
   InventoryMoveset,
@@ -71,6 +72,7 @@ export interface AnalyzedPokemonBuild {
 export interface BuildRequirement {
   readonly code:
     | "evolve"
+    | "mega-evolve"
     | "power-up"
     | "change-fast-move"
     | "change-charged-move"
@@ -355,7 +357,10 @@ export function analyzeInventoryBuild(
   record: InventoryPokemon,
   catalog: PokemonCatalog,
 ): InventoryBuildAnalysis {
-  if ((record.formatId ?? "great-league") !== leagueForCp(catalog.cpCap).id) throw new Error("Select the record’s league before analyzing it.");
+  const originalSpeciesId = record.speciesId;
+  const selected = projectInventoryForCatalog(record, catalog);
+  if (!selected) throw new Error(`This Pokémon is not eligible for ${leagueForCatalog(catalog).shortTitle} at its recorded CP.`);
+  record = selected;
   const currentPokemon = catalog.entries.find(
     (pokemon) => pokemon.speciesId === record.speciesId,
   );
@@ -403,10 +408,12 @@ export function analyzeInventoryBuild(
     );
   }
 
-  const transitionRequirements = buildTransitionRequirements(
-    current,
-    planned,
-  );
+  const transitionRequirements = [
+    ...buildTransitionRequirements(current, planned),
+    ...(selected.speciesId !== originalSpeciesId
+      ? [{ code: "mega-evolve" as const, message: `Mega evolve ${originalSpeciesId} to use this build.` }]
+      : []),
+  ];
   const recommendedRequirements = buildRecommendedRequirements(
     catalog,
     planned ?? current,

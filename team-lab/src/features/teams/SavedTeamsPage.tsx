@@ -59,7 +59,7 @@ export function SavedTeamsPage() {
   const catalog = catalogResult.data;
 
   const resolvedTeams = teams.map((team) =>
-    resolveSavedTeam(team, inventory, catalog.entries),
+    resolveSavedTeam(team, inventory, catalog.entries, catalog),
   );
 
   return (
