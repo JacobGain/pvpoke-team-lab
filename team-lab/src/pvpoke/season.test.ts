@@ -9,7 +9,7 @@ import { ACTIVE_SEASON } from "./season";
 describe("active Season 28 bundle", () => {
   it("identifies the pinned Twilight Trails revision", () => {
     expect(manifest.season).toEqual(ACTIVE_SEASON);
-    expect(gameMaster.timestamp).toBe("2026-09-23 03:24:34");
+    expect(gameMaster.timestamp).toBe("2026-09-28 01:57:22");
     expect(manifest.dataVersion).toBe(gameMaster.timestamp);
   });
 
