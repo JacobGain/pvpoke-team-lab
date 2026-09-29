@@ -25,9 +25,10 @@ three supported open leagues.
 ## Refresh from upstream
 
 The active season is **Season 28 — Twilight Trails**. The default import reads
-Git blobs from revision `9dab4bcc8ce8cf201cca34c7632688674084eb16`, configured in
+Git blobs from revision `e87448291024aff808f21a2e5f74e69f68b521df`, configured in
 `src/pvpoke/season.ts`. This is upstream’s `master` branch for the active
-season. TeamLab uses it directly, including its battle engine.
+season. Its Game Master data is dated September 28, 2026. TeamLab uses it
+directly, including its battle engine.
 
 From `team-lab/`:
 
