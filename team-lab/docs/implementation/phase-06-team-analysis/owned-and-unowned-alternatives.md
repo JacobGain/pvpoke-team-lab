@@ -135,7 +135,8 @@ The domain characterization verifies:
 
 ## Known limitations
 
-- Candidates are not substituted into the saved team and resimulated.
+- The exact what-if control resimulates one eligible owned build in one team
+  position. It does not search multiple slots or evaluate unowned alternatives.
 - An owned candidate’s exact IVs and moves do not affect its candidate order.
 - Static ranking counters represent PvPoke’s published default assumptions,
   not necessarily the selected shield scenario or the owned build.
@@ -144,5 +145,5 @@ The domain characterization verifies:
 - The lists are recalculated in memory and are not persisted.
 - No direct upstream battle or team-builder link is exposed yet.
 
-The next recommendation layer should simulate exact owned substitutions before
-claiming a scorecard improvement.
+The published-counter lists remain recommendations; consult the what-if
+comparison before treating an owned substitution as a measured improvement.

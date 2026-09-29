@@ -291,10 +291,23 @@ The result includes:
 - coverage, bulk, safety, and consistency scorecards;
 - the selected meta scope and data version;
 - major threats and core breakers;
-- owned and unowned alternatives;
+- owned and unowned published-counter alternatives;
 - plain-language per-member win/loss/tie results and battle scores;
-- separately labeled target and team fast-move damage;
-- links into the inherited PvPoke UI for further inspection.
+- separately labeled target and team fast-move damage.
+
+### Compare a one-slot change
+
+Below the scorecard, use **What if you change one slot?** to choose Lead, Safe
+switch, or Closer and replace it with another eligible owned build. **Compare
+exact swap** runs the replacement against the same target list and shield
+settings as the current report. Review the before-and-after scorecard, gained
+or lost coverage, and changed threat matchups before keeping the result.
+
+The preview leaves your saved team unchanged. Choose **Update saved team** and
+confirm to replace its members, or choose **Save as a separate team** and name
+the copy. Candidates must be eligible for the selected league and satisfy the
+team species clause. The published-counter alternatives above remain
+recommendations; the what-if comparison is the exact resimulation.
 
 Larger target scopes perform more synchronous upstream battles and may
 temporarily occupy the browser tab. Start with Top 5 or Top 10 for routine
@@ -537,7 +550,7 @@ TeamLab currently supports:
 
 The MVP does not include:
 
-- limited cups, Ultra League, or Master League;
+- limited cups;
 - third-party inventory imports;
 - accounts, cloud synchronization, or multi-device storage;
 - PWA/offline guarantees;

@@ -239,11 +239,12 @@ Implemented:
 - owned exact-record counter candidates
 - unowned PvPoke-default counter candidates
 - species-clause filtering and source disclosure
+- exact one-slot owned-build what-if simulations with before-and-after scorecards
 - completed-run data provenance without external deep links
 
 Deferred enhancements:
 
-- exact substitution simulations and scorecard deltas
+- broader substitution search across multiple slots or unowned builds
 - upstream meta weighting and role evidence
 - persisted analysis cache
 
