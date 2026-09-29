@@ -31,6 +31,8 @@ import { useSavedTeam } from "@/features/teams/savedTeamQueries";
 import { createPvpokeTeamRankerAdapter } from "@/pvpoke/simulation";
 import { deriveTeamAlternatives } from "@/domain/teamAnalysis/alternatives";
 import { analyzeSavedTeamMatrix } from "@/domain/teamAnalysis/teamAnalysis";
+import type { SavedTeam } from "@/domain/teams/schemas";
+import { TeamWhatIfPanel } from "@/features/simulation/TeamWhatIfPanel";
 import {
   formatIdentifier,
   formatMoveList,
@@ -53,6 +55,7 @@ export function SavedTeamSimulationPage() {
   const [targetShields, setTargetShields] = useState<ShieldCount>(1);
   const [run, setRun] = useState<SavedTeamRankerRun>();
   const [runError, setRunError] = useState<unknown>();
+  const [teamUpdateNotice, setTeamUpdateNotice] = useState<string>();
   const [running, setRunning] = useState(false);
   const service = useMemo(
     () =>
@@ -141,6 +144,7 @@ export function SavedTeamSimulationPage() {
     setRunning(true);
     setRun(undefined);
     setRunError(undefined);
+    setTeamUpdateNotice(undefined);
 
     try {
       const prepared = prepareSavedTeamRankerRequest(
@@ -155,6 +159,38 @@ export function SavedTeamSimulationPage() {
     } finally {
       setRunning(false);
     }
+  }
+
+  function rerunUpdatedTeam(updatedTeam: SavedTeam): void {
+    const options = {
+      targetLimit: run?.scope.targetLimit ?? targetLimit,
+      teamShields: run?.scope.teamShields ?? teamShields,
+      targetShields: run?.scope.targetShields ?? targetShields,
+    };
+    setRun(undefined);
+    setRunError(undefined);
+    setRunning(true);
+    setTeamUpdateNotice("Saved team updated. Re-running the exact report…");
+
+    void (async () => {
+      try {
+        const prepared = prepareSavedTeamRankerRequest(
+          updatedTeam,
+          inventory,
+          catalog,
+          options,
+        );
+        setRun(await rankingService.rank(prepared));
+        setTeamUpdateNotice("Saved team updated and exact report refreshed.");
+      } catch (error) {
+        setRunError(error);
+        setTeamUpdateNotice(
+          "Saved team updated, but TeamLab could not refresh its report.",
+        );
+      } finally {
+        setRunning(false);
+      }
+    })();
   }
 
   return (
@@ -255,6 +291,12 @@ export function SavedTeamSimulationPage() {
         </button>
       </section>
 
+      {teamUpdateNotice ? (
+        <p className="analysis-notice" role="status">
+          {teamUpdateNotice}
+        </p>
+      ) : null}
+
       {targetLimit >= 20 ? (
         <p className="analysis-notice">
           Larger scopes run synchronously in the upstream browser engine and
@@ -340,6 +382,16 @@ export function SavedTeamSimulationPage() {
                   </small>
                 </article>
               </section>
+
+              <TeamWhatIfPanel
+                team={team}
+                inventory={inventory}
+                catalog={catalog}
+                baseline={run}
+                baselineAnalysis={analysis}
+                rankingService={rankingService}
+                onTeamUpdated={rerunUpdatedTeam}
+              />
 
               <section className="analysis-panel">
                 <p className="eyebrow">Score evidence</p>
@@ -514,8 +566,8 @@ export function SavedTeamSimulationPage() {
                       <p>
                         Candidates follow PvPoke’s published overall-ranking
                         counter evidence. Owned cards reference your exact
-                        saved record; unowned cards use PvPoke’s default Great
-                        League build.
+                        saved records; unowned cards use the selected league’s
+                        published default build.
                       </p>
                     </div>
                     <span className="rank-badge">
@@ -523,9 +575,9 @@ export function SavedTeamSimulationPage() {
                     </span>
                   </div>
                   <p className="analysis-notice">
-                    These candidates have not been substituted into this team
-                    and resimulated. Their displayed rating is the published
-                    counter matchup viewed from the alternative’s side.
+                    Published counter ratings do not measure their impact on
+                    this exact team. Use the What-if experiment above to
+                    simulate an eligible owned replacement in the same scope.
                   </p>
                   {alternatives.threats.length > 0 ? (
                     <div className="alternative-threat-list">
