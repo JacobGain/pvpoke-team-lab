@@ -492,10 +492,16 @@ export function TeamWhatIfPanel({
           </div>
 
           <div className="team-what-if__coverage-summary">
-            <strong>
-              {baselineAnalysis.coverage.coveredTargets} →{" "}
-              {experimentAnalysis.coverage.coveredTargets} answered targets
-            </strong>
+            <div className="team-what-if__coverage-copy">
+              <strong>
+                {baselineAnalysis.coverage.coveredTargets} →{" "}
+                {experimentAnalysis.coverage.coveredTargets} answered targets
+              </strong>
+              <small>
+                Answered-target counts are unweighted; the Coverage score uses
+                rank-weighted matchup ratings.
+              </small>
+            </div>
             <span
               className={
                 comparison.coveredTargetsDelta > 0
@@ -530,7 +536,10 @@ export function TeamWhatIfPanel({
                   <small>/100</small>
                 </p>
                 <small>
-                  Change {formatDelta(score.delta)} pts · PvPoke value{" "}
+                  Change {formatDelta(score.delta)} pts ·{" "}
+                  {score.id === "coverage"
+                    ? "TeamLab weighted value"
+                    : "PvPoke value"}{" "}
                   {formatScore(score.beforeValue, score.id)} →{" "}
                   {formatScore(score.afterValue, score.id)} /{" "}
                   {score.goal.toLocaleString()}

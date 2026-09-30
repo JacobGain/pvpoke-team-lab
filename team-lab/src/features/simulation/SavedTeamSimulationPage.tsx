@@ -338,8 +338,8 @@ export function SavedTeamSimulationPage() {
                   </div>
                   <strong>{analysis.coverage.grade}</strong>
                   <small>
-                    {analysis.coverage.score.toFixed(1)} / 100 · PvPoke
-                    threat-score goal
+                    {analysis.coverage.score.toFixed(1)} / 100 · rank-weighted
+                    TeamLab score
                   </small>
                 </article>
                 <article>
@@ -410,12 +410,13 @@ export function SavedTeamSimulationPage() {
                       <p>
                         {analysis.coverage.method}.{" "}
                         {analysis.coverage.coveredTargets} of{" "}
-                        {analysis.coverage.totalTargets} selected targets still
-                        have at least one favorable team member.
+                        {analysis.coverage.totalTargets} selected targets have
+                        at least one favorable team member; this answer count
+                        is raw and unweighted.
                       </p>
                       <small>
-                        Evidence: exact simulated matchups · use Greater Meta
-                        for the closest PvPoke Team Builder comparison
+                        Evidence: exact simulated matchups · target weights use
+                        each Pokémon's overall catalog rank
                       </small>
                     </div>
                   </article>

@@ -21,7 +21,7 @@ or partial meta subset as universal truth.
 - core-breaker detection
 - full-team-wall detection
 - major-threat ordering
-- PvPoke-compatible Coverage value and A–F grade
+- continuous meta-rank-weighted Coverage value and A–F grade
 - shield, target, assumption, and data-version provenance
 - scorecard summary on the saved-team simulation route
 - threat and member evidence cards
@@ -40,7 +40,6 @@ or partial meta subset as universal truth.
 
 ## Deferred enhancements
 
-- upstream weighting of meta targets
 - role evidence in the team scorecard
 - broader substitution search across multiple slots or unowned builds
 - persisted or version-keyed analysis cache

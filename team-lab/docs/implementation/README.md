@@ -229,7 +229,7 @@ Implemented:
 - per-member win/loss/tie evidence
 - major-threat ordering
 - core-breaker and full-team-wall classification
-- scope-aware PvPoke Coverage formula and A–F grade
+- selected-scope, meta-rank-weighted Coverage formula and A–F grade
 - scorecard and threat evidence UI
 - PvPoke exact-stat Bulk score
 - published Switch-score Safety score

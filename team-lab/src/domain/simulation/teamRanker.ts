@@ -51,6 +51,7 @@ export interface TeamMemberScoreEvidence {
 
 export interface TeamTargetScoreEvidence {
   readonly speciesId: string;
+  readonly metaRank: number;
   readonly stats: EffectiveStats;
 }
 
@@ -162,9 +163,10 @@ export function prepareTeamRankerRequest(
   const availableTargets = catalog.entries.flatMap((pokemon) => {
     if (!pokemon.ranking) return [];
     const build = createMetaDefaultBuild(pokemon);
-    return build ? [build] : [];
+    return build ? [{ build, metaRank: pokemon.ranking.rank }] : [];
   });
-  const targets = availableTargets.slice(0, options.targetLimit);
+  const selectedTargets = availableTargets.slice(0, options.targetLimit);
+  const targets = selectedTargets.map(({ build }) => build);
 
   if (targets.length === 0) {
     throw new TeamRankerPreparationError(
@@ -202,11 +204,12 @@ export function prepareTeamRankerRequest(
           roleScores: pokemon.ranking?.roleScores,
         };
       }),
-      targets: targets.map((build) => {
+      targets: selectedTargets.map(({ build, metaRank }) => {
         const pokemon = catalogById.get(build.speciesId)!;
 
         return {
           speciesId: build.speciesId,
+          metaRank,
           stats: calculateEffectiveStats(pokemon, build.ivs, build.level),
         };
       }),

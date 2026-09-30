@@ -136,7 +136,7 @@ records and unowned PvPoke-default alternatives.
 Score version:
 
 ```text
-recommendation-final-score-v2
+recommendation-final-score-v3
 ```
 
 Formula:
@@ -149,11 +149,11 @@ Formula:
 30% versioned static pre-score
 ```
 
-Coverage applies PvPoke's threat-score formula to the selected TeamRanker
-scope. Bulk uses PvPoke's effective Defense × HP formula, Safety uses
-published Switch scores, and Consistency is calculated by the upstream engine
-from each exact entered moveset. The static component retains role, published
-strength, complementarity, and readiness evidence.
+Coverage uses continuous TeamRanker target ratings across the selected scope,
+weighted by `1 / √global meta rank`. Bulk uses PvPoke's effective Defense × HP
+formula, Safety uses published Switch scores, and Consistency is calculated by
+the upstream engine from each exact entered moveset. The static component
+retains role, published strength, complementarity, and readiness evidence.
 
 The final score is TeamLab selection policy, not an upstream PvPoke grade.
 Inputs, weights, method, and score version remain on every result.

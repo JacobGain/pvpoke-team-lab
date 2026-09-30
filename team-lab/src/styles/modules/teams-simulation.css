@@ -531,6 +531,17 @@
   color: var(--ink-950);
 }
 
+.team-what-if__coverage-copy {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 0.2rem;
+}
+
+.team-what-if__coverage-copy small {
+  color: var(--ink-600);
+}
+
 .team-what-if__delta {
   color: var(--ink-700);
   font-size: 0.82rem;

@@ -897,7 +897,8 @@ TeamLab will wrap:
 
 TeamLab will not claim to predict every full three-on-three battle.
 
-The team scorecard represents PvPoke-derived matchup coverage and heuristics under stated conditions.
+The team scorecard represents rank-weighted matchup coverage and PvPoke-derived
+heuristics under the stated conditions.
 
 Full training AI battles exist upstream but are out of MVP recommendation scope.
 
