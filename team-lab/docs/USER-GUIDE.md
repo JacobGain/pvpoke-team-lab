@@ -1,6 +1,6 @@
 # TeamLab Local User Guide
 
-TeamLab 1.2.2 treats **Season 28 — Twilight Trails** as the active season for
+TeamLab 1.2.3 treats **Season 28 — Twilight Trails** as the active season for
 rankings, recommended moves, meta opponents, and simulations. The dashboard
 identifies the active season. Existing inventory and saved teams remain stored;
 re-run analyses to evaluate them against the new season. There is no preview
@@ -35,6 +35,7 @@ The MVP lets you:
 - record exact Pokémon you own and builds you plan;
 - compare IVs, effective stats, roles, moves, named-opponent thresholds, and
   matchup-backed build options;
+- import exact current builds from a validated TeamLab CSV template;
 - save ordered lead, safe-switch, and closer teams;
 - run exact teams against the selected league’s meta;
 - build recommendations around one or two owned anchors;
@@ -167,6 +168,26 @@ reopening the keyboard. Bulk-added
 records use PvPoke's default rank-one IV spread, calculated CP, and recommended
 moves for the selected league. Edit individual records afterward when exact
 build details matter. Repeated names intentionally create repeated records.
+
+For exact build details in a file, choose **Import CSV** from the inventory
+page. Download the TeamLab template and fill one current build per row. The
+required columns are `species_id`, `cp`, `attack_iv`, `defense_iv`, `hp_iv`,
+`fast_move_id`, and `charged_move_1_id`; `charged_move_2_id`,
+`mega_species_id`, `favorite`, and `notes` are optional. The IDs shown in the
+PvPoke catalog disambiguate forms and moves. Column order can change, and
+extra columns are ignored. Leave `favorite` blank or use `true`/`false`.
+
+The import preview checks every row against the bundled catalog, including
+species and move legality, IV ranges, and whether CP is possible for that
+species and IV spread. Rows that fail validation are not imported; correct
+them in the CSV and upload it again. Import adds new records and does not
+replace or update existing inventory. Exact build matches in the inventory or
+file are flagged as possible duplicates and skipped by default. Since two
+different Pokémon can have identical build details, you can explicitly choose
+to include those rows. CSV files are read in the browser and are not uploaded
+to a server. CSV import supports current builds; use TeamLab JSON backup and
+restore for transferring saved teams, planned builds, and recommendation
+history.
 
 ### Current Pokémon
 
