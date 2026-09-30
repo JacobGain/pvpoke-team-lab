@@ -25,7 +25,7 @@ import {
 } from "@/domain/teamAnalysis/teamAnalysis";
 
 export const RECOMMENDATION_FINAL_SCORE_VERSION =
-  "recommendation-final-score-v2";
+  "recommendation-final-score-v3";
 
 export const RECOMMENDATION_FINAL_SCORE_WEIGHTS = Object.freeze({
   coverage: 0.25,
@@ -146,7 +146,7 @@ function finalScore(
     weights: RECOMMENDATION_FINAL_SCORE_WEIGHTS,
     inputs,
     method:
-      "25% PvPoke-formula coverage + 15% PvPoke bulk + 20% PvPoke safety + 10% exact-moveset PvPoke consistency + 30% static finalist pre-score",
+      "25% rank-weighted TeamLab coverage + 15% PvPoke bulk + 20% PvPoke safety + 10% exact-moveset PvPoke consistency + 30% static finalist pre-score",
   };
 }
 

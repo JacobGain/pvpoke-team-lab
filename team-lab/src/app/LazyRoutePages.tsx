@@ -42,6 +42,12 @@ export const RecommendationPage = lazy(() =>
   })),
 );
 
+export const ReleaseNotesPage = lazy(() =>
+  import("@/features/releases/ReleaseNotesPage").then((module) => ({
+    default: module.ReleaseNotesPage,
+  })),
+);
+
 export const SavedTeamSimulationPage = lazy(() =>
   import("@/features/simulation/SavedTeamSimulationPage").then((module) => ({
     default: module.SavedTeamSimulationPage,

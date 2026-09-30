@@ -26,12 +26,16 @@ export function explainRecommendation(
   const plannedRequirements = members.flatMap((member) =>
     member.readiness === "planned" ? member.buildRequirements : [],
   );
+  const moveRecommendationSpecies = members
+    .filter((member) => member.recommendedRequirements.length > 0)
+    .map((member) => member.speciesName);
   const rankedDefaultCount = members.filter(
     (member) => member.source === "ranked-default-build",
   ).length;
   const topThreat = analysis.majorThreats[0];
   const reasons = [
-    `${analysis.coverage.coveredTargets} of ${analysis.coverage.totalTargets} selected meta targets have at least one exact favorable matchup.`,
+    `Coverage is ${rounded(analysis.coverage.score)} / 100 after weighting exact target ratings by 1 / √global meta rank.`,
+    `${analysis.coverage.coveredTargets} of ${analysis.coverage.totalTargets} selected meta targets have at least one exact favorable matchup (raw, unweighted count).`,
     `The ordered roles average ${rounded(staticTeam.preScore.roleSuitability.score)} from published Lead, Switch, and Closer evidence.`,
     `${readyCount} of 3 members are ready-now current builds.`,
   ];
@@ -52,6 +56,12 @@ export function explainRecommendation(
   if (plannedRequirements.length > 0) {
     tradeoffs.push(
       `${plannedRequirements.length} qualitative build requirement${plannedRequirements.length === 1 ? "" : "s"} remain across planned members.`,
+    );
+  }
+
+  if (moveRecommendationSpecies.length > 0) {
+    tradeoffs.push(
+      `Recommended moveset changes remain for ${moveRecommendationSpecies.join(", ")} to match their published movesets.`,
     );
   }
 

@@ -21,7 +21,7 @@ or partial meta subset as universal truth.
 - core-breaker detection
 - full-team-wall detection
 - major-threat ordering
-- PvPoke-compatible Coverage value and A–F grade
+- continuous meta-rank-weighted Coverage value and A–F grade
 - shield, target, assumption, and data-version provenance
 - scorecard summary on the saved-team simulation route
 - threat and member evidence cards
@@ -40,9 +40,8 @@ or partial meta subset as universal truth.
 
 ## Deferred enhancements
 
-- upstream weighting of meta targets
 - role evidence in the team scorecard
-- exact substitution simulations and scorecard deltas
+- broader substitution search across multiple slots or unowned builds
 - persisted or version-keyed analysis cache
 - final full scorecard visual design
 
@@ -51,6 +50,7 @@ or partial meta subset as universal truth.
 - [Coverage, threats, and core breakers](coverage-threats-and-core-breakers.md)
 - [Bulk, safety, and consistency scorecard](bulk-safety-and-consistency.md)
 - [Owned and unowned threat alternatives](owned-and-unowned-alternatives.md)
+- [Exact what-if substitutions](what-if-exact-substitutions.md)
 - [Removed PvPoke Battle and Team Builder deep links](upstream-deep-links.md)
 
 ## Exit criteria
@@ -60,6 +60,8 @@ or partial meta subset as universal truth.
 - [x] Major threats and core breakers are displayed.
 - [x] Bulk, safety, and consistency are displayed.
 - [x] Owned and unowned alternatives are displayed.
+- [x] One-slot owned-build changes can be resimulated and compared against the exact saved-team baseline.
+- [x] A tested change can update the saved team or be saved as a separate team.
 - [x] External deep links were removed for the self-contained runtime.
 - [x] Full MVP scorecard and threat view is complete.
 

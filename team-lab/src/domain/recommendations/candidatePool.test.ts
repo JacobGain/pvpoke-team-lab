@@ -205,6 +205,10 @@ describe("recommendation candidate pool", () => {
       "ICE_BEAM",
     ]);
     expect(pool.anchors[0]?.candidate.buildRequirements).toEqual([]);
+    expect(pool.anchors[0]?.candidate.recommendedRequirements).toContainEqual({
+      code: "unlock-second-charged-move",
+      message: "Unlock a second charged move for PLAY_ROUGH.",
+    });
   });
 
   it("produces exact pre-score evidence and prioritizes ready-now partners", () => {

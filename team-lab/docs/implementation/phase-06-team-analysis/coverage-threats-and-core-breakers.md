@@ -1,7 +1,7 @@
 # Coverage, Threats, and Core Breakers
 
 > **Status:** Implemented
-> **Last reviewed:** 2026-07-25
+> **Last reviewed:** 2026-09-30
 
 ## Outcome
 
@@ -67,30 +67,32 @@ This is intentionally separate from target coverage. A team can cover nearly
 every target through one specialist while still have a poor overall individual
 matchup distribution.
 
-## Provisional coverage grade
+## Rank-weighted Coverage score
 
-The initial grade uses covered-target percentage:
+The Coverage grade uses continuous TeamRanker target-side ratings from every
+selected target. Each target is weighted by its global catalog rank:
 
-| Covered targets | Grade |
-| --- | --- |
-| 90–100% | S |
-| 80–<90% | A |
-| 70–<80% | B |
-| 60–<70% | C |
-| <60% | D |
+```text
+weight(rank) = 1 / √rank
+weighted target rating = Σ(target average rating × weight) / Σ(weight)
+coverage value = 1200 - weighted target rating
+TeamLab reference goal = 680
+```
 
-This is a TeamLab heuristic, not a direct PvPoke Team Builder grade. The UI and
-assumptions identify it as scoped and unweighted.
+The global rank is fixed across Top-N scopes. A higher-ranked target has more
+influence, but lower-ranked targets still contribute. The A–F grade compares
+the value with the TeamLab reference goal using the scorecard's standard
+90/80/70/60 percent thresholds. This is a TeamLab score, not a PvPoke Team
+Builder grade.
 
-The grade is provisional because:
+The supporting counts remain unweighted:
 
-- Top 5 and Top 48 scopes are not comparable samples;
-- all selected targets currently have equal weight;
-- one narrow positive matchup counts as an answer;
-- battle rating margin is not part of the grade yet.
+- “answered targets” counts each target with at least one favorable team
+  member once;
+- “positive matchups” counts each favorable target/member battle once.
 
-Future weighting may change the formula, but it must be versioned and retain
-this initial definition for old reports.
+The score uses rating margins continuously; the raw answer and win/loss/tie
+counts continue using the exact 499/500/501 boundaries described above.
 
 ## Threat definitions
 
@@ -155,8 +157,8 @@ analysis. No old scorecard is silently reused.
 The saved-team simulation route now presents, in order:
 
 1. measured engine scope and performance;
-2. initial scorecard:
-   - coverage grade;
+2. scorecard:
+   - rank-weighted Coverage grade and raw coverage counts;
    - covered-target percentage;
    - positive matchup percentage;
    - core-breaker/team-wall counts;
@@ -185,24 +187,26 @@ The synthetic fixture contains:
 - one target favored against two members but answered by the third;
 - one target favored against none, with one exact tie.
 
-Tests prove:
+The characterization fixture demonstrates:
 
 - two of three targets are covered;
-- coverage grade is C;
+- target ratings contribute according to their global rank;
 - three of nine individual matchups favor the team;
 - correct `team-wall`, `core-breaker`, and `covered` classifications;
 - correct answer/no-answer state;
 - member order and records;
 - shield scenario, data version, and generated timestamp.
 
-## Known limitations
+## Interpretation and limitations
 
-- Target weights are equal.
-- Rating margins do not influence coverage grade.
-- A 499 rating and a 100 rating both count as one favorable answer.
+- Raw answer counts remain unweighted: a 499 rating and a 100 rating both
+  count as one favorable answer.
 - A 501 rating and a 900 rating both count as one target win for threat class.
 - Ties are neither wins nor losses.
-- The selected top-N scope can materially change the grade.
+- Rating margin changes the continuous score; exact 499/500/501 boundaries
+  still determine raw win/loss/tie counts.
+- The selected Top-N scope can change the weighted score, though lower-ranked
+  targets have less influence.
 - Species IDs are displayed in some detailed rows; richer catalog presentation
   is deferred.
 - Bulk, safety, and consistency are not inferred from coverage.

@@ -28,6 +28,7 @@ export interface RecommendationStaticEvidence {
   readonly overallRank?: number;
   readonly overallScore?: number;
   readonly overallRating?: number;
+  readonly recommendedMoveIds: readonly string[];
   readonly roleScores?: CatalogRoleScores;
   readonly matchups: readonly CatalogRankedOpponent[];
   readonly counters: readonly CatalogRankedOpponent[];
@@ -44,6 +45,7 @@ export interface RecommendationCandidate {
   readonly favorite: boolean;
   readonly exactBuild: ExactSimulationBuild;
   readonly buildRequirements: readonly BuildRequirement[];
+  readonly recommendedRequirements: readonly BuildRequirement[];
   readonly staticEvidence: RecommendationStaticEvidence;
 }
 
@@ -138,6 +140,7 @@ function createCandidate(
     favorite: record.favorite,
     exactBuild: serializeAnalyzedBuildForSimulation(selectedBuild, pokemon),
     buildRequirements: analysis.transitionRequirements,
+    recommendedRequirements: analysis.recommendedRequirements,
     staticEvidence: createStaticEvidence(pokemon),
   };
 }
@@ -149,6 +152,7 @@ function createStaticEvidence(
     overallRank: pokemon.ranking?.rank,
     overallScore: pokemon.ranking?.score,
     overallRating: pokemon.ranking?.rating,
+    recommendedMoveIds: pokemon.ranking?.recommendedMoveIds ?? [],
     roleScores: pokemon.ranking?.roleScores,
     matchups: pokemon.ranking?.matchups ?? [],
     counters: pokemon.ranking?.counters ?? [],
@@ -175,6 +179,7 @@ function createRankedDefaultCandidate(
     favorite: false,
     exactBuild,
     buildRequirements: [],
+    recommendedRequirements: [],
     staticEvidence: createStaticEvidence(pokemon),
   };
 }
