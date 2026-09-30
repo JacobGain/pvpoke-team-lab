@@ -1230,7 +1230,7 @@ async function assertBuildTarget(
   invariant(
     productionState.dataHealthIndicators === 0 &&
       productionState.diagnosticsLinks === 0 &&
-      productionState.favicon.endsWith("/favicon-48x48.png?v=1.2.3") &&
+      productionState.favicon.endsWith("/favicon-48x48.png?v=1.2.4") &&
       productionState.visibleVersions.includes(`v${release.appVersion ?? ""}`),
     `Production exposed diagnostics navigation: ${JSON.stringify(productionState)}.`,
   );
@@ -2941,7 +2941,7 @@ async function runCriticalWorkflows(
     ...document.querySelectorAll(".release-note__heading h2")
   ].map((heading) => heading.textContent?.trim() ?? "")`);
   invariant(
-    releaseHeadings[0] === "Release v1.2.3" &&
+    releaseHeadings[0] === "Release v1.2.4" &&
       releaseHeadings.at(-1) === "Release v0.0.1" &&
       releaseHeadings.indexOf("Release v0.0.10") <
         releaseHeadings.indexOf("Release v0.0.9"),
