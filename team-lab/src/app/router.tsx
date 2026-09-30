@@ -14,6 +14,7 @@ import {
   LazyRoute,
   PokemonCatalogPage,
   RecommendationPage,
+  RecommendationHistoryPage,
   ReleaseNotesPage,
   SavedTeamFormPage,
   SavedTeamSimulationPage,
@@ -135,6 +136,14 @@ export const router = createBrowserRouter(
           element: (
             <LazyRoute>
               <SavedTeamSimulationPage />
+            </LazyRoute>
+          ),
+        },
+        {
+          path: "recommend/history",
+          element: (
+            <LazyRoute>
+              <RecommendationHistoryPage />
             </LazyRoute>
           ),
         },
