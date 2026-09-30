@@ -53,10 +53,10 @@ describe("release notes", () => {
     ).toThrow(/change groups with bullet points/);
   });
 
-  it("parses the release-note archive and puts the current 1.2.3 release first", () => {
+  it("parses the release-note archive and puts the current 1.2.4 release first", () => {
     const releases = loadReleaseNotes(actualReleaseSources);
 
-    expect(releases[0]?.version).toBe("1.2.3");
+    expect(releases[0]?.version).toBe("1.2.4");
     expect(releases[0]?.groups.length).toBeGreaterThan(0);
     expect(releases[0]?.groups.every((group) => group.bullets.length > 0)).toBe(true);
   });
