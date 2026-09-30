@@ -49,7 +49,7 @@ const exactBuildSchema = z.object({
     z.tuple([z.string().min(1), z.string().min(1)]),
   ]),
   isShadow: z.boolean(),
-  source: z.enum(["inventory-current", "inventory-planned", "meta-default"]),
+  source: z.enum(["inventory-current", "inventory-planned", "meta-default", "build-plan"]),
 });
 
 const recommendationMemberSchema = z.object({

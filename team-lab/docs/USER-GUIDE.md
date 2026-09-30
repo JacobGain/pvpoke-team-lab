@@ -1,6 +1,6 @@
 # TeamLab Local User Guide
 
-TeamLab 1.2.1 treats **Season 28 — Twilight Trails** as the active season for
+TeamLab 1.2.2 treats **Season 28 — Twilight Trails** as the active season for
 rankings, recommended moves, meta opponents, and simulations. The dashboard
 identifies the active season. Existing inventory and saved teams remain stored;
 re-run analyses to evaluate them against the new season. There is no preview
@@ -33,7 +33,8 @@ application built on the data and simulation engine in this PvPoke fork.
 The MVP lets you:
 
 - record exact Pokémon you own and builds you plan;
-- compare IVs, effective stats, roles, moves, and named-opponent thresholds;
+- compare IVs, effective stats, roles, moves, named-opponent thresholds, and
+  matchup-backed build options;
 - save ordered lead, safe-switch, and closer teams;
 - run exact teams against the selected league’s meta;
 - build recommendations around one or two owned anchors;
@@ -251,6 +252,36 @@ The analysis screen can show:
 Read the assumptions shown on the page. IV rank measures stat product, not
 universal matchup quality. Named-opponent thresholds use the displayed default
 opponent build and do not replace full battle simulation.
+
+### Compare build options in matchups
+
+On the analysis page, use **Matchup-backed build planning** to compare a
+current or planned baseline with temporary build candidates.
+
+1. Choose whether the baseline uses the current or planned build. If its CP
+   maps to multiple levels, select the level to simulate.
+2. Select up to three ranked threats from the active league. Each uses PvPoke's
+   published default league IVs and recommended moves; the result displays
+   those exact builds.
+3. Add up to three candidates. A candidate can change IVs, moves, or both.
+   IV choices include the stat-product rank-one, highest-Attack,
+   highest-Defense, and a custom spread. Moves can stay as entered, use
+   PvPoke's recommendation, or be chosen from the species' legal movepool.
+4. Choose the shield count for each side and run the comparison.
+
+Retaining the source IVs preserves that build's CP and selected level. An
+alternate IV spread represents a different specimen and is fitted to the
+highest legal level under the active league's CP cap, up to level 50. It never
+changes the owned Pokémon. The candidates and results are temporary and are
+not saved.
+
+Results show each build's win/loss/tie, battle rating, and remaining HP,
+energy, and shields. Candidate ratings are compared with the baseline for the
+same threat and shield scenario. Change the shield pair and run again to
+inspect another scenario; TeamLab does not average these matchups into a team
+score. These are one-on-one simulations and do not model starting energy,
+switching, or a full three-Pokémon battle. The data version and engine
+assumptions are available below the results.
 
 ## Create saved teams
 

@@ -143,12 +143,18 @@ Implemented:
 - exact CMP comparison
 - fast-move breakpoints and defensive bulkpoints
 - general-IV-space threshold attainability
+- temporary, bounded matchup-backed comparison of alternate IV/move builds
+  against selected threats using exact one-on-one simulations and shield
+  scenarios
 
 Remaining beyond the initial phase:
 
-- simulated matchup impact
 - custom opponent builds
-- charged-move and shield-scenario analysis
+- saving alternate build plans or matchup comparisons
+- charged-move threshold analysis
+
+The first matchup-planning slice uses a single explicit shield scenario per run;
+it does not aggregate scenarios into a competitive score.
 
 ### Phase 4 — Saved teams
 

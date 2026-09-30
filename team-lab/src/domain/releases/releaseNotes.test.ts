@@ -2,6 +2,12 @@ import { describe, expect, it } from "vitest";
 
 import { loadReleaseNotes, parseReleaseNote } from "@/domain/releases/releaseNotes";
 
+const actualReleaseSources = import.meta.glob<string>("../../../docs/RELEASE-*.md", {
+  eager: true,
+  import: "default",
+  query: "?raw",
+});
+
 describe("release notes", () => {
   it("sorts releases newest first by numeric version", () => {
     const releases = loadReleaseNotes({
@@ -45,5 +51,13 @@ describe("release notes", () => {
         "# Release v1.2.0\n\n## Changes\n\n## Another group\n- A change.",
       ),
     ).toThrow(/change groups with bullet points/);
+  });
+
+  it("parses the release-note archive and puts the current 1.2.2 release first", () => {
+    const releases = loadReleaseNotes(actualReleaseSources);
+
+    expect(releases[0]?.version).toBe("1.2.2");
+    expect(releases[0]?.groups.length).toBeGreaterThan(0);
+    expect(releases[0]?.groups.every((group) => group.bullets.length > 0)).toBe(true);
   });
 });

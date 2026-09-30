@@ -20,7 +20,11 @@ export interface ExactSimulationBuild {
   readonly fastMoveId: string;
   readonly chargedMoveIds: readonly [string] | readonly [string, string];
   readonly isShadow: boolean;
-  readonly source: "inventory-current" | "inventory-planned" | "meta-default";
+  readonly source:
+    | "inventory-current"
+    | "inventory-planned"
+    | "meta-default"
+    | "build-plan";
 }
 
 export interface OneOnOneSimulationCombatant {
