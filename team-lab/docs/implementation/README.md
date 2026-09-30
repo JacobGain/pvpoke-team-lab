@@ -23,6 +23,9 @@ Fork-Structure-Breakdown.md
 
 implementation/
     Actual implementation decisions and progress
+
+RELEASES.md and RELEASE-X.Y.Z.md
+    Release history shown on the site's Release notes page
 ```
 
 Future contributors should be able to use this directory to understand the
@@ -367,6 +370,8 @@ Implemented:
 ## Updating these records
 
 Documentation is part of the definition of done for an implementation slice.
+For versioned user-facing changes, follow the [release notes workflow](../RELEASES.md)
+and add a structured note so the site's release archive stays current.
 
 For every meaningful slice:
 

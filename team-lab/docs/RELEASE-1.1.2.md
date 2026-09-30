@@ -1,13 +1,10 @@
-# 1.1.2 — Upstream refresh and fixes
+# Release v1.1.2
 
-TeamLab 1.1.2 updates its pinned PvPoke source to
-`e87448291024aff808f21a2e5f74e69f68b521df`, with Game Master data dated
-September 28, 2026. The refreshed bundle includes upstream Great League and
-Mega Great League ranking/meta changes, new cup and format definitions in the
-full Game Master, and an upstream battle-engine fix. Pokémon and move stats did
-not change between the previous and current pins.
+## PvPoke data refresh
+- Updated the pinned PvPoke source and runtime bundle to the September 28, 2026 data release.
+- Included updated Great League and Mega Great League rankings, new format definitions, and an upstream battle-engine fix.
+- Kept Great, Ultra, and Master Open leagues with their Mega variants as the supported format choices.
 
-TeamLab continues to expose Great, Ultra, and Master Open leagues with Mega
-variants. Trail Cup and Mega Color Cup definitions are present in the Game
-Master, but their rankings are not part of the app's supported format set.
-Existing inventory, saved teams, and backups remain compatible.
+## Format compatibility
+- Preserved existing inventory, saved teams, and backup compatibility.
+- Kept new cup definitions in the Game Master without presenting unsupported cup rankings as selectable formats.

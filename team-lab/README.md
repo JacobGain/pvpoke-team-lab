@@ -166,10 +166,8 @@ the performance budget.
 
 ## Documentation
 
+- [Release notes archive and release workflow](docs/RELEASES.md)
 - [1.2.0 release notes](docs/RELEASE-1.2.0.md)
-- [1.1.2 release notes](docs/RELEASE-1.1.2.md)
-- [1.1.1 release notes](docs/RELEASE-1.1.1.md)
-- [1.0.2 release notes](docs/RELEASE-1.0.2.md)
 - [Local user guide](docs/USER-GUIDE.md)
 - [Deployment build targets](docs/DEPLOYMENT-BUILDS.md)
 - [Cloudflare Pages deployment and cutover](docs/CLOUDFLARE-DEPLOYMENT.md)

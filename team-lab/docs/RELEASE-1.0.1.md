@@ -1,27 +1,12 @@
-# 1.0.1 — Mobile fixes and visual identity
+# Release v1.0.1
 
-TeamLab 1.0.1 fixes Pokémon selection from the Add Pokémon autocomplete on
-touch devices, including iPhone Safari.
+## Mobile selection and visual identity
+- Fixed Pokémon selection from the Add Pokémon autocomplete on touch devices, including iPhone Safari.
+- Added a theme-matched TeamLab mark to navigation, the footer, and the browser tab.
+- Displayed the release version from build metadata and validated production raster assets as WebP.
 
-On touch browsers, moving focus away from the search field could close the
-suggestion list before the delayed click event selected the tapped result.
-Suggestions now select during the touch pointer press while mouse and keyboard
-activation retain their existing behavior.
-
-The app now uses a theme-matched TeamLab mark in its navigation, footer, and
-browser tab. The interface also displays its release version, sourced directly
-from the build metadata, and production raster assets are validated as WebP.
-
-Security hardening adds an RFC 9116 `security.txt`, a private GitHub disclosure
-channel, explicit caching rules, and production validation for the disclosure
-metadata. Backup exports now use compact JSON, and files larger than 10 MiB are
-rejected before being read or parsed.
-
-The IndexedDB schema advances to version 3 to remove unused secondary indexes,
-reducing storage and write amplification. The migration preserves existing
-inventory and saved teams, and the portable backup schema remains unchanged.
-
-Browser storage now opens before the application becomes interactive. This
-prevents the first inventory save on a newly deployed origin from racing the
-browser's IndexedDB startup, and production workflow failures include database
-state that makes future persistence issues easier to diagnose.
+## Data safety and security
+- Added RFC 9116 disclosure metadata, explicit caching rules, and production validation for security files.
+- Switched backup exports to compact JSON and rejected files larger than 10 MiB before parsing.
+- Reduced IndexedDB storage and write amplification while preserving existing inventory and saved teams.
+- Opened browser storage before the application becomes interactive to avoid first-save startup races.

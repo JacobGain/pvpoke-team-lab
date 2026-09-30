@@ -86,18 +86,32 @@ function updateSeoMetadata(pathname: string) {
   const isHome = pathname === "/";
   const isRankings = pathname === "/catalog";
   const isTeamBuilder = pathname === "/team-builder";
+  const isReleaseNotes = pathname === "/releases";
   const seo = isTeamBuilder ? publicSeo.teamBuilder : isRankings ? publicSeo.rankings : publicSeo.home;
   const isPublic = isHome || isRankings || isTeamBuilder;
-  const canonicalPath = isTeamBuilder ? "/team-builder" : isRankings ? "/catalog" : "/";
+  const canonicalPath = isReleaseNotes
+    ? "/releases"
+    : isTeamBuilder
+      ? "/team-builder"
+      : isRankings
+        ? "/catalog"
+        : "/";
+  const description = isReleaseNotes
+    ? "Read TeamLab release notes, recent feature changes, and historical updates."
+    : seo.description;
 
-  document.title = isPublic ? seo.title : `PoGo Team Lab | Pokémon GO PvP`;
-  setMeta("description", seo.description);
+  document.title = isReleaseNotes
+    ? "Release notes | PoGo Team Lab"
+    : isPublic
+      ? seo.title
+      : `PoGo Team Lab | Pokémon GO PvP`;
+  setMeta("description", description);
   setMeta("robots", isPublic ? "index, follow" : "noindex, nofollow");
   setMeta("og:title", document.title, "property");
-  setMeta("og:description", seo.description, "property");
+  setMeta("og:description", description, "property");
   setMeta("og:url", `${SITE_ORIGIN}${canonicalPath}`, "property");
   setMeta("twitter:title", document.title);
-  setMeta("twitter:description", seo.description);
+  setMeta("twitter:description", description);
 
   let canonical = document.head.querySelector<HTMLLinkElement>(
     'link[rel="canonical"]',
@@ -249,14 +263,20 @@ export function AppLayout() {
         <Outlet key={league.id} />
         <footer className="app-footer">
           <div className="app-footer__inner">
-            <div className="app-footer__identity">
-              <BrandMark />
-              <span>
-                <strong>PoGo Team Lab</strong>
-                <small>
-                  Independent battle-planning tool · v{__TEAMLAB_VERSION__}
-                </small>
-              </span>
+            <div className="app-footer__brand">
+              <div className="app-footer__identity">
+                <BrandMark />
+                <span>
+                  <strong>PoGo Team Lab</strong>
+                  <small>
+                    Independent battle-planning tool · v{__TEAMLAB_VERSION__}
+                  </small>
+                </span>
+              </div>
+              <NavLink className="app-footer__release-link" to="/releases">
+                <BookOpen aria-hidden="true" size={15} />
+                <span>Release notes</span>
+              </NavLink>
             </div>
             <div className="app-footer__legal">
               <p>
