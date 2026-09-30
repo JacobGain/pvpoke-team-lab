@@ -11,6 +11,10 @@ import {
 } from "react-router";
 
 import { PageHeader } from "@/components/PageHeader";
+import {
+  InventoryPokemonCombobox,
+  type InventoryPokemonOption,
+} from "@/components/InventoryPokemonCombobox";
 import { PokemonSprite } from "@/components/PokemonSprite";
 import {
   createSavedTeam,
@@ -157,6 +161,19 @@ function SavedTeamForm({
     }/${record.currentBuild.ivProfile.ivs.hp}`;
   }
 
+  const inventoryPickerOptions: InventoryPokemonOption[] = inventoryOptions.map(
+    (record) => {
+      const label = optionLabel(record.inventoryId);
+      const [name, ...detailParts] = label.split(" · ");
+      return {
+        id: record.inventoryId,
+        name: name ?? label,
+        detail: detailParts.join(" · "),
+        label,
+      };
+    },
+  );
+
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormError(undefined);
@@ -282,11 +299,6 @@ function SavedTeamForm({
 
           <section className="team-order" aria-label="Team order">
             {positions.map((position, index) => {
-              const missingSelected =
-                position.value !== "" &&
-                !inventory.some(
-                  (record) => record.inventoryId === position.value,
-                );
               const selectedRecord = inventory.find(
                 (record) => record.inventoryId === position.value,
               );
@@ -319,31 +331,15 @@ function SavedTeamForm({
                     </div>
                     <p>{position.description}</p>
                   </div>
-                  <label className="form-field">
-                    <span>Inventory Pokémon</span>
-                    <select
-                      required
-                      value={position.value}
-                      onChange={(event) =>
-                        position.setValue(event.target.value)
-                      }
-                    >
-                      <option value="">Select a Pokémon</option>
-                      {missingSelected ? (
-                        <option value={position.value}>
-                          {optionLabel(position.value)}
-                        </option>
-                      ) : null}
-                      {inventoryOptions.map((record) => (
-                        <option
-                          key={record.inventoryId}
-                          value={record.inventoryId}
-                        >
-                          {optionLabel(record.inventoryId)}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                  <InventoryPokemonCombobox
+                    label="Inventory Pokémon"
+                    options={inventoryPickerOptions}
+                    selectedId={position.value}
+                    selectedLabel={
+                      position.value ? optionLabel(position.value) : ""
+                    }
+                    onSelect={position.setValue}
+                  />
                   <div className="team-position__actions">
                     {position.id === "switch" ? (
                       <button
