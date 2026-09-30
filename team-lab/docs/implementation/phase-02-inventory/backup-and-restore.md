@@ -137,10 +137,11 @@ unchanged storage after invalid restore input.
 
 ## Known limitations
 
-- Version one contains inventory only. Phase 8 version two adds saved teams,
-  while settings remain absent because no persisted settings domain exists.
-- Only backup schema version one is supported; no export migration is needed
-  yet.
+- Version one contains inventory only. Phase 8 version two added saved teams,
+  and TeamLab v1.2.1 version three adds recommendation history. Settings remain
+  absent because no persisted settings domain exists.
+- The current importer accepts schema versions one, two, and three. Older
+  versions restore with empty collections for data they did not contain.
 - Catalog-invalid historical records block restore rather than entering a
   repair state.
 - The version-one subsystem has no saved-team semantics; Phase 8 owns current

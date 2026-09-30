@@ -50,6 +50,12 @@ problems:
 - Dexie version controls storage/index migrations.
 - Record version controls persisted JSON/domain migrations.
 
+### Later database versions
+
+Phase 4 advanced the database to version 3 for saved teams. TeamLab v1.2.1
+advances it to version 4 and adds the indexed `recommendationHistory` table;
+existing inventory and saved-team records require no data transformation.
+
 ## Repository contract
 
 ```text
@@ -129,8 +135,9 @@ exercise the real Dexie schema and prove:
 
 ## Known limitations
 
-- Database version two is additive; no inventory data transformation has been
-  required yet.
+- The original version-two migration was additive. Later version 3 added saved
+  teams and version 4 added recommendation history without transforming
+  inventory records.
 - No cross-tab change notification exists.
 - Import/export is implemented for inventory; teams/settings do not yet exist.
 - There is no retry/recovery UI for browser quota or IndexedDB availability

@@ -3,7 +3,7 @@
 > **Phase:** Phase 7 — Anchor Recommendations  
 > **Status:** Complete for MVP  
 > **Route:** `/recommend`  
-> **Last reviewed:** 2026-07-26
+> **Last reviewed:** 2026-09-30
 
 ## Summary
 
@@ -13,6 +13,12 @@ positions, choose discovery and exact-simulation scope, monitor the bounded
 finalist run, inspect evidence-rich ordered results, and explicitly save a
 fully owned result as an ordinary saved team. An opt-in setting can also
 simulate highly ranked teammates the user does not yet own.
+
+When a run has at least one selected result, TeamLab automatically stores a
+versioned history record. It keeps the anchors, complete request and simulation
+settings, selected result evidence, formula versions, and PvPoke data version.
+It omits full battle matrices. Users can revisit the snapshot and rerun the same
+scope against the current data for that league.
 
 The page distinguishes:
 
@@ -60,7 +66,9 @@ progress events / cancel-before-next-finalist signal
     ↓
 ordered selected results
     ↓
-inspect evidence or explicitly save as SavedTeam
+archive selected evidence and settings
+    ↓
+inspect, explicitly save as SavedTeam, or revisit and compare after a refresh
 ```
 
 The route is linked from the home page. Inputs are disabled during a run so
@@ -73,10 +81,10 @@ The page provides:
 - one required owned anchor;
 - an optional second distinct owned anchor;
 - `flex`, Lead, Safe Switch, or Closer position per anchor;
-- one through five requested results;
+- one through five or ten requested results;
 - combined, ready-now-only, or planned-only inventory scope;
 - owned-only teammates or owned plus ranked PvPoke-default teammates;
-- Top 5, 10, 20, or 48 current meta targets;
+- Top 5, 10, 20, 48, 100, or 250 current meta targets;
 - zero, one, or two team shields;
 - zero, one, or two target shields.
 
@@ -122,6 +130,16 @@ The run summary also reports completed and failed finalists, selected-result
 shortfall, cancellation, diversity relaxation, and catalog data version.
 Individual failed finalist messages remain available in an expandable panel.
 
+Runs with at least one result are automatically archived and linked from the
+recommendation page to `/recommend/history`. The history page displays records
+across leagues, their original settings, stored scorecards and threat evidence,
+and the data/formula versions used. **Re-run and compare** requires the
+historical league to be active and its saved anchors to remain available. It
+uses the same request and shield/target settings with the current catalog, then
+saves the refreshed run as a new history entry. Results are paired by the same
+three Pokédex species; score movement is labeled when a recommendation formula
+version also changed.
+
 ## Explanation policy
 
 `explainRecommendation` is deterministic presentation logic over a completed
@@ -147,7 +165,7 @@ than an upstream PvPoke rating.
 
 ## Saving a result
 
-Recommendations are ephemeral. Clicking “Save this team” creates a normal
+Clicking “Save this team” creates a normal
 `SavedTeam` with:
 
 - the exact selected Lead, Switch, and Closer inventory IDs;
@@ -159,8 +177,9 @@ The existing saved-team factory revalidates inventory references and species
 clause against the current catalog. The existing repository mutation persists
 the result to IndexedDB and invalidates saved-team queries.
 
-No recommendation result is persisted automatically. Once saved, the team
-uses the normal edit, list, and exact-analysis workflows.
+The run's selected evidence is stored in history automatically, independently
+of the optional team conversion. Once saved as a team, the lineup uses the
+normal edit, list, and exact-analysis workflows.
 
 A result containing a ranked-default teammate remains fully simulatable in
 TeamLab, but its save action is disabled. The result names how many ranked
@@ -172,6 +191,11 @@ inventory UUIDs or silently create records.
 | File | Responsibility |
 | --- | --- |
 | `src/features/recommendations/RecommendationPage.tsx` | Request controls, orchestration, progress, results, errors, links, and explicit save action |
+| `src/domain/recommendations/history.ts` | Versioned history record schema and compact result snapshots |
+| `src/domain/recommendations/historyRepository.ts` | Persistence contract and stored-record errors |
+| `src/infrastructure/recommendations/DexieRecommendationHistoryRepository.ts` | IndexedDB history CRUD |
+| `src/features/recommendations/recommendationHistoryQueries.ts` | History query and mutation integration |
+| `src/features/recommendations/RecommendationHistoryPage.tsx` | Archived result review, deletion, and current-data comparison |
 | `src/domain/recommendations/explanations.ts` | Deterministic evidence-derived headline, reasons, tradeoffs, and scope |
 | `src/domain/recommendations/finalistSimulation.ts` | Progress/cancellation contract and partial-result behavior |
 | `src/app/router.tsx` | `/recommend` route |
@@ -193,8 +217,9 @@ inventory UUIDs or silently create records.
 
 ## Rejected or deferred alternatives
 
-- Automatically persisting every run was rejected because recommendation
-  cache identity and invalidation are not designed.
+- Full finalist matrices and result caches remain unpersisted. History stores
+  compact selected-result evidence with data and formula versions, rather than
+  claiming archived results are current analysis.
 - Treating static finalists as final results was rejected because exact owned
   build analysis is the point of the finalist stage.
 - Claiming immediate cancellation was rejected because TeamRanker is
@@ -212,6 +237,8 @@ inventory UUIDs or silently create records.
 - Zero static finalists produces an explicit no-eligible-team message.
 - One exact finalist failure does not hide successful results.
 - Save errors remain separate from recommendation-run errors.
+- History-storage failure leaves current results visible and reports that the
+  run was not retained.
 - Saved buttons disable after success to prevent duplicate clicks within the
   current result view.
 - Ranked-default results disable saving until every member exists in inventory.
@@ -257,8 +284,11 @@ npm run build     passed with the existing >500 kB chunk warning
 
 - An in-flight synchronous TeamRanker finalist cannot be interrupted.
 - Individual nonfatal exclusion messages are counted but not expanded.
-- Results and request settings are not retained across navigation or refresh.
-- Recommendation runs are not cached or historically browsable.
+- Comparison requires current data for the historical league and the original
+  anchors to remain in inventory. Changed inventory can produce a different
+  candidate pool.
+- Recommendation results remain uncached; historical snapshots omit the full
+  TeamRanker matrices.
 - Score and explanation policy remain English-only and version-one
   heuristics.
 - Browser-level interaction tests are not yet configured.
