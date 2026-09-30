@@ -39,8 +39,8 @@ export interface TeamThreatEvidence {
 export interface TeamCoverageScore {
   readonly grade: CoverageGrade;
   readonly score: number;
-  readonly pvpokeValue: number;
-  readonly pvpokeGoal: number;
+  readonly value: number;
+  readonly goal: number;
   readonly method: string;
   readonly coveredTargets: number;
   readonly totalTargets: number;
@@ -89,13 +89,13 @@ function percentage(value: number, total: number): number {
 }
 
 const DEFAULT_GOALS = Object.freeze({
-  coverage: 680,
   bulk: 22_000,
   safety: 98,
   consistency: 98,
 });
+const TEAMLAB_WEIGHTED_COVERAGE_GOAL = 680;
 
-function pvpokeGrade(value: number, goal: number): CoverageGrade {
+function gradeForGoal(value: number, goal: number): CoverageGrade {
   const percentageOfGoal = value / goal;
 
   if (percentageOfGoal >= 0.9) return "A";
@@ -107,6 +107,10 @@ function pvpokeGrade(value: number, goal: number): CoverageGrade {
 
 function goalPercentage(value: number, goal: number): number {
   return Math.min(Math.max((value / goal) * 100, 0), 100);
+}
+
+function metaRankWeight(metaRank: number): number {
+  return 1 / Math.sqrt(metaRank);
 }
 
 function classifyThreat(
@@ -195,19 +199,33 @@ export function analyzeTeamRankerMatrix(
     0,
   );
   const coveredTargetPercentage = percentage(coveredTargets, threats.length);
-  const gradeThreats = [...run.result.rankings]
-    .sort(
-      (left, right) =>
-        right.score - left.score ||
-        right.averageRating - left.averageRating,
-    )
-    .slice(0, 6);
-  const averageThreatScore =
-    gradeThreats.reduce(
-      (sum, threat) => sum + threat.averageRating,
+  const targetRanks = new Map(
+    run.evidence.targets.map((target) => [target.speciesId, target.metaRank]),
+  );
+  const weightedTargetRatings = run.result.rankings.map((ranking) => {
+    const metaRank = targetRanks.get(ranking.speciesId);
+
+    if (metaRank === undefined || !Number.isInteger(metaRank) || metaRank < 1) {
+      throw new Error(
+        `Missing valid global meta rank for TeamRanker target ${ranking.speciesId}.`,
+      );
+    }
+
+    return {
+      rating: ranking.averageRating,
+      weight: metaRankWeight(metaRank),
+    };
+  });
+  const totalTargetWeight = weightedTargetRatings.reduce(
+    (sum, target) => sum + target.weight,
+    0,
+  );
+  const weightedAverageTargetRating =
+    weightedTargetRatings.reduce(
+      (sum, target) => sum + target.rating * target.weight,
       0,
-    ) / Math.max(gradeThreats.length, 1);
-  const coverageValue = 1_200 - averageThreatScore;
+    ) / (totalTargetWeight > 0 ? totalTargetWeight : 1);
+  const coverageValue = 1_200 - weightedAverageTargetRating;
   const bulkValue =
     run.result.teamBulkValues.reduce((sum, value) => sum + value, 0) /
     Math.max(run.result.teamBulkValues.length, 1);
@@ -225,18 +243,18 @@ export function analyzeTeamRankerMatrix(
 
   return {
     coverage: {
-      grade: pvpokeGrade(
+      grade: gradeForGoal(
         coverageValue,
-        goals.coverage,
+        TEAMLAB_WEIGHTED_COVERAGE_GOAL,
       ),
       score: goalPercentage(
         coverageValue,
-        goals.coverage,
+        TEAMLAB_WEIGHTED_COVERAGE_GOAL,
       ),
-      pvpokeValue: coverageValue,
-      pvpokeGoal: goals.coverage,
+      value: coverageValue,
+      goal: TEAMLAB_WEIGHTED_COVERAGE_GOAL,
       method:
-        "PvPoke threat-score formula over the six most difficult selected targets",
+        "TeamLab rank-weighted rating across all selected targets (weight 1 / √global meta rank); value = 1200 − weighted average target rating; reference goal = 680",
       coveredTargets,
       totalTargets: threats.length,
       coveredTargetPercentage,
@@ -248,7 +266,7 @@ export function analyzeTeamRankerMatrix(
       ),
     },
     bulk: {
-      grade: pvpokeGrade(
+      grade: gradeForGoal(
         bulkValue,
         goals.bulk,
       ),
@@ -265,7 +283,7 @@ export function analyzeTeamRankerMatrix(
       evidenceTotal: run.evidence.members.length,
     },
     safety: {
-      grade: pvpokeGrade(
+      grade: gradeForGoal(
         safetyValue,
         goals.safety,
       ),
@@ -282,7 +300,7 @@ export function analyzeTeamRankerMatrix(
       evidenceTotal: run.evidence.members.length,
     },
     consistency: {
-      grade: pvpokeGrade(
+      grade: gradeForGoal(
         consistencyValue,
         goals.consistency,
       ),
@@ -315,8 +333,10 @@ export function analyzeTeamRankerMatrix(
       ...run.result.assumptions,
       "Ratings above 500 favor the meta target; ratings below 500 favor the team member",
       "A target is covered when at least one team member has a rating advantage",
-      "Letter grades use PvPoke's A–F thresholds and selected league goals",
-      "Coverage uses PvPoke's threat-score formula over the selected simulation scope; select Greater Meta for the closest Team Builder comparison",
+      "Coverage weights every selected target by 1 / square root of its global meta rank; lower-ranked targets still contribute with less weight",
+      "Coverage value is 1200 minus the rank-weighted average target-side rating; its 680-point reference goal is TeamLab's",
+      "Answered-target and positive-matchup counts are raw, unweighted evidence",
+      "Letter grades use A–F thresholds; Coverage uses the TeamLab reference goal, while other dimensions use their selected PvPoke goals",
       "Bulk uses PvPoke's exact average Defense × HP formula, including Shadow modifiers",
       "Safety uses PvPoke's published switch-score average",
       "Consistency is calculated by the upstream engine from the exact entered movesets",

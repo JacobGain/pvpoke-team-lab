@@ -16,6 +16,7 @@ import { Link } from "react-router";
 
 import { PageHeader } from "@/components/PageHeader";
 import { PokemonSprite } from "@/components/PokemonSprite";
+import type { BuildRequirement } from "@/domain/analysis/buildAnalysis";
 import type { InventoryPokemon } from "@/domain/inventory/schemas";
 import { projectInventoryForCatalog } from "@/domain/inventory/leagueEligibility";
 import type { PokemonCatalog } from "@/domain/pokemon/catalog";
@@ -101,6 +102,31 @@ function formatBuildRequirement(
   );
 }
 
+function RequirementList({
+  label,
+  requirements,
+  moveIds,
+}: {
+  readonly label: string;
+  readonly requirements: readonly BuildRequirement[];
+  readonly moveIds: readonly string[];
+}) {
+  if (requirements.length === 0) return null;
+
+  return (
+    <div>
+      <small>{label}</small>
+      <ul>
+        {requirements.map((requirement) => (
+          <li key={`${requirement.code}-${requirement.message}`}>
+            {formatBuildRequirement(requirement.message, moveIds)}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function RecommendationResultCard({
   finalist,
   index,
@@ -178,19 +204,31 @@ function RecommendationResultCard({
                 Simulated with PvPoke’s recommended moves and default Great
                 League IVs.
               </small>
-            ) : candidate.buildRequirements.length > 0 ? (
-              <ul>
-                {candidate.buildRequirements.map((requirement) => (
-                  <li key={`${requirement.code}-${requirement.message}`}>
-                    {formatBuildRequirement(requirement.message, [
-                      candidate.exactBuild.fastMoveId,
-                      ...candidate.exactBuild.chargedMoveIds,
-                    ])}
-                  </li>
-                ))}
-              </ul>
             ) : (
-              <small>No qualitative build changes required.</small>
+              <>
+                <RequirementList
+                  label="Changes to reach the selected build"
+                  requirements={candidate.buildRequirements}
+                  moveIds={[
+                    candidate.exactBuild.fastMoveId,
+                    ...candidate.exactBuild.chargedMoveIds,
+                    ...candidate.staticEvidence.recommendedMoveIds,
+                  ]}
+                />
+                <RequirementList
+                  label="Suggested changes to match the published moveset"
+                  requirements={candidate.recommendedRequirements}
+                  moveIds={[
+                    candidate.exactBuild.fastMoveId,
+                    ...candidate.exactBuild.chargedMoveIds,
+                    ...candidate.staticEvidence.recommendedMoveIds,
+                  ]}
+                />
+                {candidate.buildRequirements.length === 0 &&
+                candidate.recommendedRequirements.length === 0 ? (
+                  <small>No qualitative build changes required.</small>
+                ) : null}
+              </>
             )}
           </section>
         ))}

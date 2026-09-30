@@ -8,6 +8,7 @@ function run(): SavedTeamRankerRun {
     {
       speciesId: "team_wall",
       speciesName: "Team Wall",
+      metaRank: 1,
       averageRating: 700,
       score: 700,
       ratings: [700, 650, 600],
@@ -15,6 +16,7 @@ function run(): SavedTeamRankerRun {
     {
       speciesId: "core_breaker",
       speciesName: "Core Breaker",
+      metaRank: 2,
       averageRating: 550,
       score: 550,
       ratings: [620, 560, 400],
@@ -22,6 +24,7 @@ function run(): SavedTeamRankerRun {
     {
       speciesId: "covered",
       speciesName: "Covered Target",
+      metaRank: 3,
       averageRating: 350,
       score: 350,
       ratings: [300, 450, 500],
@@ -111,14 +114,17 @@ function run(): SavedTeamRankerRun {
       targets: [
         {
           speciesId: "team_wall",
+          metaRank: 1,
           stats: { attack: 100, defense: 1, hp: 100, statProduct: 10_000 },
         },
         {
           speciesId: "core_breaker",
+          metaRank: 2,
           stats: { attack: 100, defense: 2, hp: 100, statProduct: 20_000 },
         },
         {
           speciesId: "covered",
+          metaRank: 3,
           stats: { attack: 100, defense: 3, hp: 100, statProduct: 30_000 },
         },
       ],
@@ -137,9 +143,9 @@ describe("saved-team matrix analysis", () => {
 
     expect(analysis.coverage).toMatchObject({
       grade: "A",
-      score: 98.0392156862745,
-      pvpokeValue: 666.6666666666666,
-      pvpokeGoal: 680,
+      score: 93.36541685317017,
+      value: 634.8848346015571,
+      goal: 680,
       coveredTargets: 2,
       totalTargets: 3,
       positiveMatchups: 3,

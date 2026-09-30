@@ -23,6 +23,9 @@ Fork-Structure-Breakdown.md
 
 implementation/
     Actual implementation decisions and progress
+
+RELEASES.md and RELEASE-X.Y.Z.md
+    Release history shown on the site's Release notes page
 ```
 
 Future contributors should be able to use this directory to understand the
@@ -229,7 +232,7 @@ Implemented:
 - per-member win/loss/tie evidence
 - major-threat ordering
 - core-breaker and full-team-wall classification
-- scope-aware PvPoke Coverage formula and A–F grade
+- selected-scope, meta-rank-weighted Coverage formula and A–F grade
 - scorecard and threat evidence UI
 - PvPoke exact-stat Bulk score
 - published Switch-score Safety score
@@ -239,11 +242,12 @@ Implemented:
 - owned exact-record counter candidates
 - unowned PvPoke-default counter candidates
 - species-clause filtering and source disclosure
+- exact one-slot owned-build what-if simulations with before-and-after scorecards
 - completed-run data provenance without external deep links
 
 Deferred enhancements:
 
-- exact substitution simulations and scorecard deltas
+- broader substitution search across multiple slots or unowned builds
 - upstream meta weighting and role evidence
 - persisted analysis cache
 
@@ -366,6 +370,8 @@ Implemented:
 ## Updating these records
 
 Documentation is part of the definition of done for an implementation slice.
+For versioned user-facing changes, follow the [release notes workflow](../RELEASES.md)
+and add a structured note so the site's release archive stays current.
 
 For every meaningful slice:
 

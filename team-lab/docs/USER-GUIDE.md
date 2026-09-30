@@ -1,6 +1,6 @@
 # TeamLab Local User Guide
 
-TeamLab 1.1.2 treats **Season 28 — Twilight Trails** as the active season for
+TeamLab 1.2.0 treats **Season 28 — Twilight Trails** as the active season for
 rankings, recommended moves, meta opponents, and simulations. The dashboard
 identifies the active season. Existing inventory and saved teams remain stored;
 re-run analyses to evaluate them against the new season. There is no preview
@@ -291,10 +291,39 @@ The result includes:
 - coverage, bulk, safety, and consistency scorecards;
 - the selected meta scope and data version;
 - major threats and core breakers;
-- owned and unowned alternatives;
+- owned and unowned published-counter alternatives;
 - plain-language per-member win/loss/tie results and battle scores;
-- separately labeled target and team fast-move damage;
-- links into the inherited PvPoke UI for further inspection.
+- separately labeled target and team fast-move damage.
+
+Coverage uses the exact simulated target ratings across the selected scope.
+Each target is weighted by `1 / √rank`, using its overall rank in the current
+league. This gives higher-ranked Pokémon more influence while keeping
+lower-ranked targets in the calculation:
+
+```text
+weighted target rating = Σ(target rating × 1 / √rank) / Σ(1 / √rank)
+Coverage value = 1200 - weighted target rating
+```
+
+The value is scored against TeamLab's 680-point reference goal. The displayed
+answered-target and positive-matchup counts are raw counts and are not
+rank-weighted. Changing the selected Top-N scope changes which targets
+contribute; lower-ranked targets contribute less to the score.
+
+### Compare a one-slot change
+
+Below the scorecard, use **What if you change one slot?** to choose Lead, Safe
+switch, or Closer and replace it with another eligible owned build. **Compare
+exact swap** runs the replacement against the same target list and shield
+settings as the current report. Review the before-and-after scorecard, gained
+or lost raw answer counts, rank-weighted Coverage score, and changed threat
+matchups before keeping the result.
+
+The preview leaves your saved team unchanged. Choose **Update saved team** and
+confirm to replace its members, or choose **Save as a separate team** and name
+the copy. Candidates must be eligible for the selected league and satisfy the
+team species clause. The published-counter alternatives above remain
+recommendations; the what-if comparison is the exact resimulation.
 
 Larger target scopes perform more synchronous upstream battles and may
 temporarily occupy the browser tab. Start with Top 5 or Top 10 for routine
@@ -347,7 +376,8 @@ inside the inherited synchronous engine.
 Each selected result explains:
 
 - order and exact movesets;
-- build readiness and requirements;
+- build readiness, changes needed to reach a planned build, and suggested
+  changes to match published movesets;
 - coverage, bulk, safety, and consistency;
 - why the team was selected;
 - tradeoffs and major threats;
@@ -537,7 +567,7 @@ TeamLab currently supports:
 
 The MVP does not include:
 
-- limited cups, Ultra League, or Master League;
+- limited cups;
 - third-party inventory imports;
 - accounts, cloud synchronization, or multi-device storage;
 - PWA/offline guarantees;

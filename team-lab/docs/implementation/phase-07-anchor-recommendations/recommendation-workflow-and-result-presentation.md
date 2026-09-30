@@ -108,7 +108,8 @@ Every selected result displays:
 
 - exact Lead, Safe Switch, and Closer order;
 - CP, level, IVs, moves, readiness, and owned/ranked-default provenance;
-- qualitative build requirements;
+- planned-build transition requirements, separately from suggested changes to
+  match each Pokémon's published recommended moveset;
 - final TeamLab selection score;
 - Coverage, Bulk, Safety, and Consistency grades and scores;
 - evidence-derived reasons and tradeoffs;

@@ -295,6 +295,7 @@ function buildTransitionRequirements(
 function buildRecommendedRequirements(
   catalog: PokemonCatalog,
   target: AnalyzedPokemonBuild,
+  current: AnalyzedPokemonBuild,
 ): readonly BuildRequirement[] {
   const targetPokemon = catalog.entries.find(
     (pokemon) => pokemon.speciesId === target.speciesId,
@@ -312,17 +313,19 @@ function buildRecommendedRequirements(
     });
   }
 
+  let replaceableMoveCount = target.moves.extraEnteredChargedMoveIds.length;
+
   for (const moveId of target.moves.missingRecommendedChargedMoveIds) {
+    const replacesExistingMove = replaceableMoveCount > 0;
     requirements.push({
-      code:
-        target.moves.enteredChargedMoveIds.length < 2
-          ? "unlock-second-charged-move"
-          : "change-charged-move",
-      message:
-        target.moves.enteredChargedMoveIds.length < 2
-          ? `Unlock a second charged move for ${moveId}.`
-          : `Change a charged move to ${moveId}.`,
+      code: replacesExistingMove
+        ? "change-charged-move"
+        : "unlock-second-charged-move",
+      message: replacesExistingMove
+        ? `Change a charged move to ${moveId}.`
+        : `Unlock a second charged move for ${moveId}.`,
     });
+    if (replacesExistingMove) replaceableMoveCount -= 1;
   }
 
   if (
@@ -339,10 +342,23 @@ function buildRecommendedRequirements(
     target.moves.recommendedFastMoveId,
     ...target.moves.recommendedChargedMoveIds,
   ].filter((moveId): moveId is string => moveId !== undefined);
+  const selectedMoveIds = [
+    target.moves.enteredFastMoveId,
+    ...target.moves.enteredChargedMoveIds,
+  ];
+  const currentMoveIds = [
+    current.moves.enteredFastMoveId,
+    ...current.moves.enteredChargedMoveIds,
+  ];
   for (const moveId of targetMoveIds) {
     const move = [...targetPokemon.fastMoves, ...targetPokemon.chargedMoves]
       .find((candidate) => candidate.id === moveId);
-    if (move?.isElite) {
+    const requiresEliteMove =
+      target.context === "planned"
+        ? !currentMoveIds.includes(moveId)
+        : !selectedMoveIds.includes(moveId);
+
+    if (move?.isElite && requiresEliteMove) {
       requirements.push({
         code: "elite-move",
         message: `${move.name} requires an Elite TM or eligible event.`,
@@ -417,6 +433,7 @@ export function analyzeInventoryBuild(
   const recommendedRequirements = buildRecommendedRequirements(
     catalog,
     planned ?? current,
+    current,
   );
 
   return {

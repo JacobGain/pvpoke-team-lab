@@ -1230,7 +1230,7 @@ async function assertBuildTarget(
   invariant(
     productionState.dataHealthIndicators === 0 &&
       productionState.diagnosticsLinks === 0 &&
-      productionState.favicon.endsWith("/favicon-48x48.png?v=1.1.2") &&
+      productionState.favicon.endsWith("/favicon-48x48.png?v=1.2.0") &&
       productionState.visibleVersions.includes(`v${release.appVersion ?? ""}`),
     `Production exposed diagnostics navigation: ${JSON.stringify(productionState)}.`,
   );
@@ -2335,7 +2335,7 @@ async function runCriticalWorkflows(
   console.log(
     `[browser-workflows] Top-20 saved-team matrix ${JSON.stringify(savedTeamSimulation)}`,
   );
-  const pvpokeGradeEvidence = await browser.evaluate<boolean>(`(() => {
+  const teamGradeEvidence = await browser.evaluate<boolean>(`(() => {
     const scorecard = document.querySelector(".team-scorecard");
     const grades = [...(scorecard?.querySelectorAll("article > strong") ?? [])]
       .map((grade) => grade.textContent?.trim() ?? "");
@@ -2344,13 +2344,13 @@ async function runCriticalWorkflows(
       grades.length === 4 &&
       grades.every((grade) => /^[A-F]$/.test(grade)) &&
       !grades.includes("S") &&
-      text.includes("PvPoke threat-score goal") &&
+      text.includes("rank-weighted TeamLab score") &&
       text.includes("exact-moveset score")
     );
   })()`);
   invariant(
-    pvpokeGradeEvidence,
-    "Team grades did not use PvPoke A–F goals and exact-moveset evidence.",
+    teamGradeEvidence,
+    "Team grades did not show rank-weighted Coverage and exact-moveset evidence.",
   );
   await visual.capture(
     browser,
@@ -2851,6 +2851,7 @@ async function runCriticalWorkflows(
     diagnosticsMobileRoute,
     [teamLinks.simulationHref, "Browser Coverage Team"],
     ["/recommend", "Discover your best teams"],
+    ["/releases", "Release notes"],
     ["/route-that-does-not-exist", "Page not found", "h2"],
   ] as const;
   const mobileAuditWidths = [320, 430, 540, 680] as const;
@@ -2916,6 +2917,49 @@ async function runCriticalWorkflows(
   );
 
   await browser.setViewport(1440, 1_000);
+  await browser.navigate("/", "Pokémon GO PvP Team Builder for Your Own Roster");
+  const footerReleaseLink = await browser.evaluate<{
+    readonly href: string;
+    readonly label: string;
+  } | null>(`(() => {
+    const link = document.querySelector(".app-footer__release-link");
+    return link instanceof HTMLAnchorElement
+      ? { href: link.getAttribute("href") ?? "", label: link.textContent?.trim() ?? "" }
+      : null;
+  })()`);
+  invariant(
+    footerReleaseLink?.label === "Release notes" &&
+      footerReleaseLink.href.endsWith("/releases"),
+    `Footer release link is missing or points to the wrong page: ${JSON.stringify(footerReleaseLink)}.`,
+  );
+  await browser.evaluate(`document.querySelector(".app-footer__release-link")?.click()`);
+  await browser.waitFor(
+    `document.querySelector(".release-notes-page h1")?.textContent?.trim() === "Release notes"`,
+    "footer release notes navigation",
+  );
+  const releaseHeadings = await browser.evaluate<readonly string[]>(`[
+    ...document.querySelectorAll(".release-note__heading h2")
+  ].map((heading) => heading.textContent?.trim() ?? "")`);
+  invariant(
+    releaseHeadings[0] === "Release v1.2.0" &&
+      releaseHeadings.at(-1) === "Release v0.0.1" &&
+      releaseHeadings.indexOf("Release v0.0.10") <
+        releaseHeadings.indexOf("Release v0.0.9"),
+    `Release history is not in descending semantic-version order: ${releaseHeadings.join(", ")}.`,
+  );
+  await visual.capture(browser, "release-notes-desktop", 1440, 1_000);
+  await visual.capture(browser, "release-notes-mobile", 390, 844);
+  await visual.capture(
+    browser,
+    "release-notes-footer-mobile",
+    390,
+    844,
+    ".app-footer",
+  );
+  await browser.setViewport(1440, 1_000);
+  await browser.assertNoHorizontalOverflow("release notes at desktop width");
+  await browser.navigate("/", "Pokémon GO PvP Team Builder for Your Own Roster");
+
   await browser.setLabeledControl("Battle league", "ultra-league", "select");
   await browser.waitFor(`document.querySelector("#current-format-title")?.textContent?.trim() === "Open Ultra League"`, "Ultra League data");
   await browser.navigate("/inventory", "Your inventory");
