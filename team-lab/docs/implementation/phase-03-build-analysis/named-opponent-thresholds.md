@@ -1,7 +1,7 @@
 # Named-Opponent CMP, Breakpoints, and Bulkpoints
 
 > **Status:** Implemented for fast moves
-> **Last reviewed:** 2026-07-25
+> **Last reviewed:** 2026-09-30
 
 ## Outcome
 
@@ -106,8 +106,10 @@ Tests cover dual-type effectiveness, immunity-level resistance, named default
 opponent resolution, recommended fast-move resolution, integer damage,
 offensive threshold shape, and the one-damage defensive floor.
 
-## Next logical extension
+## Relationship to exact matchup planning
 
-The full battle-simulation adapter should consume these same explicit build
-contracts. It can determine whether a threshold changes a shield-scenario
-result instead of inferring matchup impact from isolated damage arithmetic.
+This threshold panel remains arithmetic evidence: it does not predict a
+matchup winner or a matchup flip. The adjacent
+[matchup-backed build planner](matchup-backed-build-planning.md) now runs
+separate exact one-on-one PvPoke simulations for an explicit baseline,
+candidate builds, selected default meta threats, and shield scenario.

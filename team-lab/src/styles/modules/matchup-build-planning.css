@@ -1,0 +1,360 @@
+.matchup-planner {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.matchup-planner__header,
+.matchup-planner__results > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.matchup-planner__header h2,
+.matchup-planner__results h3 {
+  margin-top: 0;
+}
+
+.matchup-planner__header p:not(.eyebrow),
+.matchup-planner__setup-card > p,
+.matchup-planner__results > header p {
+  color: var(--ink-600);
+  line-height: 1.5;
+}
+
+.matchup-planner__data-version {
+  flex: 0 0 auto;
+  padding: 0.4rem 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--ink-600);
+  background: var(--surface-subtle);
+  font-size: 0.78rem;
+}
+
+.matchup-planner__setup {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+  min-width: 0;
+}
+
+.matchup-planner__setup-card,
+.matchup-planner__candidate,
+.matchup-planner__threat-result,
+.matchup-planner__outcome {
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 0.85rem;
+  background: var(--surface-subtle);
+}
+
+.matchup-planner__setup-card h3,
+.matchup-planner__candidate-list h3,
+.matchup-planner__threat-result h4,
+.matchup-planner__outcome h4 {
+  margin: 0 0 0.65rem;
+  overflow-wrap: anywhere;
+}
+
+.matchup-planner__candidate-editor {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.matchup-planner__fields {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.matchup-planner__fields--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.matchup-planner__fields--three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.matchup-planner__field {
+  display: grid;
+  align-content: start;
+  gap: 0.35rem;
+  min-width: 0;
+  color: var(--ink-700);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.matchup-planner__field input,
+.matchup-planner__field select {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 2.7rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 0.6rem;
+  color: var(--ink-900);
+  background: #ffffff;
+  font: inherit;
+}
+
+.matchup-planner__field small,
+.matchup-planner__fit-note,
+.matchup-planner__build-summary,
+.matchup-planner__selected-threats {
+  margin: 0;
+  color: var(--ink-600);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.matchup-planner__threat-picker {
+  margin-top: 0.7rem;
+  padding: 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 0.7rem;
+  background: #ffffff;
+}
+
+.matchup-planner__threat-picker summary,
+.matchup-planner__assumptions summary {
+  color: var(--ink-900);
+  cursor: pointer;
+  font-weight: 750;
+}
+
+.matchup-planner__threat-picker > .matchup-planner__field {
+  margin-top: 0.75rem;
+}
+
+.matchup-planner__threat-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem 0.75rem;
+  max-height: 17rem;
+  margin-top: 0.75rem;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.matchup-planner__threat-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  min-width: 0;
+  padding: 0.4rem;
+  border-radius: 0.5rem;
+  color: var(--ink-700);
+  cursor: pointer;
+  font-size: 0.84rem;
+  line-height: 1.35;
+}
+
+.matchup-planner__threat-option:hover {
+  background: var(--surface-subtle);
+}
+
+.matchup-planner__threat-option input {
+  flex: 0 0 auto;
+  width: 1rem;
+  height: 1rem;
+  margin: 0.08rem 0 0;
+  accent-color: var(--lab-600);
+}
+
+.matchup-planner__threat-option span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.matchup-planner__selected-threats {
+  margin-top: 0.55rem;
+}
+
+.matchup-planner__fit-note {
+  padding: 0.65rem 0.75rem;
+  border-left: 3px solid var(--dossier-cyan);
+  background: #ffffff;
+}
+
+.matchup-planner__candidate-list,
+.matchup-planner__results,
+.matchup-planner__progress {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.matchup-planner__candidate {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  background: #ffffff;
+}
+
+.matchup-planner__candidate > div {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.matchup-planner__candidate strong,
+.matchup-planner__candidate span {
+  overflow-wrap: anywhere;
+}
+
+.matchup-planner__candidate span {
+  color: var(--ink-600);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.matchup-planner__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+.matchup-planner__progress {
+  padding: 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  background: #ffffff;
+}
+
+.matchup-planner__progress progress {
+  width: 100%;
+  height: 0.75rem;
+  accent-color: var(--lab-600);
+}
+
+.matchup-planner__results {
+  padding-top: 0.5rem;
+}
+
+.matchup-planner__results > header h3 {
+  margin: 0;
+}
+
+.matchup-planner__results > header strong {
+  color: #835300;
+  font-size: 0.84rem;
+}
+
+.matchup-planner__result-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.matchup-planner__threat-result {
+  display: grid;
+  align-content: start;
+  gap: 0.6rem;
+  background: #ffffff;
+}
+
+.matchup-planner__threat-result > header p:not(.eyebrow) {
+  margin: 0;
+  color: var(--ink-600);
+  font-size: 0.8rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.matchup-planner__outcome {
+  padding: 0.75rem;
+  background: var(--surface-subtle);
+}
+
+.matchup-planner__outcome h4 {
+  font-size: 0.9rem;
+}
+
+.matchup-planner__outcome p {
+  margin: 0.3rem 0 0;
+  color: var(--ink-600);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.matchup-planner__outcome-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.3rem 0.6rem;
+}
+
+.matchup-planner__outcome-line strong {
+  color: var(--ink-900);
+  font-size: 1rem;
+}
+
+.matchup-planner__assumptions {
+  padding: 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 0.7rem;
+  color: var(--ink-600);
+  background: var(--surface-subtle);
+}
+
+.matchup-planner__assumptions p {
+  margin: 0.65rem 0 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 760px) {
+  .matchup-planner__header,
+  .matchup-planner__results > header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .matchup-planner__setup,
+  .matchup-planner__result-list {
+    grid-template-columns: 1fr;
+  }
+
+  .matchup-planner__candidate-editor {
+    grid-column: auto;
+  }
+
+  .matchup-planner__actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .matchup-planner__actions > button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 520px) {
+  .matchup-planner__fields--two,
+  .matchup-planner__fields--three,
+  .matchup-planner__threat-list {
+    grid-template-columns: 1fr;
+  }
+
+  .matchup-planner__candidate {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .matchup-planner__candidate > button {
+    width: 100%;
+  }
+}
