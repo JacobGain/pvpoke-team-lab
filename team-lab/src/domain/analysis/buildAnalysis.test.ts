@@ -126,8 +126,8 @@ describe("inventory build analysis", () => {
     ]);
     expect(analysis.recommendedRequirements).toEqual([
       {
-        code: "unlock-second-charged-move",
-        message: "Unlock a second charged move for ICE_BEAM.",
+        code: "change-charged-move",
+        message: "Change a charged move to ICE_BEAM.",
       },
       {
         code: "unlock-second-charged-move",

@@ -295,13 +295,29 @@ The result includes:
 - plain-language per-member win/loss/tie results and battle scores;
 - separately labeled target and team fast-move damage.
 
+Coverage uses the exact simulated target ratings across the selected scope.
+Each target is weighted by `1 / √rank`, using its overall rank in the current
+league. This gives higher-ranked Pokémon more influence while keeping
+lower-ranked targets in the calculation:
+
+```text
+weighted target rating = Σ(target rating × 1 / √rank) / Σ(1 / √rank)
+Coverage value = 1200 - weighted target rating
+```
+
+The value is scored against TeamLab's 680-point reference goal. The displayed
+answered-target and positive-matchup counts are raw counts and are not
+rank-weighted. Changing the selected Top-N scope changes which targets
+contribute; lower-ranked targets contribute less to the score.
+
 ### Compare a one-slot change
 
 Below the scorecard, use **What if you change one slot?** to choose Lead, Safe
 switch, or Closer and replace it with another eligible owned build. **Compare
 exact swap** runs the replacement against the same target list and shield
 settings as the current report. Review the before-and-after scorecard, gained
-or lost coverage, and changed threat matchups before keeping the result.
+or lost raw answer counts, rank-weighted Coverage score, and changed threat
+matchups before keeping the result.
 
 The preview leaves your saved team unchanged. Choose **Update saved team** and
 confirm to replace its members, or choose **Save as a separate team** and name
@@ -360,7 +376,8 @@ inside the inherited synchronous engine.
 Each selected result explains:
 
 - order and exact movesets;
-- build readiness and requirements;
+- build readiness, changes needed to reach a planned build, and suggested
+  changes to match published movesets;
 - coverage, bulk, safety, and consistency;
 - why the team was selected;
 - tradeoffs and major threats;
