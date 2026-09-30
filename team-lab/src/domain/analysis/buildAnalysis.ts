@@ -96,12 +96,13 @@ function analyzeMoves(
   moveset: InventoryMoveset,
 ): MoveAnalysis {
   const recommendedMoveIds = pokemon.ranking?.recommendedMoveIds ?? [];
-  const recommendedFastMoveId = pokemon.fastMoves.find((move) =>
-    recommendedMoveIds.includes(move.id),
-  )?.id;
-  const recommendedChargedMoveIds = pokemon.chargedMoves
-    .filter((move) => recommendedMoveIds.includes(move.id))
-    .map((move) => move.id);
+  const recommendedFastMoveId = recommendedMoveIds
+    .map((moveId) => pokemon.fastMoves.find((move) => move.id === moveId)?.id)
+    .find((moveId) => moveId !== undefined);
+  const recommendedChargedMoveIds = recommendedMoveIds.flatMap((moveId) => {
+    const move = pokemon.chargedMoves.find((candidate) => candidate.id === moveId);
+    return move ? [move.id] : [];
+  });
   const enteredChargedMoveIds = [...moveset.chargedMoveIds];
 
   return {
