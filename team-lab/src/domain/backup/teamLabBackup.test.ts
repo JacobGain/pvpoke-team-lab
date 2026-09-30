@@ -87,7 +87,7 @@ function savedTeam(records = inventory()) {
 }
 
 describe("TeamLab full-data backup", () => {
-  it("round-trips inventory and saved teams through schema version two", () => {
+  it("round-trips inventory, saved teams, and recommendation history through schema version three", () => {
     const records = inventory();
     const team = savedTeam(records);
     const backup = createTeamLabBackup(
@@ -104,10 +104,11 @@ describe("TeamLab full-data backup", () => {
     expect(inspection).toEqual({
       success: true,
       backup: {
-        sourceSchemaVersion: 2,
+        sourceSchemaVersion: 3,
         exportedAt: "2026-07-25T14:00:00.000Z",
         inventory: records,
         savedTeams: [team],
+        recommendationHistory: [],
       },
     });
   });

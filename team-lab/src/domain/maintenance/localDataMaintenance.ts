@@ -1,6 +1,7 @@
 export interface LocalDataMutationResult {
   readonly removedInventoryCount: number;
   readonly removedSavedTeamCount: number;
+  readonly removedRecommendationHistoryCount: number;
 }
 
 export interface LocalDataMaintenanceRepository {

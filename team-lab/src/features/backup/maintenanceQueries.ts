@@ -2,12 +2,14 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { inventoryQueryKeys } from "@/features/inventory/inventoryQueries";
 import { savedTeamQueryKeys } from "@/features/teams/savedTeamQueries";
+import { recommendationHistoryQueryKeys } from "@/features/recommendations/recommendationHistoryQueries";
 import { localDataMaintenanceRepository } from "@/infrastructure/maintenance";
 
 function useLocalDataMutation(
   mutationFn: () => Promise<{
     readonly removedInventoryCount: number;
     readonly removedSavedTeamCount: number;
+    readonly removedRecommendationHistoryCount: number;
   }>,
 ) {
   const queryClient = useQueryClient();
@@ -21,6 +23,9 @@ function useLocalDataMutation(
         }),
         queryClient.invalidateQueries({
           queryKey: savedTeamQueryKeys.all,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: recommendationHistoryQueryKeys.all,
         }),
       ]);
     },

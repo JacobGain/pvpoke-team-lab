@@ -22,6 +22,7 @@ export class DexieLocalDataMaintenanceRepository
         return {
           removedInventoryCount: 0,
           removedSavedTeamCount,
+          removedRecommendationHistoryCount: 0,
         };
       },
     );
@@ -46,6 +47,7 @@ export class DexieLocalDataMaintenanceRepository
         return {
           removedInventoryCount,
           removedSavedTeamCount: 0,
+          removedRecommendationHistoryCount: 0,
         };
       },
     );
@@ -56,19 +58,27 @@ export class DexieLocalDataMaintenanceRepository
       "rw",
       this.database.inventory,
       this.database.savedTeams,
+      this.database.recommendationHistory,
       async () => {
-        const [removedInventoryCount, removedSavedTeamCount] =
+        const [
+          removedInventoryCount,
+          removedSavedTeamCount,
+          removedRecommendationHistoryCount,
+        ] =
           await Promise.all([
             this.database.inventory.count(),
             this.database.savedTeams.count(),
+            this.database.recommendationHistory.count(),
           ]);
 
+        await this.database.recommendationHistory.clear();
         await this.database.savedTeams.clear();
         await this.database.inventory.clear();
 
         return {
           removedInventoryCount,
           removedSavedTeamCount,
+          removedRecommendationHistoryCount,
         };
       },
     );

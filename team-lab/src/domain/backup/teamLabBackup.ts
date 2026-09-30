@@ -3,6 +3,11 @@ import { LEAGUES } from "@/domain/leagues";
 
 import { TEAM_LAB_BACKUP_SCHEMA_VERSION } from "@/domain/schemaVersions";
 import {
+  MAX_RECOMMENDATION_HISTORY_RECORDS,
+  recommendationHistoryRecordSchema,
+  type RecommendationHistoryRecord,
+} from "@/domain/recommendations/history";
+import {
   inventoryPokemonSchema,
   type InventoryPokemon,
 } from "@/domain/inventory/schemas";
@@ -38,14 +43,22 @@ const backupEnvelopeV1Schema = backupMetadataSchema.extend({
 });
 
 const backupEnvelopeV2Schema = backupMetadataSchema.extend({
+  schemaVersion: z.literal(2),
+  inventory: z.array(z.unknown()).max(MAX_TEAM_LAB_BACKUP_INVENTORY_RECORDS),
+  savedTeams: z.array(z.unknown()).max(MAX_TEAM_LAB_BACKUP_SAVED_TEAMS),
+});
+
+const backupEnvelopeV3Schema = backupMetadataSchema.extend({
   schemaVersion: z.literal(TEAM_LAB_BACKUP_SCHEMA_VERSION),
   inventory: z.array(z.unknown()).max(MAX_TEAM_LAB_BACKUP_INVENTORY_RECORDS),
   savedTeams: z.array(z.unknown()).max(MAX_TEAM_LAB_BACKUP_SAVED_TEAMS),
+  recommendationHistory: z.array(z.unknown()).max(MAX_RECOMMENDATION_HISTORY_RECORDS),
 });
 
 const supportedBackupEnvelopeSchema = z.discriminatedUnion("schemaVersion", [
   backupEnvelopeV1Schema,
   backupEnvelopeV2Schema,
+  backupEnvelopeV3Schema,
 ]);
 
 export interface TeamLabBackup {
@@ -54,25 +67,30 @@ export interface TeamLabBackup {
   readonly exportedAt: string;
   readonly inventory: readonly InventoryPokemon[];
   readonly savedTeams: readonly SavedTeam[];
+  readonly recommendationHistory: readonly RecommendationHistoryRecord[];
 }
 
 export interface TeamLabRestoreData {
   readonly sourceSchemaVersion:
     | typeof LEGACY_INVENTORY_BACKUP_SCHEMA_VERSION
+    | 2
     | typeof TEAM_LAB_BACKUP_SCHEMA_VERSION;
   readonly exportedAt: string;
   readonly inventory: readonly InventoryPokemon[];
   readonly savedTeams: readonly SavedTeam[];
+  readonly recommendationHistory: readonly RecommendationHistoryRecord[];
 }
 
 export type TeamLabBackupIssueKind =
   | "record-schema"
   | "catalog-reference"
   | "duplicate-id"
-  | "saved-team-legality";
+  | "saved-team-legality"
+  | "history-schema"
+  | "duplicate-history-id";
 
 export interface TeamLabBackupIssue {
-  readonly collection: "inventory" | "savedTeams";
+  readonly collection: "inventory" | "savedTeams" | "recommendationHistory";
   readonly index: number;
   readonly recordId?: string;
   readonly kind: TeamLabBackupIssueKind;
@@ -90,9 +108,10 @@ export type TeamLabBackupInspection =
       readonly success: false;
       readonly envelopeError?: string;
       readonly exportedAt?: string;
-      readonly sourceSchemaVersion?: 1 | 2;
+      readonly sourceSchemaVersion?: 1 | 2 | 3;
       readonly inventoryCount?: number;
       readonly savedTeamCount?: number;
+      readonly recommendationHistoryCount?: number;
       readonly issues: readonly TeamLabBackupIssue[];
     };
 
@@ -108,9 +127,10 @@ export interface TeamLabCollectionRestoreResult {
 
 export interface TeamLabRestoreResult {
   readonly mode: TeamLabRestoreMode;
-  readonly sourceSchemaVersion: 1 | 2;
+  readonly sourceSchemaVersion: 1 | 2 | 3;
   readonly inventory: TeamLabCollectionRestoreResult;
   readonly savedTeams: TeamLabCollectionRestoreResult;
+  readonly recommendationHistory: TeamLabCollectionRestoreResult;
 }
 
 export interface TeamLabBackupRepository {
@@ -135,15 +155,34 @@ export function createTeamLabBackup(
   inventory: readonly InventoryPokemon[],
   savedTeams: readonly SavedTeam[],
   catalog: PokemonCatalog,
+  historyOrNow: readonly RecommendationHistoryRecord[] | (() => Date) = [],
   now: () => Date = () => new Date(),
 ): TeamLabBackup {
+  const history = typeof historyOrNow === "function" ? [] : historyOrNow;
+  const clock = typeof historyOrNow === "function" ? historyOrNow : now;
   const validatedInventory = inventory.map((record) =>
     inventoryPokemonSchema.parse(record),
   );
   const validatedTeams = savedTeams.map((team) =>
     savedTeamSchema.parse(team),
   );
+  const validatedHistory = history.map((record) =>
+    recommendationHistoryRecordSchema.parse(record),
+  );
   const issues: string[] = [];
+
+  if (validatedHistory.length > MAX_RECOMMENDATION_HISTORY_RECORDS) {
+    issues.push(
+      `Recommendation history contains more than ${MAX_RECOMMENDATION_HISTORY_RECORDS} runs.`,
+    );
+  }
+  const historyIds = new Set<string>();
+  for (const record of validatedHistory) {
+    if (historyIds.has(record.historyId)) {
+      issues.push(`Recommendation history contains duplicate run ID ${record.historyId}.`);
+    }
+    historyIds.add(record.historyId);
+  }
 
   for (const record of validatedInventory) {
     const recordIssues = validateInventoryPokemonAgainstCatalog(
@@ -177,19 +216,24 @@ export function createTeamLabBackup(
   return {
     format: TEAM_LAB_BACKUP_FORMAT,
     schemaVersion: TEAM_LAB_BACKUP_SCHEMA_VERSION,
-    exportedAt: now().toISOString(),
+    exportedAt: clock().toISOString(),
     inventory: validatedInventory,
     savedTeams: validatedTeams,
+    recommendationHistory: validatedHistory,
   };
 }
 
 export function serializeTeamLabBackup(backup: TeamLabBackup): string {
-  return JSON.stringify(backup);
+  const serialized = JSON.stringify(backup);
+  if (new Blob([serialized]).size > MAX_TEAM_LAB_BACKUP_BYTES) {
+    throw new Error("The complete backup is larger than the 10 MiB limit. Delete older recommendation-history runs and try again.");
+  }
+  return serialized;
 }
 
 function candidateRecordId(
   candidate: unknown,
-  key: "inventoryId" | "teamId",
+  key: "inventoryId" | "teamId" | "historyId",
 ): string | undefined {
   if (typeof candidate !== "object" || candidate === null) {
     return undefined;
@@ -235,9 +279,10 @@ export function inspectTeamLabBackup(
   }
 
   const envelope = envelopeResult.data;
-  const rawTeams =
+  const rawTeams = "savedTeams" in envelope ? envelope.savedTeams : [];
+  const rawHistory =
     envelope.schemaVersion === TEAM_LAB_BACKUP_SCHEMA_VERSION
-      ? envelope.savedTeams
+      ? envelope.recommendationHistory
       : [];
   const issues: TeamLabBackupIssue[] = [];
   const inventory: InventoryPokemon[] = [];
@@ -345,6 +390,43 @@ export function inspectTeamLabBackup(
     savedTeams.push(team);
   }
 
+  const recommendationHistory: RecommendationHistoryRecord[] = [];
+  const firstHistoryIndexById = new Map<string, number>();
+
+  for (const [index, candidate] of rawHistory.entries()) {
+    const recordResult = recommendationHistoryRecordSchema.safeParse(candidate);
+
+    if (!recordResult.success) {
+      issues.push({
+        collection: "recommendationHistory",
+        index,
+        recordId: candidateRecordId(candidate, "historyId"),
+        kind: "history-schema",
+        message: recordResult.error.issues
+          .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+          .join("; "),
+      });
+      continue;
+    }
+
+    const record = recordResult.data;
+    const firstIndex = firstHistoryIndexById.get(record.historyId);
+
+    if (firstIndex !== undefined) {
+      issues.push({
+        collection: "recommendationHistory",
+        index,
+        recordId: record.historyId,
+        kind: "duplicate-history-id",
+        message: `Recommendation run ID duplicates history record ${firstIndex + 1}.`,
+      });
+      continue;
+    }
+
+    firstHistoryIndexById.set(record.historyId, index);
+    recommendationHistory.push(record);
+  }
+
   if (issues.length > 0) {
     return {
       success: false,
@@ -352,6 +434,7 @@ export function inspectTeamLabBackup(
       sourceSchemaVersion: envelope.schemaVersion,
       inventoryCount: envelope.inventory.length,
       savedTeamCount: rawTeams.length,
+      recommendationHistoryCount: rawHistory.length,
       issues,
     };
   }
@@ -363,6 +446,7 @@ export function inspectTeamLabBackup(
       exportedAt: envelope.exportedAt,
       inventory,
       savedTeams,
+      recommendationHistory,
     },
   };
 }

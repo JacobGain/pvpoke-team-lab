@@ -79,6 +79,7 @@ describe("DexieLocalDataMaintenanceRepository", () => {
     await expect(repository.clearSavedTeams()).resolves.toEqual({
       removedInventoryCount: 0,
       removedSavedTeamCount: 1,
+      removedRecommendationHistoryCount: 0,
     });
     expect(await database.inventory.toArray()).toEqual([inventoryRecord]);
     expect(await database.savedTeams.count()).toBe(0);
@@ -90,6 +91,7 @@ describe("DexieLocalDataMaintenanceRepository", () => {
     await expect(repository.clearInventory()).resolves.toEqual({
       removedInventoryCount: 1,
       removedSavedTeamCount: 0,
+      removedRecommendationHistoryCount: 0,
     });
     expect(await database.inventory.count()).toBe(0);
   });
@@ -112,6 +114,7 @@ describe("DexieLocalDataMaintenanceRepository", () => {
     await expect(repository.resetAll()).resolves.toEqual({
       removedInventoryCount: 1,
       removedSavedTeamCount: 1,
+      removedRecommendationHistoryCount: 0,
     });
     expect(await database.inventory.count()).toBe(0);
     expect(await database.savedTeams.count()).toBe(0);
