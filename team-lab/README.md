@@ -4,9 +4,9 @@ TeamLab is a local-first Great, Ultra, and Master League inventory and team-plan
 application with a Mega toggle for each league, built on the data and simulation
 engine in this PvPoke fork. Owned inventory is shared across leagues.
 
-It supports exact owned and planned builds, IV/build analysis, ordered saved
-teams, real PvPoke TeamRanker matrices, anchor-based recommendations, and
-portable full-data JSON backup and restore.
+It supports exact owned and planned builds, IV/build analysis, matchup-backed
+build planning, ordered saved teams, real PvPoke TeamRanker matrices,
+anchor-based recommendations, and portable full-data JSON backup and restore.
 
 The **Battle** page (`/battle`, also in the mobile More menu) runs configurable
 1v1 matchups in all six open and Mega formats. Choose species/forms, Shadow variants, moves,
@@ -121,7 +121,7 @@ for its mapping and review contract.
 
 ## Updating PvPoke data and engine files
 
-TeamLab 1.2.1 uses Season 28, Twilight Trails, as the active season.
+TeamLab 1.2.2 uses Season 28, Twilight Trails, as the active season.
 The bundle is pinned to the upstream revision in `src/pvpoke/season.ts`.
 Fetch that branch and regenerate TeamLab’s owned copy:
 
@@ -167,7 +167,7 @@ the performance budget.
 ## Documentation
 
 - [Release notes archive and release workflow](docs/RELEASES.md)
-- [1.2.1 release notes](docs/RELEASE-1.2.1.md)
+- [1.2.2 release notes](docs/RELEASE-1.2.2.md)
 - [Local user guide](docs/USER-GUIDE.md)
 - [Deployment build targets](docs/DEPLOYMENT-BUILDS.md)
 - [Cloudflare Pages deployment and cutover](docs/CLOUDFLARE-DEPLOYMENT.md)
