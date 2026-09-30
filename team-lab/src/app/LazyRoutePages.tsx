@@ -6,6 +6,12 @@ export const BulkInventoryPage = lazy(() =>
   })),
 );
 
+export const InventoryCsvImportPage = lazy(() =>
+  import("@/features/inventory/InventoryCsvImportPage").then((module) => ({
+    default: module.InventoryCsvImportPage,
+  })),
+);
+
 export const InventoryAnalysisPage = lazy(() =>
   import("@/features/analysis/InventoryAnalysisPage").then((module) => ({
     default: module.InventoryAnalysisPage,

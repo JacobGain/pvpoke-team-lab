@@ -100,6 +100,7 @@ Status: **Complete for MVP**
 - [Manual inventory entry and editing](phase-02-inventory/manual-entry-workflow.md)
 - [Inventory dashboard](phase-02-inventory/inventory-dashboard.md)
 - [Inventory backup and restore](phase-02-inventory/backup-and-restore.md)
+- [TeamLab CSV inventory import](phase-02-inventory/csv-import.md)
 - [Superseded CRUD verification](phase-02-inventory/crud-verification.md)
 
 Implemented:
@@ -114,6 +115,7 @@ Implemented:
 - current/planned create and edit workflow
 - searchable inventory dashboard and confirmed deletion
 - high-volume entry conveniences and duplication
+- TeamLab CSV template import with exact-build preview and duplicate review
 - versioned JSON export and fully validated import
 - atomic merge/replace restore and confirmed local clearing
 - Vitest and fake IndexedDB foundation

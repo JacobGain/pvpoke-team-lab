@@ -6,6 +6,7 @@ import {
   ListPlus,
   Plus,
   SearchX,
+  Upload,
   Users,
 } from "lucide-react";
 import { Link, useSearchParams } from "react-router";
@@ -115,6 +116,10 @@ export function InventoryPage() {
             <Link className="secondary-link" to="/inventory/bulk-add">
               <ListPlus size={18} />
               Bulk add
+            </Link>
+            <Link className="secondary-link" to="/inventory/import">
+              <Upload size={18} />
+              Import CSV
             </Link>
             <Link className="secondary-link" to="/teams">
               <Users size={18} />

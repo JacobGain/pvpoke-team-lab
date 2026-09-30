@@ -9,6 +9,7 @@ import {
   DuelPage,
   InventoryAnalysisPage,
   InventoryBackupPage,
+  InventoryCsvImportPage,
   InventoryFormPage,
   InventoryPage,
   LazyRoute,
@@ -79,6 +80,14 @@ export const router = createBrowserRouter(
           element: (
             <LazyRoute>
               <BulkInventoryPage />
+            </LazyRoute>
+          ),
+        },
+        {
+          path: "inventory/import",
+          element: (
+            <LazyRoute>
+              <InventoryCsvImportPage />
             </LazyRoute>
           ),
         },
