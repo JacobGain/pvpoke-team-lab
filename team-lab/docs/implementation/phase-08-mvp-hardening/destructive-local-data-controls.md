@@ -34,7 +34,7 @@ clear inventory
     require zero saved teams
 
 reset all TeamLab data
-    atomically clear both collections
+    atomically clear inventory, saved teams, and recommendation history
 ```
 
 It must also prevent a stale UI count or direct repository call from bypassing
@@ -86,12 +86,15 @@ Users can clear saved teams first or choose reset-all.
 
 ## Reset all
 
-`resetAll` counts and clears inventory and saved teams in one Dexie
-transaction. A failure rolls back the complete action.
+In the original Phase 8 implementation, `resetAll` counted and cleared
+inventory and saved teams in one Dexie transaction. TeamLab v1.2.1 extends the
+same transaction to recommendation history. Inventory clearing leaves history
+in place because its results are self-contained snapshots; reset-all removes
+all three persisted collections and reports each exact count.
 
-No persisted settings or analysis cache currently exists, so these two tables
-are the complete local MVP data boundary. Future persisted domains must be
-added to both this transaction and the backup format.
+No persisted settings or analysis cache currently exists. Recommendation
+history is the third persisted collection and is included in the current reset
+and backup boundaries.
 
 ## Confirmation workflow
 
@@ -200,7 +203,7 @@ Characterization verifies:
 - inventory clearing succeeds with no saved teams;
 - inventory clearing is rejected without changing either table when a team
   exists;
-- reset-all clears both tables and reports both committed counts.
+- reset-all clears all three tables and reports each committed count.
 
 Observed after this slice:
 
@@ -215,7 +218,8 @@ npm run build     passed with the existing >500 kB chunk warning
 
 - The confirmation panel is inline rather than a focus-trapped modal.
 - Individual inventory deletion still permits saved-team recovery states.
-- No persisted settings or analysis-cache tables exist to clear.
+- No persisted settings or analysis-cache tables exist to clear. Reset-all
+  clears history, while inventory-only clearing leaves its snapshots intact.
 - The route retains its inventory-oriented Phase 2 name.
 
 ## Safe extension points

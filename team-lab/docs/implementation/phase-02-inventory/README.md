@@ -92,8 +92,9 @@ complete repository CRUD path, stable errors, and invalid-data preservation.
   and user-facing repair flows are not implemented.
 - Cards still use move IDs and omit sprites/polished type presentation.
 - Backup version one remains inventory-only for compatibility. Phase 8 backup
-  version two includes saved teams; settings remain absent because no
-  persisted settings domain exists.
+  version two added saved teams, and TeamLab v1.2.1 backup version three adds
+  recommendation history. Settings remain absent because no persisted settings
+  domain exists.
 
 ## Exit criteria
 

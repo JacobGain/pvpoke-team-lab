@@ -1,6 +1,6 @@
 # TeamLab Local User Guide
 
-TeamLab 1.2.0 treats **Season 28 — Twilight Trails** as the active season for
+TeamLab 1.2.1 treats **Season 28 — Twilight Trails** as the active season for
 rankings, recommended moves, meta opponents, and simulations. The dashboard
 identifies the active season. Existing inventory and saved teams remain stored;
 re-run analyses to evaluate them against the new season. There is no preview
@@ -37,11 +37,12 @@ The MVP lets you:
 - save ordered lead, safe-switch, and closer teams;
 - run exact teams against the selected league’s meta;
 - build recommendations around one or two owned anchors;
+- revisit saved recommendation results and compare them against refreshed PvPoke data;
 - save selected recommendations as teams;
-- back up and restore inventory and saved teams as JSON.
+- back up and restore inventory, saved teams, and recommendation history as JSON.
 
-TeamLab does not require an account. Inventory and saved teams remain in the
-current browser profile.
+TeamLab does not require an account. Inventory, saved teams, and
+recommendation history remain in the current browser profile.
 
 ## Before you start
 
@@ -76,7 +77,7 @@ contains `public/vendor/pvpoke/`.
 
 ### Keep the same browser origin
 
-Inventory and saved teams stay in IndexedDB on the current device and browser
+Inventory, saved teams, and recommendation history stay in IndexedDB on the current device and browser
 profile. TeamLab does not upload them and does not set an automatic expiration.
 They remain available until the browser, operating system, or user clears that
 site's data, or the inventory is reset in TeamLab. Private browsing and some
@@ -385,7 +386,24 @@ Each selected result explains:
 - methods and assumptions.
 
 Choose **Save this team** to persist a fully owned result in Saved Teams.
-Recommendations are not saved automatically. A result containing a ranked
+Whenever a run produces at least one result, TeamLab automatically stores a
+compact history record on this device. The record keeps the anchors, all run
+settings, result scorecards and threats, the recommendation formula versions,
+and the PvPoke data version. Open **Recommendation history** below the
+recommendation controls to revisit a result after changing routes or reloading
+the browser. History is local to this browser profile; download a TeamLab backup
+to move it or keep a recovery copy. Delete a run or clear all history from that
+page when it is no longer needed.
+
+A saved history run can be **Re-run and compared** using the current data for
+its league. TeamLab reuses the saved anchors and settings, saves the refreshed
+run as a new history item, and compares the selected teams by their three
+Pokémon species. A missing anchor or changed inventory can prevent a comparison
+or change the available results. When recommendation formulas have changed,
+the comparison calls that out because score movement then reflects both data
+and formula updates.
+
+A result containing a ranked
 Pokémon you do not own can still be simulated in TeamLab, but it cannot be
 saved until those Pokémon are added to inventory.
 
@@ -400,10 +418,11 @@ Open **Inventory**, then **Backup and restore**.
 
 Choose **Download JSON backup**.
 
-The current version-two backup contains:
+The current version-three backup contains:
 
 - every inventory record;
 - every saved team;
+- recommendation history and its archived result snapshots;
 - schema versions;
 - export time and source-data metadata.
 
@@ -425,7 +444,7 @@ Select a TeamLab JSON file. Inspection does not change IndexedDB.
 TeamLab reports:
 
 - whether the envelope and record schemas are valid;
-- inventory and saved-team counts;
+- inventory, saved-team, and recommendation-history counts;
 - broken catalog values;
 - missing saved-team references;
 - species-clause failures;
@@ -435,24 +454,26 @@ Restore controls appear only after successful inspection.
 
 ### Merge
 
-**Merge** preserves unrelated local records. Incoming records replace local
-records with matching IDs. TeamLab validates the complete final inventory and
-team state before writing.
+**Merge** preserves unrelated local records. Incoming inventory, team, and
+history records replace matching IDs. TeamLab validates the complete final
+inventory and team state, plus every archived history record, before writing.
 
 Merge can fail when incoming inventory would make an existing unrelated team
 invalid. No partial restore is applied.
 
 ### Replace
 
-**Replace** makes the backup authoritative. Local inventory and teams absent
-from the file are removed.
+**Replace** makes the backup authoritative. Local inventory, teams, and
+recommendation history absent from the file are removed.
 
-Replace requires an explicit confirmation and runs inventory and team changes
-in one transaction.
+Replace requires an explicit confirmation and runs all collection changes in
+one transaction.
 
 ### Legacy inventory-only backups
 
-Version-one backups remain importable, but they contain no saved teams.
+Version-one backups remain importable, but they contain no saved teams or
+recommendation history. Version-two backups contain inventory and saved teams
+without recommendation history.
 
 Merging a legacy backup preserves unrelated local teams when they remain
 valid. Replacing with a legacy backup produces an inventory-only final state
@@ -473,7 +494,8 @@ Clear saved teams first if this action is blocked.
 
 ### Reset TeamLab
 
-Atomically deletes inventory and saved teams. You must type:
+Atomically deletes inventory, saved teams, and recommendation history. You
+must type:
 
 ```text
 RESET
@@ -483,6 +505,10 @@ before confirmation is enabled.
 
 Every operation reports exact removal counts. These actions have no undo
 inside TeamLab; recovery requires a previously downloaded backup.
+
+Use **Recommendation history** to delete one archived run or clear history
+without changing inventory and saved teams. Clearing inventory leaves history
+available because each record contains its own saved result snapshot.
 
 ## Data versions and refreshes
 
@@ -572,7 +598,7 @@ The MVP does not include:
 - accounts, cloud synchronization, or multi-device storage;
 - PWA/offline guarantees;
 - exact resource-cost calculation;
-- recommendation history or persisted analysis caches;
+- persisted analysis caches;
 - exhaustive matchup truth or tournament outcome prediction.
 
 ## Maintainer validation

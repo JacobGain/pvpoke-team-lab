@@ -289,10 +289,12 @@ Implemented:
 - evidence-derived recommendation explanations
 - complete `/recommend` workflow and responsive result presentation
 - explicit selected-result conversion into saved teams
+- automatically saved recommendation history with data/formula versions and
+  current-data rerun comparison
 
 Deferred enhancements:
 
-- recommendation-run caching and history
+- recommendation result caching and full-matrix persistence
 - in-flight synchronous engine interruption
 - worker or chunked finalist execution
 - expanded individual exclusion diagnostics

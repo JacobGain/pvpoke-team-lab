@@ -17,6 +17,17 @@ on both Dexie tables in one transaction.
 
 Legacy schema-version-one inventory backups remain importable.
 
+### Current extension: recommendation history
+
+TeamLab v1.2.1 uses backup schema version three. It adds a
+`recommendationHistory` collection containing versioned result snapshots,
+settings, anchors, formula versions, and PvPoke data version. Archived history
+is structurally validated but is not required to match the current catalog;
+its purpose is to preserve the original result for review after data refreshes.
+Merge and replace include history in the same transaction. Version-one and
+version-two backups remain supported and restore with an empty history
+collection.
+
 ## Problem being solved
 
 The Phase 2 backup format predated saved teams. Restoring inventory alone

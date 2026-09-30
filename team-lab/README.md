@@ -95,8 +95,8 @@ TEAMLAB_EXPECTED_COMMIT_SHA=<commit SHA> \
 The **Team Lab deployment check** GitHub workflow exposes the same verification
 as both a manual action and the automatic post-deployment job.
 
-Inventory and saved teams live only in IndexedDB for the current browser
-profile and origin. Download JSON backups regularly.
+Inventory, saved teams, and recommendation history live in IndexedDB for the
+current browser profile and origin. Download JSON backups regularly.
 
 Read the complete [local user guide](docs/USER-GUIDE.md) for alternate ports,
 inventory and analysis workflows, teams, recommendations, backup/recovery,
@@ -121,7 +121,7 @@ for its mapping and review contract.
 
 ## Updating PvPoke data and engine files
 
-TeamLab 1.2.0 uses Season 28, Twilight Trails, as the active season.
+TeamLab 1.2.1 uses Season 28, Twilight Trails, as the active season.
 The bundle is pinned to the upstream revision in `src/pvpoke/season.ts`.
 Fetch that branch and regenerate TeamLab’s owned copy:
 
@@ -167,7 +167,7 @@ the performance budget.
 ## Documentation
 
 - [Release notes archive and release workflow](docs/RELEASES.md)
-- [1.2.0 release notes](docs/RELEASE-1.2.0.md)
+- [1.2.1 release notes](docs/RELEASE-1.2.1.md)
 - [Local user guide](docs/USER-GUIDE.md)
 - [Deployment build targets](docs/DEPLOYMENT-BUILDS.md)
 - [Cloudflare Pages deployment and cutover](docs/CLOUDFLARE-DEPLOYMENT.md)

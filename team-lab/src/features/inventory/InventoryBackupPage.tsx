@@ -20,6 +20,7 @@ import {
 import { inventoryListQueryOptions } from "@/features/inventory/inventoryQueries";
 import { usePokemonCatalog } from "@/features/meta/usePokemonCatalog";
 import { savedTeamListQueryOptions } from "@/features/teams/savedTeamQueries";
+import { useRecommendationHistoryList } from "@/features/recommendations/recommendationHistoryQueries";
 import { formatCalendarDate } from "@/utils/formatters";
 
 function formatError(error: unknown): string {
@@ -58,6 +59,7 @@ export function InventoryBackupPage() {
   const catalogResult = usePokemonCatalog();
   const inventoryResult = useQuery(inventoryListQueryOptions);
   const savedTeamsResult = useQuery(savedTeamListQueryOptions);
+  const historyResult = useRecommendationHistoryList();
   const restoreMutation = useRestoreTeamLabBackup();
   const clearSavedTeamsMutation = useClearSavedTeams();
   const clearInventoryMutation = useClearGuardedInventory();
@@ -100,13 +102,14 @@ export function InventoryBackupPage() {
   if (
     catalogResult.isLoading ||
     inventoryResult.isPending ||
-    savedTeamsResult.isPending
+    savedTeamsResult.isPending ||
+    historyResult.isPending
   ) {
     return <main className="inventory-page">Loading backup tools…</main>;
   }
 
   const loadError =
-    catalogResult.error ?? inventoryResult.error ?? savedTeamsResult.error;
+    catalogResult.error ?? inventoryResult.error ?? savedTeamsResult.error ?? historyResult.error;
 
   if (!catalogResult.data || loadError) {
     return (
@@ -122,6 +125,7 @@ export function InventoryBackupPage() {
   const catalog = catalogResult.data;
   const records = inventoryResult.data ?? [];
   const savedTeams = savedTeamsResult.data ?? [];
+  const recommendationHistory = historyResult.data ?? [];
 
   async function handleFile(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -150,7 +154,12 @@ export function InventoryBackupPage() {
     setExportError(undefined);
 
     try {
-      const backup = createTeamLabBackup(records, savedTeams, catalog);
+      const backup = createTeamLabBackup(
+        records,
+        savedTeams,
+        catalog,
+        recommendationHistory,
+      );
       const date = backup.exportedAt.slice(0, 10);
       downloadBackup(
         serializeTeamLabBackup(backup),
@@ -245,7 +254,7 @@ export function InventoryBackupPage() {
         "restore-replace": {
           title: "Replace all TeamLab data?",
           message: inspection?.success
-            ? `This will make ${selectedFilename} authoritative, replacing ${records.length} inventory records and ${savedTeams.length} saved teams with ${inspection.backup.inventory.length} inventory records and ${inspection.backup.savedTeams.length} saved teams.`
+            ? `This will make ${selectedFilename} authoritative, replacing ${records.length} inventory records, ${savedTeams.length} saved teams, and ${recommendationHistory.length} recommendation runs with ${inspection.backup.inventory.length} inventory records, ${inspection.backup.savedTeams.length} saved teams, and ${inspection.backup.recommendationHistory.length} recommendation runs.`
             : "The selected backup is no longer available.",
           confirmLabel: restoreMutation.isPending
             ? "Replacing…"
@@ -267,7 +276,7 @@ export function InventoryBackupPage() {
         },
         "reset-all": {
           title: "Reset all TeamLab data?",
-          message: `This permanently deletes ${records.length} inventory ${records.length === 1 ? "record" : "records"} and ${savedTeams.length} saved ${savedTeams.length === 1 ? "team" : "teams"}.`,
+          message: `This permanently deletes ${records.length} inventory ${records.length === 1 ? "record" : "records"}, ${savedTeams.length} saved ${savedTeams.length === 1 ? "team" : "teams"}, and ${recommendationHistory.length} recommendation ${recommendationHistory.length === 1 ? "run" : "runs"}.`,
           confirmLabel: resetAllMutation.isPending
             ? "Resetting…"
             : "Reset all data",
@@ -282,7 +291,7 @@ export function InventoryBackupPage() {
         back={{ to: "/inventory", label: "Inventory" }}
         description={
           <p>
-            Export inventory and saved teams in one compact, portable TeamLab
+            Export inventory, saved teams, and recommendation history in one compact, portable TeamLab
             JSON backup, or validate every record and reference before changing
             stored data. Imports are limited to 10 MiB.
           </p>
@@ -299,7 +308,9 @@ export function InventoryBackupPage() {
             The backup contains {records.length} inventory{" "}
             {records.length === 1 ? "record" : "records"} and{" "}
             {savedTeams.length} saved{" "}
-            {savedTeams.length === 1 ? "team" : "teams"}, plus their schema
+            {savedTeams.length === 1 ? "team" : "teams"}, and{" "}
+            {recommendationHistory.length} recommendation{" "}
+            {recommendationHistory.length === 1 ? "run" : "runs"}, plus their schema
             versions and export metadata.
           </p>
         </div>
@@ -379,7 +390,8 @@ export function InventoryBackupPage() {
               <strong>{selectedFilename} is valid</strong>
               <span>
                 {inspection.backup.inventory.length} inventory records ·{" "}
-                {inspection.backup.savedTeams.length} saved teams · schema{" "}
+                {inspection.backup.savedTeams.length} saved teams ·{" "}
+                {inspection.backup.recommendationHistory.length} recommendation runs · schema{" "}
                 {inspection.backup.sourceSchemaVersion} · Exported:{" "}
                 {formatCalendarDate(inspection.backup.exportedAt)}
               </span>
@@ -401,7 +413,8 @@ export function InventoryBackupPage() {
               {inspection.inventoryCount !== undefined ? (
                 <p>
                   Checked {inspection.inventoryCount} inventory records and{" "}
-                  {inspection.savedTeamCount ?? 0} saved teams and found{" "}
+                  {inspection.savedTeamCount ?? 0} saved teams and{" "}
+                  {inspection.recommendationHistoryCount ?? 0} recommendation runs; found{" "}
                   {inspection.issues.length} blocking{" "}
                   {inspection.issues.length === 1 ? "issue" : "issues"}.
                 </p>
@@ -414,7 +427,9 @@ export function InventoryBackupPage() {
                     >
                       {issue.collection === "inventory"
                         ? "Inventory"
-                        : "Saved team"}{" "}
+                        : issue.collection === "savedTeams"
+                          ? "Saved team"
+                          : "Recommendation history"}{" "}
                       record {issue.index + 1}
                       {issue.recordId ? ` (${issue.recordId})` : ""}:{" "}
                       {issue.message}
@@ -442,7 +457,7 @@ export function InventoryBackupPage() {
                 />
                 <span>
                   <strong>Merge</strong>
-                  Keep unrelated inventory and teams. Backup records
+                  Keep unrelated inventory, teams, and recommendation history. Backup records
                   replace matching IDs only when the complete merged state
                   remains legal.
                 </span>
@@ -459,8 +474,8 @@ export function InventoryBackupPage() {
                 />
                 <span>
                   <strong>Replace</strong>
-                  Make the backup authoritative for both inventory and saved
-                  teams, removing other TeamLab data.
+                  Make the backup authoritative for inventory, saved teams, and
+                  recommendation history, removing other TeamLab data.
                 </span>
               </label>
             </fieldset>
@@ -491,7 +506,8 @@ export function InventoryBackupPage() {
             {restoreMutation.data.savedTeams.inserted} inserted,{" "}
             {restoreMutation.data.savedTeams.updated} updated,{" "}
             {restoreMutation.data.savedTeams.removed} removed,{" "}
-            {restoreMutation.data.savedTeams.finalCount} total.
+            {restoreMutation.data.savedTeams.finalCount} total. Recommendation
+            history: {restoreMutation.data.recommendationHistory.inserted} inserted, {restoreMutation.data.recommendationHistory.updated} updated, {restoreMutation.data.recommendationHistory.removed} removed, {restoreMutation.data.recommendationHistory.finalCount} total.
           </p>
         ) : null}
       </section>
@@ -611,13 +627,12 @@ export function InventoryBackupPage() {
           <article className="danger-zone-card--critical">
             <h3>Reset TeamLab</h3>
             <p>
-              Delete all {records.length} inventory records and{" "}
-              {savedTeams.length} saved teams together in one transaction.
+              Delete all {records.length} inventory records, {savedTeams.length} saved teams, and {recommendationHistory.length} recommendation runs together in one transaction.
             </p>
             <button
               type="button"
               disabled={
-                records.length + savedTeams.length === 0 ||
+                records.length + savedTeams.length + recommendationHistory.length === 0 ||
                 maintenancePending ||
                 restoreMutation.isPending
               }
@@ -662,7 +677,8 @@ export function InventoryBackupPage() {
         <p className="backup-success" role="status">
           TeamLab reset complete:{" "}
           {resetAllMutation.data.removedInventoryCount} inventory records and{" "}
-          {resetAllMutation.data.removedSavedTeamCount} saved teams removed.
+          {resetAllMutation.data.removedSavedTeamCount} saved teams and{" "}
+          {resetAllMutation.data.removedRecommendationHistoryCount} recommendation runs removed.
         </p>
       ) : null}
     </main>

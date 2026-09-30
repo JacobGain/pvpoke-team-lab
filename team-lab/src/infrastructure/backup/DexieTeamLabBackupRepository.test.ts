@@ -104,6 +104,7 @@ function restoreData(
     exportedAt: "2026-07-25T14:00:00.000Z",
     inventory: records,
     savedTeams,
+    recommendationHistory: [],
   };
 }
 
@@ -150,6 +151,13 @@ describe("DexieTeamLabBackupRepository", () => {
         updated: 1,
         removed: 0,
         finalCount: 1,
+      },
+      recommendationHistory: {
+        incoming: 0,
+        inserted: 0,
+        updated: 0,
+        removed: 0,
+        finalCount: 0,
       },
     });
     expect(await database.inventory.get(ids.azumarill)).toEqual(

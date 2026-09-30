@@ -277,7 +277,298 @@
   margin-top: 1.25rem;
 }
 
+.recommendation-history-link {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin: -0.5rem 0 1.25rem;
+  color: #52607a;
+}
+
+.recommendation-history-link a,
+.recommendation-history-status a {
+  color: #3157c8;
+  font-weight: 750;
+}
+
+.recommendation-history-status {
+  margin: 1rem 0;
+  padding: 0.85rem 1rem;
+  border: 1px solid #b8dfc3;
+  border-radius: 0.75rem;
+  color: #245b37;
+  background: #f0fbf3;
+}
+
+.recommendation-history-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 1.25rem 0;
+}
+
+.recommendation-history-toolbar > p {
+  margin: 0;
+  color: #52607a;
+}
+
+.recommendation-history-toolbar > div,
+.recommendation-history-run__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.recommendation-history-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.recommendation-history-run {
+  min-width: 0;
+  padding: clamp(1rem, 2.5vw, 1.5rem);
+  border: 1px solid #dce4f1;
+  border-radius: 1rem;
+  background: #ffffff;
+  box-shadow: 0 0.5rem 1.75rem rgb(34 52 94 / 5%);
+}
+
+.recommendation-history-run__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.recommendation-history-run__heading h2 {
+  margin: 0;
+  font-size: clamp(1.2rem, 2.6vw, 1.7rem);
+  overflow-wrap: anywhere;
+}
+
+.recommendation-history-run__heading p:not(.eyebrow) {
+  margin: 0.4rem 0 0;
+  color: #52607a;
+}
+
+.recommendation-history-settings {
+  margin: 1rem 0;
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.7rem;
+  color: #52607a;
+  background: #f4f7fc;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.recommendation-history-results {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.recommendation-history-result {
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid #e5eaf3;
+  border-radius: 0.85rem;
+  background: #fbfcff;
+}
+
+.recommendation-history-result > header,
+.recommendation-comparison > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.recommendation-history-result h3,
+.recommendation-comparison h3 {
+  margin: 0;
+  font-size: clamp(1rem, 2.2vw, 1.35rem);
+  overflow-wrap: anywhere;
+}
+
+.recommendation-history-result > header p:not(.eyebrow) {
+  color: #52607a;
+  font-size: 0.85rem;
+}
+
+.recommendation-history-result .team-scorecard {
+  margin: 0.75rem 0;
+}
+
+.recommendation-history-members {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.recommendation-history-members section {
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid #e5eaf3;
+  border-radius: 0.7rem;
+  background: #ffffff;
+}
+
+.recommendation-history-members h4 {
+  margin: 0 0 0.35rem;
+  overflow-wrap: anywhere;
+}
+
+.recommendation-history-members p,
+.recommendation-history-members small {
+  margin: 0.25rem 0;
+  color: #52607a;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.recommendation-history-threats {
+  margin: 0.75rem 0 0;
+  color: #8f2525;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.recommendation-history-confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 1rem 0;
+  padding: 0.85rem;
+  border: 1px solid #edc1c1;
+  border-radius: 0.75rem;
+  background: #fff7f7;
+}
+
+.recommendation-history-confirm p {
+  flex: 1 1 100%;
+  margin: 0;
+}
+
+.recommendation-history-confirm--all {
+  padding: 1rem;
+}
+
+.recommendation-history-empty {
+  display: grid;
+  justify-items: start;
+  gap: 0.5rem;
+}
+
+.recommendation-history-empty p {
+  max-width: 48rem;
+  color: #52607a;
+  line-height: 1.55;
+}
+
+.recommendation-comparison {
+  margin-top: 1.25rem;
+  padding: 1rem;
+  border: 1px solid #cbd8fa;
+  border-radius: 0.9rem;
+  background: #f5f7ff;
+}
+
+.recommendation-comparison > header small {
+  max-width: 28rem;
+  color: #52607a;
+  line-height: 1.45;
+}
+
+.recommendation-comparison-list {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.recommendation-comparison-card {
+  min-width: 0;
+  padding: 0.85rem;
+  border: 1px solid #dce4f1;
+  border-radius: 0.75rem;
+  background: #ffffff;
+}
+
+.recommendation-comparison-card h4 {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.recommendation-comparison-card small {
+  color: #69758d;
+}
+
+.recommendation-comparison-metrics {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.recommendation-comparison-metrics > div {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+  padding: 0.55rem;
+  border-radius: 0.55rem;
+  background: #f4f7fc;
+}
+
+.recommendation-comparison-metrics span,
+.recommendation-comparison-metrics small {
+  color: #69758d;
+  font-size: 0.72rem;
+  overflow-wrap: anywhere;
+}
+
+.recommendation-comparison-metrics strong {
+  font-size: 0.85rem;
+}
+
 @media (max-width: 760px) {
+  .recommendation-history-toolbar,
+  .recommendation-history-run__heading,
+  .recommendation-history-result > header,
+  .recommendation-comparison > header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .recommendation-history-toolbar > div,
+  .recommendation-history-run__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .recommendation-history-toolbar > div > *,
+  .recommendation-history-run__actions > * {
+    min-width: 0;
+    width: 100%;
+    text-align: center;
+  }
+
+  .recommendation-history-members {
+    grid-template-columns: 1fr;
+  }
+
+  .recommendation-history-result .team-scorecard {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .recommendation-comparison-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .inventory-header,
   .inventory-card {
     align-items: stretch;

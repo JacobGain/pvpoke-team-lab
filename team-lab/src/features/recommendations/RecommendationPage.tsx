@@ -43,8 +43,10 @@ import {
   type MetaTargetLimit,
 } from "@/domain/simulation/teamRanker";
 import { createSavedTeam } from "@/domain/teams/factory";
+import { createRecommendationHistoryRecord } from "@/domain/recommendations/history";
 import { useInventoryList } from "@/features/inventory/inventoryQueries";
 import { usePokemonCatalog } from "@/features/meta/usePokemonCatalog";
+import { useCreateRecommendationHistory } from "@/features/recommendations/recommendationHistoryQueries";
 import { useCreateSavedTeam } from "@/features/teams/savedTeamQueries";
 import { createPvpokeTeamRankerAdapter } from "@/pvpoke/simulation";
 import {
@@ -348,6 +350,7 @@ export function RecommendationPage() {
   const inventoryResult = useInventoryList();
   const catalogResult = usePokemonCatalog();
   const createTeamMutation = useCreateSavedTeam();
+  const createHistoryMutation = useCreateRecommendationHistory();
   const abortController = useRef<AbortController | undefined>(undefined);
   const [anchorOneId, setAnchorOneId] = useState("");
   const [anchorOnePosition, setAnchorOnePosition] =
@@ -374,6 +377,8 @@ export function RecommendationPage() {
     useState<RecommendationFinalistSimulation>();
   const [workflowError, setWorkflowError] = useState<unknown>();
   const [saveError, setSaveError] = useState<unknown>();
+  const [historySaveError, setHistorySaveError] = useState<unknown>();
+  const [historySaved, setHistorySaved] = useState(false);
   const [savingTeamKey, setSavingTeamKey] = useState<string>();
   const [savedTeamKeys, setSavedTeamKeys] = useState<ReadonlySet<string>>(
     new Set(),
@@ -420,6 +425,8 @@ export function RecommendationPage() {
     event.preventDefault();
     setWorkflowError(undefined);
     setSaveError(undefined);
+    setHistorySaveError(undefined);
+    setHistorySaved(false);
     setSimulation(undefined);
     setGeneration(undefined);
     setCandidateExclusionCount(0);
@@ -462,11 +469,12 @@ export function RecommendationPage() {
       const service = new RecommendationFinalistSimulationService(
         createPvpokeTeamRankerAdapter(catalog.dataVersion),
       );
+      const simulationOptions = { targetLimit, teamShields, targetShields };
       const nextSimulation = await service.simulate(
         nextGeneration,
         inventory,
         catalog,
-        { targetLimit, teamShields, targetShields },
+        simulationOptions,
         {
           signal: controller.signal,
           onProgress: setProgress,
@@ -478,6 +486,23 @@ export function RecommendationPage() {
       );
       setSimulation(nextSimulation);
       setRequestStep(nextSimulation.cancelled ? 1 : 2);
+
+      if (nextSimulation.selected.length > 0) {
+        const historyRecord = createRecommendationHistoryRecord({
+          request,
+          options: simulationOptions,
+          generation: nextGeneration,
+          simulation: nextSimulation,
+          inventory,
+          catalog,
+        });
+        try {
+          await createHistoryMutation.mutateAsync(historyRecord);
+          setHistorySaved(true);
+        } catch (error) {
+          setHistorySaveError(error);
+        }
+      }
     } catch (error) {
       setWorkflowError(error);
     } finally {
@@ -550,6 +575,12 @@ export function RecommendationPage() {
         eyebrow="Guided team discovery"
         title="Discover your best teams"
       />
+      <p className="recommendation-history-link">
+        Runs are saved on this device when they produce results.{" "}
+        <Link className="secondary-link" to="/recommend/history">
+          View recommendation history
+        </Link>
+      </p>
 
       {inventory.length < 1 ? (
         <section className="form-section">
@@ -968,6 +999,20 @@ export function RecommendationPage() {
               {simulation.selectionDiversityRelaxed
                 ? "Optional-core diversity was relaxed only enough to fill the requested count."
                 : ""}
+            </p>
+          ) : null}
+
+          {historySaved ? (
+            <p className="recommendation-history-status" role="status">
+              {simulation.cancelled ? "Partial results saved" : "Run saved"}{" "}
+              to recommendation history. <Link to="/recommend/history">Review it</Link>.
+            </p>
+          ) : null}
+
+          {historySaveError ? (
+            <p className="inventory-error" role="alert">
+              Results are available for this session, but TeamLab could not save
+              them to recommendation history. {formatError(historySaveError)}
             </p>
           ) : null}
 
