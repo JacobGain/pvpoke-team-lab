@@ -9,11 +9,13 @@ import {
   DuelPage,
   InventoryAnalysisPage,
   InventoryBackupPage,
+  InventoryCsvImportPage,
   InventoryFormPage,
   InventoryPage,
   LazyRoute,
   PokemonCatalogPage,
   RecommendationPage,
+  RecommendationHistoryPage,
   ReleaseNotesPage,
   SavedTeamFormPage,
   SavedTeamSimulationPage,
@@ -82,6 +84,14 @@ export const router = createBrowserRouter(
           ),
         },
         {
+          path: "inventory/import",
+          element: (
+            <LazyRoute>
+              <InventoryCsvImportPage />
+            </LazyRoute>
+          ),
+        },
+        {
           path: "inventory/backup",
           element: (
             <LazyRoute>
@@ -135,6 +145,14 @@ export const router = createBrowserRouter(
           element: (
             <LazyRoute>
               <SavedTeamSimulationPage />
+            </LazyRoute>
+          ),
+        },
+        {
+          path: "recommend/history",
+          element: (
+            <LazyRoute>
+              <RecommendationHistoryPage />
             </LazyRoute>
           ),
         },

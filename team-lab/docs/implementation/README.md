@@ -100,6 +100,7 @@ Status: **Complete for MVP**
 - [Manual inventory entry and editing](phase-02-inventory/manual-entry-workflow.md)
 - [Inventory dashboard](phase-02-inventory/inventory-dashboard.md)
 - [Inventory backup and restore](phase-02-inventory/backup-and-restore.md)
+- [TeamLab CSV inventory import](phase-02-inventory/csv-import.md)
 - [Superseded CRUD verification](phase-02-inventory/crud-verification.md)
 
 Implemented:
@@ -114,6 +115,7 @@ Implemented:
 - current/planned create and edit workflow
 - searchable inventory dashboard and confirmed deletion
 - high-volume entry conveniences and duplication
+- TeamLab CSV template import with exact-build preview and duplicate review
 - versioned JSON export and fully validated import
 - atomic merge/replace restore and confirmed local clearing
 - Vitest and fake IndexedDB foundation
@@ -143,12 +145,18 @@ Implemented:
 - exact CMP comparison
 - fast-move breakpoints and defensive bulkpoints
 - general-IV-space threshold attainability
+- temporary, bounded matchup-backed comparison of alternate IV/move builds
+  against selected threats using exact one-on-one simulations and shield
+  scenarios
 
 Remaining beyond the initial phase:
 
-- simulated matchup impact
 - custom opponent builds
-- charged-move and shield-scenario analysis
+- saving alternate build plans or matchup comparisons
+- charged-move threshold analysis
+
+The first matchup-planning slice uses a single explicit shield scenario per run;
+it does not aggregate scenarios into a competitive score.
 
 ### Phase 4 — Saved teams
 
@@ -289,10 +297,12 @@ Implemented:
 - evidence-derived recommendation explanations
 - complete `/recommend` workflow and responsive result presentation
 - explicit selected-result conversion into saved teams
+- automatically saved recommendation history with data/formula versions and
+  current-data rerun comparison
 
 Deferred enhancements:
 
-- recommendation-run caching and history
+- recommendation result caching and full-matrix persistence
 - in-flight synchronous engine interruption
 - worker or chunked finalist execution
 - expanded individual exclusion diagnostics

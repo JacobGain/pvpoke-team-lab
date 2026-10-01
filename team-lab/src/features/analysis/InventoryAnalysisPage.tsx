@@ -12,6 +12,7 @@ import { useInventoryBuildAnalysis } from "@/features/analysis/analysisQueries";
 import { useInventoryPokemon } from "@/features/inventory/inventoryQueries";
 import { usePokemonCatalog } from "@/features/meta/usePokemonCatalog";
 import { NamedOpponentInsights } from "@/features/analysis/NamedOpponentInsights";
+import { MatchupBuildPlanner } from "@/features/analysis/MatchupBuildPlanner";
 import {
   formatIdentifier,
   formatMoveList,
@@ -356,6 +357,11 @@ export function InventoryAnalysisPage() {
         analysis={analysis}
         catalog={catalogResult.data}
       />
+      <MatchupBuildPlanner
+        key={`${analysis.inventoryId}:${inventoryResult.data?.updatedAt ?? ""}:${catalogResult.data.dataVersion}:${league.id}`}
+        analysis={analysis}
+        catalog={catalogResult.data}
+      />
       <Requirements analysis={analysis} />
 
       <aside className="analysis-scope">
@@ -363,8 +369,9 @@ export function InventoryAnalysisPage() {
         <p>
           IV rank measures stat product, not matchup quality. Attack percentile
           provides broad CMP context only. Named-opponent CMP and fast-move
-          thresholds use the displayed default opponent build. Full simulated
-          matchup impact remains a later integration.
+          thresholds use the displayed default opponent build. Matchup-backed
+          build planning runs one-on-one simulations for its exact builds and
+          shield scenario; it does not model team context or starting energy.
         </p>
       </aside>
     </main>

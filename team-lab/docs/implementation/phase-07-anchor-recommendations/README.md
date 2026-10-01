@@ -2,7 +2,7 @@
 
 > **Status:** Complete for MVP
 > **Project-plan phase:** Phase 7: anchor recommendations  
-> **Last reviewed:** 2026-07-26
+> **Last reviewed:** 2026-09-30
 
 ## Objective
 
@@ -21,7 +21,7 @@ The phase must preserve the distinction between:
 - runtime-validated recommendation request contract
 - one-or-two distinct owned anchor requirement
 - flexible or fixed lead/switch/closer anchor positions
-- configurable one-to-five result count
+- configurable one-to-five or ten-result count
 - all, ready-now-only, and planned-only build scopes
 - owned-only or owned-plus-ranked teammate scope
 - current/planned selected-build resolution
@@ -57,13 +57,16 @@ The phase must preserve the distinction between:
 - explicit conversion of a selected recommendation into a persisted saved team
 - save guard for teams containing ranked teammates not yet in inventory
 - responsive recommendation result presentation
+- automatic archive records for runs with selected results, retaining settings,
+  anchor labels, compact result evidence, formula versions, and data version
+- history browsing, deletion, and rerun comparison against current league data
+- recommendation-history backup/restore and reset-all integration
 
 ## Out of scope
 
-- recommendation persistence or caching
+- full-matrix recommendation persistence or result caching
 - interruption of a synchronous TeamRanker call already in progress
 - Web Worker execution or exact-battle chunking
-- saved recommendation histories
 
 ## Implementation records
 
@@ -74,8 +77,8 @@ The phase must preserve the distinction between:
 
 ## Important decisions
 
-- Recommendation requests are ephemeral runtime contracts, not persisted
-  records.
+- Recommendation requests are runtime contracts and are copied into a
+  versioned history record when a run produces at least one result.
 - `flex` explicitly represents an anchor with no fixed team position.
 - Ready now means a current inventory build; planned records remain available
   unless the request narrows the build-status scope.
@@ -102,8 +105,9 @@ The phase must preserve the distinction between:
   states the selected target, shield, and data-version scope.
 - Cancellation is cooperative: it prevents the next finalist from starting
   but cannot interrupt the upstream synchronous engine mid-finalist.
-- Recommendation results remain ephemeral until the user explicitly saves one
-  through the existing saved-team factory and repository.
+- Selected result evidence is archived automatically; converting a fully
+  owned result into an editable saved team remains an explicit action through
+  the existing saved-team factory and repository.
 - A theoretical result can be simulated in TeamLab, but cannot be saved until
   every ranked-default member has an inventory record.
 
@@ -151,13 +155,15 @@ npm run build     passed with the existing >500 kB chunk warning
 - Final selection weights are initial TeamLab heuristics.
 - Exclusion counts are visible, but individual exclusion messages are not yet
   expanded in the page.
-- Recommendation runs and unsaved results remain in memory.
+- History comparison needs the current catalog for the saved run's league and
+  the original anchors still in inventory. Changed inventory can alter the
+  candidate pool; full battle matrices are not retained.
 
 ## Exit criteria
 
 - [x] One or two owned anchors are structurally represented.
 - [x] Fixed and flexible anchor positions are represented.
-- [x] One-to-five requested results are validated.
+- [x] One-to-five or ten requested results are validated.
 - [x] Ready-now/current builds are prioritized.
 - [x] Planned-only and ready-now-only scopes are supported.
 - [x] Exact, anchor-safe owned candidates can feed static pre-scoring.
@@ -169,14 +175,19 @@ npm run build     passed with the existing >500 kB chunk warning
 - [x] Recommendations include explanations, scorecards, threats, alternatives,
       and build requirements.
 - [x] The anchor recommendation workflow is available in the UI.
+- [x] Results remain reviewable after navigation or reload and retain their
+      data and formula versions.
+- [x] A saved request can be rerun and compared against current league data.
 
 ## Next phase dependencies
 
-Phase 8 can harden the completed MVP workflow with representative 100-record
-profiling, worker or chunked engine execution where needed, broader responsive
-verification, and critical browser-level workflow tests. Recommendation
-caching remains deferred until its invalidation and formula-version policy is
-designed.
+History records preserve prior evidence rather than claiming that old analysis
+is current. Full-result cache identity and invalidation remain separate deferred
+work. Phase 8 hardening is complete. Remaining followups include representative
+100-record profiling, worker or chunked engine execution if measurements call
+for it, broader responsive verification, and critical browser-level workflow
+coverage. Recommendation result caching remains deferred until its freshness
+and formula-version policy is designed.
 
 ## Relevant commits
 

@@ -6,6 +6,12 @@ export const BulkInventoryPage = lazy(() =>
   })),
 );
 
+export const InventoryCsvImportPage = lazy(() =>
+  import("@/features/inventory/InventoryCsvImportPage").then((module) => ({
+    default: module.InventoryCsvImportPage,
+  })),
+);
+
 export const InventoryAnalysisPage = lazy(() =>
   import("@/features/analysis/InventoryAnalysisPage").then((module) => ({
     default: module.InventoryAnalysisPage,
@@ -39,6 +45,12 @@ export const PokemonCatalogPage = lazy(() =>
 export const RecommendationPage = lazy(() =>
   import("@/features/recommendations/RecommendationPage").then((module) => ({
     default: module.RecommendationPage,
+  })),
+);
+
+export const RecommendationHistoryPage = lazy(() =>
+  import("@/features/recommendations/RecommendationHistoryPage").then((module) => ({
+    default: module.RecommendationHistoryPage,
   })),
 );
 

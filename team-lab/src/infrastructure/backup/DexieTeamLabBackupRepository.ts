@@ -18,6 +18,9 @@ import {
 } from "@/domain/teams/schemas";
 import { validateSavedTeamLegality } from "@/domain/teams/validation";
 import type { TeamLabDatabase } from "@/infrastructure/database/TeamLabDatabase";
+import {
+  recommendationHistoryRecordSchema,
+} from "@/domain/recommendations/history";
 
 function mergeById<T>(
   existing: readonly T[],
@@ -134,11 +137,15 @@ export class DexieTeamLabBackupRepository
     const incomingTeams = backup.savedTeams.map((team) =>
       savedTeamSchema.parse(team),
     );
+    const incomingHistory = backup.recommendationHistory.map((record) =>
+      recommendationHistoryRecordSchema.parse(record),
+    );
 
     return this.database.transaction(
       "rw",
       this.database.inventory,
       this.database.savedTeams,
+      this.database.recommendationHistory,
       async () => {
         const existingInventory = (
           await this.database.inventory.toArray()
@@ -146,6 +153,9 @@ export class DexieTeamLabBackupRepository
         const existingTeams = (await this.database.savedTeams.toArray()).map(
           (team) => savedTeamSchema.parse(team),
         );
+        const existingHistory = (
+          await this.database.recommendationHistory.toArray()
+        ).map((record) => recommendationHistoryRecordSchema.parse(record));
         const finalInventory =
           mode === "replace"
             ? incomingInventory
@@ -160,19 +170,30 @@ export class DexieTeamLabBackupRepository
             : mergeById(
                 existingTeams,
                 incomingTeams,
-                (team) => team.teamId,
+              (team) => team.teamId,
+            );
+        const finalHistory =
+          mode === "replace"
+            ? incomingHistory
+            : mergeById(
+                existingHistory,
+                incomingHistory,
+                (record) => record.historyId,
               );
 
         validateFinalState(finalInventory, finalTeams, catalog);
 
         if (mode === "replace") {
+          await this.database.recommendationHistory.clear();
           await this.database.savedTeams.clear();
           await this.database.inventory.clear();
           await this.database.inventory.bulkAdd(incomingInventory);
           await this.database.savedTeams.bulkAdd(incomingTeams);
+          await this.database.recommendationHistory.bulkAdd(incomingHistory);
         } else {
           await this.database.inventory.bulkPut(incomingInventory);
           await this.database.savedTeams.bulkPut(incomingTeams);
+          await this.database.recommendationHistory.bulkPut(incomingHistory);
         }
 
         return {
@@ -191,6 +212,13 @@ export class DexieTeamLabBackupRepository
             finalTeams,
             mode,
             (team) => team.teamId,
+          ),
+          recommendationHistory: collectionResult(
+            existingHistory,
+            incomingHistory,
+            finalHistory,
+            mode,
+            (record) => record.historyId,
           ),
         };
       },

@@ -2,7 +2,7 @@
 
 > **Status:** Complete for MVP
 > **Project-plan phase:** Phase 8: backup and MVP hardening  
-> **Last reviewed:** 2026-07-25
+> **Last reviewed:** 2026-09-30
 
 ## Objective
 
@@ -68,6 +68,9 @@ extends or verifies those capabilities rather than recreating them.
 - complete local setup and operation guide
 - user-facing inventory, analysis, team, simulation, and recommendation
   instructions
+- version-three backup support for recommendation-history snapshots
+- recommendation-history inspection, transactional merge/replace restore, and
+  reset-all cleanup added in v1.2.1
 - browser-origin, backup/recovery, destructive-control, and troubleshooting
   guidance
 
@@ -89,7 +92,9 @@ extends or verifies those capabilities rather than recreating them.
 
 ## Important decisions
 
-- Backup schema version two contains both inventory and saved teams.
+- Backup schema version two originally added saved teams to inventory backups.
+- Version three adds versioned recommendation-history snapshots; older v1/v2
+  files remain importable with an empty history collection.
 - Version one remains accepted as a legacy inventory-only source.
 - A full-data export must be restorable when created; TeamLab refuses to
   download an internally illegal snapshot.
@@ -97,15 +102,16 @@ extends or verifies those capabilities rather than recreating them.
   that backup.
 - Merge lets incoming IDs win, then validates every final local team against
   the final inventory before writing.
-- Replace makes the backup authoritative for both collections.
+- Replace makes the backup authoritative for all three collections.
 - Replacing from a legacy version-one file produces an inventory-only final
   state and removes saved teams; the UI discloses this before confirmation.
-- Inventory and team writes share one transaction so restore cannot partially
-  apply across tables.
+- Inventory, team, and history writes share one transaction so restore cannot
+  partially apply across tables. Archived history is schema-validated without
+  requiring its PvPoke data version to match the current catalog.
 - Inventory-only clearing fails while any saved team exists, preventing bulk
   operations from manufacturing missing-member state.
-- Reset-all is the only operation that intentionally removes both collections
-  without preserving references.
+- Reset-all removes all three persisted collections. Clearing inventory leaves
+  independent history snapshots available for review.
 - Destructive confirmation is visible application state rather than a browser
   dialog; reset-all additionally requires the exact text `RESET`.
 - Static discovery, persistence, and inventory-view measurements do not justify

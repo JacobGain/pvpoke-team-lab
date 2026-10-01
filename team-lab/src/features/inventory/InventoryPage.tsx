@@ -3,9 +3,12 @@ import { useMemo, useState } from "react";
 import {
   Archive,
   Boxes,
+  ChevronDown,
   ListPlus,
+  MoreHorizontal,
   Plus,
   SearchX,
+  Upload,
   Users,
 } from "lucide-react";
 import { Link, useSearchParams } from "react-router";
@@ -112,10 +115,6 @@ export function InventoryPage() {
               <Plus size={18} />
               Add Pokémon
             </Link>
-            <Link className="secondary-link" to="/inventory/bulk-add">
-              <ListPlus size={18} />
-              Bulk add
-            </Link>
             <Link className="secondary-link" to="/teams">
               <Users size={18} />
               Saved teams
@@ -124,6 +123,23 @@ export function InventoryPage() {
               <Archive size={18} />
               Backups & reset
             </Link>
+            <details className="inventory-more-actions">
+              <summary className="secondary-link">
+                <MoreHorizontal size={18} />
+                More actions
+                <ChevronDown aria-hidden="true" className="inventory-more-actions__chevron" size={16} />
+              </summary>
+              <div className="inventory-more-actions__menu">
+                <Link className="secondary-link" to="/inventory/bulk-add">
+                  <ListPlus size={18} />
+                  Bulk add
+                </Link>
+                <Link className="secondary-link" to="/inventory/import">
+                  <Upload size={18} />
+                  Import CSV
+                </Link>
+              </div>
+            </details>
           </>
         }
         aside={
@@ -147,7 +163,7 @@ export function InventoryPage() {
       />
 
       <section className="inventory-controls" aria-label="Inventory filters">
-        <label>
+        <label className="inventory-filter__eligibility">
           <span>League eligibility</span>
           <select value={leagueFilter} onChange={(event) => setLeagueFilter(event.target.value as "preferred" | "eligible" | "all")}>
             <option value="preferred">Best fit for {league.shortTitle}</option>
@@ -155,7 +171,7 @@ export function InventoryPage() {
             <option value="all">All owned Pokémon</option>
           </select>
         </label>
-        <label>
+        <label className="inventory-filter__search">
           <span>Search species or notes</span>
           <input
             type="search"
@@ -166,7 +182,7 @@ export function InventoryPage() {
             placeholder="Azumarill or tournament"
           />
         </label>
-        <label>
+        <label className="inventory-filter__status">
           <span>Build status</span>
           <select
             value={status}
@@ -183,7 +199,7 @@ export function InventoryPage() {
             <option value="planned">Planned</option>
           </select>
         </label>
-        <label>
+        <label className="inventory-filter__sort">
           <span>Sort</span>
           <select
             value={sort}

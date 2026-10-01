@@ -15,7 +15,7 @@ export function ReleaseNotesPage() {
     <main className="release-notes-page">
       <PageHeader
         description={
-          <p>Recent changes and historical updates, with the latest release first.</p>
+          <p>Recent changes and historical updates.</p>
         }
         eyebrow="TeamLab updates"
         title="Release notes"

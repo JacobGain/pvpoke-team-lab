@@ -95,11 +95,14 @@ export function createMetaDefaultBuild(
     return undefined;
   }
 
-  const fastMove = pokemon.fastMoves.find((move) =>
-    recommendedMoveIds.includes(move.id),
-  );
-  const chargedMoves = pokemon.chargedMoves
-    .filter((move) => recommendedMoveIds.includes(move.id))
+  const fastMove = recommendedMoveIds
+    .map((moveId) => pokemon.fastMoves.find((move) => move.id === moveId))
+    .find((move) => move !== undefined);
+  const chargedMoves = recommendedMoveIds
+    .flatMap((moveId) => {
+      const move = pokemon.chargedMoves.find((candidate) => candidate.id === moveId);
+      return move ? [move] : [];
+    })
     .slice(0, 2);
 
   if (!fastMove || chargedMoves.length === 0) {

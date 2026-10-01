@@ -7,6 +7,7 @@ import type {
 import type { PokemonCatalog } from "@/domain/pokemon/catalog";
 import { inventoryQueryKeys } from "@/features/inventory/inventoryQueries";
 import { savedTeamQueryKeys } from "@/features/teams/savedTeamQueries";
+import { recommendationHistoryQueryKeys } from "@/features/recommendations/recommendationHistoryQueries";
 import { teamLabBackupRepository } from "@/infrastructure/backup";
 
 export function useRestoreTeamLabBackup() {
@@ -29,6 +30,9 @@ export function useRestoreTeamLabBackup() {
         }),
         queryClient.invalidateQueries({
           queryKey: savedTeamQueryKeys.all,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: recommendationHistoryQueryKeys.all,
         }),
       ]);
     },

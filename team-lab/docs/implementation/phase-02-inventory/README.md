@@ -2,7 +2,7 @@
 
 > **Status:** Complete for MVP
 > **Project-plan phase:** Phase 2: inventory domain and persistence  
-> **Last reviewed:** 2026-07-25
+> **Last reviewed:** 2026-09-30
 
 ## Objective
 
@@ -28,6 +28,7 @@ the domain to Dexie, React, or raw PvPoke records.
 - searchable current/planned inventory dashboard and confirmed deletion
 - favorite filters and useful sort modes
 - species filtering, save-and-add-another, and safe duplication
+- TeamLab CSV template import with row preview and exact-build duplicate review
 - versioned JSON backup export and complete import inspection
 - atomic merge/replace restore and confirmed clear-inventory workflow
 - Vitest and fake IndexedDB test foundation
@@ -49,6 +50,7 @@ the domain to Dexie, React, or raw PvPoke records.
 - [Manual inventory entry and editing](manual-entry-workflow.md)
 - [Inventory dashboard](inventory-dashboard.md)
 - [Inventory backup and restore](backup-and-restore.md)
+- [TeamLab CSV import](csv-import.md)
 - [Superseded CRUD verification](crud-verification.md)
 
 ## Important decisions
@@ -92,8 +94,9 @@ complete repository CRUD path, stable errors, and invalid-data preservation.
   and user-facing repair flows are not implemented.
 - Cards still use move IDs and omit sprites/polished type presentation.
 - Backup version one remains inventory-only for compatibility. Phase 8 backup
-  version two includes saved teams; settings remain absent because no
-  persisted settings domain exists.
+  version two added saved teams, and TeamLab v1.2.1 backup version three adds
+  recommendation history. Settings remain absent because no persisted settings
+  domain exists.
 
 ## Exit criteria
 
