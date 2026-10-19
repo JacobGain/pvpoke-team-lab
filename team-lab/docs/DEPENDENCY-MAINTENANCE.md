@@ -50,3 +50,23 @@ behavior even when Dependabot can update the referenced version mechanically.
 Dependabot pull requests never deploy. Only a successful push to `master`
 reuses the verified artifact and publishes it through the Cloudflare Pages
 deployment job.
+
+## Stacking related pull requests
+
+Dependabot continues to open updates against `staging`. Maintainers may
+organize an existing related set into a temporary stack, with each PR targeting
+the branch immediately below it. The bottom PR targets `staging`; none target
+`master`. Include prerequisites and the landing order in every description.
+Human commits on Dependabot branches can prevent its automatic rebases, so
+maintainers own updates to these temporarily stacked branches.
+
+Artifact verification and CodeQL run for PRs targeting any branch, and rerun
+when PR metadata or the base changes. Deployment remains limited to eligible
+PRs targeting `staging` or `master`, and production pushes to `master`.
+
+Land a stack from bottom to top using merge commits to preserve ancestry.
+After each parent lands, retarget the next PR to `staging` and wait for fresh
+required checks against that base. If a parent is squash-merged instead,
+restack the remaining branches before proceeding so already landed commits do
+not reappear in their diffs. Do not merge the top PR into its parent as a
+shortcut for landing the whole stack.
