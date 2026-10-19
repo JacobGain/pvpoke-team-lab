@@ -50,7 +50,7 @@ recommendation history remain in the current browser profile.
 
 The local application requires:
 
-- Node.js 22.12 or newer;
+- Node.js `^22.22.0`, `^24.0.0`, or `>=26.0.0` (Node 25 is excluded);
 - npm 11 or newer;
 - a current desktop or mobile browser.
 
@@ -63,7 +63,7 @@ required.
 From `team-lab/`:
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
@@ -464,7 +464,7 @@ silently duplicating teams.
 
 ## Back up and restore local data
 
-Open **Inventory**, then **Backup and restore**.
+Open **Inventory → Backups & reset**. The page heading is **Backup and restore**.
 
 ### Download a recovery copy
 
@@ -569,8 +569,9 @@ groups, and simulation scripts from its checked-in
 `public/vendor/pvpoke/` directory.
 
 The loaded data version appears throughout analysis and simulation results.
-Maintainers can refresh that bundle with `npm run sync:pvpoke` after updating
-an upstream checkout. Saved teams and inventory remain local, while new builds
+Maintainers fetch and review upstream, then advance the active and outgoing
+comparison pins before running `npm run sync:pvpoke`. Fetching alone does not
+update the bundle. Saved teams and inventory remain local, while new builds
 use the refreshed data. See [PvPoke asset maintenance](PVPOKE-DATA.md).
 
 An upstream change can make an old species, form, move, or team reference
@@ -680,7 +681,7 @@ TeamLab currently supports:
 The MVP does not include:
 
 - limited cups;
-- third-party inventory imports;
+- automatic third-party account imports or OCR (the TeamLab CSV template is supported);
 - accounts, cloud synchronization, or multi-device storage;
 - PWA/offline guarantees;
 - exact resource-cost calculation;

@@ -7,6 +7,16 @@
 > **Initial release target:** Local-first Great League MVP  
 > **Last established:** July 2026
 
+> **Current implementation note — October 19, 2026:** The original MVP
+> boundaries below preserve the Great League-first plan. Delivered extensions
+> now include Ultra/Master and Mega formats with shared inventory, CSV import,
+> battle replay, recommendation history, and roster update review. Current
+> database/backup contracts and deployed behavior are documented in the
+> [implementation index](implementation/README.md),
+> [user guide](USER-GUIDE.md), and [upstream runbook](PVPOKE-DATA.md).
+> TeamLab itself needs neither Docker nor a separately running PHP site;
+> those tools apply only to the retained upstream application.
+
 ## 1. Purpose of this document
 
 This document is the source of truth for TeamLab’s product direction, MVP scope, domain language, architecture, data ownership, implementation sequence, and acceptance criteria.
@@ -25,7 +35,7 @@ It should answer:
 
 When implementation details conflict with this document, either the implementation should be corrected or this document should be deliberately updated with the new decision and its rationale.
 
-The more detailed repository-boundary explanation remains in `Fork-Structure-Breakdown.md`. `FULL-SUMMARY.md` at the repository root documents the inherited PvPoke codebase.
+The more detailed repository-boundary explanation remains in `Fork-Structure-Breakdown.md`. `PvPoke-Full-Summary.md` at the repository root documents the inherited PvPoke codebase.
 
 Actual implementation progress is maintained separately in
 `implementation/README.md` and its phase records. This plan defines intended

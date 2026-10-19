@@ -6,8 +6,9 @@ engine in this PvPoke fork. Owned inventory is shared across leagues.
 
 It supports exact owned and planned builds, TeamLab-template CSV inventory
 import, IV/build analysis, matchup-backed build planning, ordered saved teams,
-real PvPoke TeamRanker matrices, anchor-based recommendations, and portable
-full-data JSON backup and restore.
+real PvPoke TeamRanker matrices, full-inventory or anchored recommendations,
+recommendation history, roster update review, and portable full-data JSON
+backup and restore.
 
 The **Battle** page (`/battle`, also in the mobile More menu) runs configurable
 1v1 matchups in all six open and Mega formats. Choose species/forms, Shadow variants, moves,
@@ -23,14 +24,14 @@ Run the focused real-browser replay and engine-parity checks with
 
 ## Requirements
 
-- Node.js 22.12 or newer;
+- Node.js `^22.22.0`, `^24.0.0`, or `>=26.0.0` (Node 25 is excluded);
 - npm 11 or newer.
 
 ## Quick start
 
 ```bash
 cd team-lab
-npm install
+npm ci
 npm run dev
 ```
 
@@ -64,21 +65,19 @@ served locally or behind deployment-level access control. Development mode
 keeps diagnostics enabled. See
 [deployment build targets](docs/DEPLOYMENT-BUILDS.md).
 
-GitHub Actions runs the **Verify public artifact** release gate on pull
-requests targeting `staging` or `master`, pushes to `master`, and manual dispatches. Feature-branch pushes with
-an open pull request produce only the pull-request run. The gate installs the
-locked dependencies, runs the complete static/unit/data checks, builds and
-browser-tests the exact public artifact, rejects `dist-admin/`, and uploads
-`team-lab-public-<commit SHA>`. After a successful push to `master`, those exact
-verified bytes deploy to the static-only Cloudflare Pages project. The
-post-deployment gate waits for the immutable release metadata and entry assets,
-then browser-tests that URL against the expected commit. Its initial remote
-navigation has bounded retries and reports document, network, console, and
-runtime evidence on failure. Same-repository PRs targeting `staging` deploy the
-verified merge artifact when opened, updated, reopened, or marked ready. Fork
-and Dependabot PRs run checks without deployment secrets. Merging a PR into
-protected `master` triggers production deployment; PRs targeting `master` and
-manual runs only validate. Both release branches receive CodeQL checks.
+GitHub Actions runs **Verify public artifact** and CodeQL on PRs targeting any
+branch, including stacked PRs. The gate installs the lockfile, audits and
+validates source/data, and browser-tests the exact public artifact. A successful
+push to `master` deploys those verified bytes to production. Trusted
+same-repository PRs into `staging` or `master` can deploy a staging preview;
+apply `staging-preview` to the top PR to preview a complete stack before its
+parents land. Forks and Dependabot PRs never deploy; dependency author and
+branch checks still apply when a maintainer triggers a run. Manual runs only
+validate. See [stacking and preview selection](docs/DEPENDENCY-MAINTENANCE.md#stacking-related-pull-requests).
+
+Deployments use the already verified `team-lab-public-<commit SHA>` artifact.
+The deployed-origin check verifies release metadata, entry assets, and browser
+workflows at the immutable URL; it does not build a second artifact.
 
 The canonical production domain is also checked for the expected release and
 indexable public pages. Cloudflare challenges fail with a Ray ID and an explicit
@@ -122,23 +121,28 @@ for its mapping and review contract.
 
 ## Updating PvPoke data and engine files
 
-TeamLab 1.3.0 uses Season 28, Twilight Trails, as the active season.
-The bundle is pinned to the upstream revision in `src/pvpoke/season.ts`.
-Fetch that branch and regenerate TeamLab’s owned copy:
+TeamLab 1.3.0 uses Season 28, Twilight Trails. Runtime assets come from the
+explicit active pin in `src/pvpoke/season.ts`, not automatically from the latest
+fetch or the root `src/` tree. `UPSTREAM_COMPARISON_COMMIT` retains the outgoing
+pin for the roster update review.
 
-```bash
-git fetch https://github.com/pvpoke/pvpoke.git master
-npm run sync:pvpoke
-npm run validate:data
-npm test
-npm run build
-```
+Follow the [complete upstream refresh runbook](docs/PVPOKE-DATA.md) to fetch and
+review upstream, advance both pins, regenerate the six-format bundle and
+artwork, adapt regressions, update release metadata, validate, and select the
+correct staging preview. A fetch plus sync without advancing the pins
+reproduces the current bundle; it does not adopt new upstream commits.
 
-The sync command reads the pinned revision from Git by default, validates all JSON inputs before
-overwriting anything, and records file hashes in
-`public/vendor/pvpoke/manifest.json`. To import from another checkout, set
-`PVPOKE_SOURCE_DIR` to its `src` directory. The upstream source tree is never
-modified. See [PvPoke asset maintenance](docs/PVPOKE-DATA.md).
+## Reviewing changes to your roster
+
+Open **Inventory → More actions → Review roster updates**, **Saved teams →
+Review roster updates**, or the dashboard reminder. `/updates` shows published
+ranking/move changes and invalid references for the selected open/Mega format.
+Team analysis records both the data date and upstream revision; successful
+reruns clear freshness flags only if the team and its members are unchanged.
+Dismissal hides a reminder for one update/format without hiding repair issues.
+
+See the [roster implementation record](docs/implementation/phase-10-roster-updates/roster-review-and-freshness.md)
+for comparison scope and persistence details.
 
 ## Validation
 
@@ -177,5 +181,6 @@ the performance budget.
 - [PvPoke asset maintenance](docs/PVPOKE-DATA.md)
 - [Product scope and project plan](docs/PROJECT-PLAN.md)
 - [Implementation records](docs/implementation/README.md)
+- [Roster update review](docs/implementation/phase-10-roster-updates/README.md)
 - [Modern battle lab UI/UX](docs/implementation/phase-09-ui-ux-overhaul/README.md)
 - [Style architecture and visual regression](docs/implementation/phase-09-ui-ux-overhaul/style-architecture.md)
