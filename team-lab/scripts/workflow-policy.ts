@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { parse } from "yaml";
 
 interface Workflow {
-  on: Record<string, { branches?: string[]; types?: string[] } | null>;
+  on: Record<string, { branches?: string[]; "branches-ignore"?: string[]; types?: string[] } | null>;
   concurrency: { group: string; "cancel-in-progress": boolean | string };
   jobs: Record<string, {
     name: string;
@@ -27,10 +27,13 @@ const normalize = (value: string | undefined) => value?.replace(/\s+/g, " ").tri
 export function validateDeploymentPolicy(releaseSource: string, codeqlSource: string): void {
   const release = parse(releaseSource) as Workflow;
   const codeql = parse(codeqlSource) as Workflow;
-  assert.deepEqual(release.on.pull_request?.branches, ["staging", "master"], "Validate PRs to both release branches.");
-  assert.deepEqual(release.on.pull_request?.types, ["opened", "synchronize", "reopened", "ready_for_review"], "PR creation and updates must trigger staging deployment.");
+  for (const workflow of [release, codeql]) {
+    assert.ok(workflow.on.pull_request, "Keep checks on pull requests, including stacked bases.");
+    assert.equal(workflow.on.pull_request.branches, undefined, "Validate PRs to every base in a stack.");
+    assert.equal(workflow.on.pull_request["branches-ignore"], undefined, "Do not exclude stacked PR bases.");
+    assert.deepEqual(workflow.on.pull_request.types, ["opened", "synchronize", "reopened", "ready_for_review", "edited"], "Creation, updates, and base changes must rerun PR checks.");
+  }
   assert.deepEqual(release.on.push?.branches, ["master"], "Only master pushes need a second artifact build for production.");
-  assert.deepEqual(codeql.on.pull_request?.branches, ["staging", "master"], "CodeQL must catch findings before the production PR.");
   assert.equal(release.concurrency["cancel-in-progress"], "${{ github.event_name == 'pull_request' }}", "Do not cancel production deployments.");
 
   const deploy = release.jobs["deploy-cloudflare"];
