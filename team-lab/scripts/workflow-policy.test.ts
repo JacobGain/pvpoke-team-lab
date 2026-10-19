@@ -12,6 +12,7 @@ describe("release workflow policy", () => {
 
   it.each([
     ["PR creation", "types: [opened, synchronize", "types: [synchronize"],
+    ["PR retargeting", "ready_for_review, edited", "ready_for_review"],
     ["master PR staging deployment", "github.base_ref == 'master'", "github.base_ref == 'main'"],
     ["fork isolation", "github.event.pull_request.head.repo.full_name == github.repository", "true"],
     ["Dependabot isolation", "github.actor != 'dependabot[bot]'", "true"],
@@ -26,7 +27,10 @@ describe("release workflow policy", () => {
     expect(() => validateDeploymentPolicy(release.replace(before, after), codeql)).toThrow();
   });
 
-  it("requires CodeQL on staging PRs", () => {
-    expect(() => validateDeploymentPolicy(release, codeql.replace("branches: [staging, master]", "branches: [master]"))).toThrow();
+  it.each(["branches: [staging, master]", "branches-ignore: [feature/**]"])("rejects restricting stacked PR checks with %s", (filter) => {
+    for (const target of ["release", "codeql"]) {
+      const restricted = (target === "release" ? release : codeql).replace("  pull_request:\n", `  pull_request:\n    ${filter}\n`);
+      expect(() => validateDeploymentPolicy(target === "release" ? restricted : release, target === "codeql" ? restricted : codeql)).toThrow();
+    }
   });
 });
