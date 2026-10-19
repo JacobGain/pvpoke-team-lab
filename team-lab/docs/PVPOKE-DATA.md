@@ -10,7 +10,7 @@ host.
 `public/vendor/pvpoke/` contains:
 
 - the full and minified Game Master files;
-- Great, Ultra, and Master League overall rankings and meta groups;
+- Great, Ultra, and Master League overall rankings and meta groups, including their Mega variants;
 - the classic jQuery, GameMaster, Pokémon, Battle, action, timeline, and
   TeamRanker modules required by TeamLab simulations;
 - PvPoke’s MIT license;
@@ -20,14 +20,14 @@ host.
 The full Game Master payload is preserved. New Pokémon, forms, moves, cups,
 and move changes are not projected into a TeamLab-specific format. The
 ranking and group files are likewise copied byte-for-byte for TeamLab’s
-three supported open leagues.
+three supported open leagues and their Mega variants.
 
 ## Refresh from upstream
 
 The active season is **Season 28 — Twilight Trails**. The default import reads
-Git blobs from revision `e87448291024aff808f21a2e5f74e69f68b521df`, configured in
+Git blobs from revision `bdbb22c6888d0999f9bee1712a0296309dcab3fb`, configured in
 `src/pvpoke/season.ts`. This is upstream’s `master` branch for the active
-season. Its Game Master data is dated September 28, 2026. TeamLab uses it
+season. Its Game Master data is dated October 17, 2026. TeamLab uses it
 directly, including its battle engine.
 
 From `team-lab/`:
@@ -89,3 +89,35 @@ Update seasonal regression expectations and review visual diffs when rankings
 change. Keep browser simulations in the release gate: season transitions can
 change battle timing as well as move stats. Asset URLs include the pinned
 revision to invalidate outgoing-season browser caches.
+
+## 1.3.0 refresh review
+
+The October 17 snapshot adds nine Shadow forms and Hisuian Sliggoo/Goodra,
+marks Bramblin, Brambleghast, and Mega Camerupt released, and adds elite Sucker
+Punch to Zoroark. Upstream also removes the duplicate `golisopodsh` entry;
+`golisopod` and `golisopod_shadow` are the canonical entries in this snapshot.
+The catalog now contains 1,751 entries and 352 moves. Move definitions are
+unchanged from the preceding pin.
+
+All six supported overall ranking files changed. Open Great/Ultra/Master
+contain 1,153/850/409 entries; Mega Great/Ultra/Master contain 1,210/912/470.
+Dashboard leaders are regenerated from those files. All six meta groups and
+all ten bundled engine scripts are unchanged byte-for-byte. Upstream changes
+to its ranking generator and Little Cup interfaces do not require changes to
+TeamLab’s simulation adapters or supported format list.
+
+Sprite synchronization adds exact artwork for the three newly released
+Pokémon; existing Hisuian artwork and shared base artwork cover the other
+additions. The artwork manifest contains 1,134 species/form mappings.
+
+The release also patches Sharp to 0.35.5 (including its transitive override)
+and source-map-js to 1.2.2 to satisfy the security audit gate. Run maintenance
+commands on a supported Node release, as declared in `package.json`.
+
+Release validation on Node 24.21.0 passed: 174 unit tests, the 120-record scale
+characterization, lint, TypeScript, workflow validation, data/hash validation,
+security audit (zero vulnerabilities), and the public production build.
+Chrome workflows passed against both the production artifact and development
+server, including all six formats, Top-250 Mega targeting, recommendations,
+battle replay, persistence, and backup/restore. All 15 reviewed visual
+snapshots passed verification.

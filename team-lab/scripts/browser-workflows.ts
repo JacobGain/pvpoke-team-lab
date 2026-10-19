@@ -1230,7 +1230,7 @@ async function assertBuildTarget(
   invariant(
     productionState.dataHealthIndicators === 0 &&
       productionState.diagnosticsLinks === 0 &&
-      productionState.favicon.endsWith("/favicon-48x48.png?v=1.2.4") &&
+      productionState.favicon.endsWith("/favicon-48x48.png?v=1.3.0") &&
       productionState.visibleVersions.includes(`v${release.appVersion ?? ""}`),
     `Production exposed diagnostics navigation: ${JSON.stringify(productionState)}.`,
   );
@@ -2941,7 +2941,7 @@ async function runCriticalWorkflows(
     ...document.querySelectorAll(".release-note__heading h2")
   ].map((heading) => heading.textContent?.trim() ?? "")`);
   invariant(
-    releaseHeadings[0] === "Release v1.2.4" &&
+    releaseHeadings[0] === "Release v1.3.0" &&
       releaseHeadings.at(-1) === "Release v0.0.1" &&
       releaseHeadings.indexOf("Release v0.0.10") <
         releaseHeadings.indexOf("Release v0.0.9"),
@@ -3054,7 +3054,7 @@ async function runCriticalWorkflows(
   await browser.waitFor(`(() => {
     const alert = document.querySelector('[role="alert"]');
     if (alert) throw new Error(alert.textContent);
-    return document.querySelector('.diagnostics-banner')?.textContent?.includes('250 of 1201');
+    return document.querySelector('.diagnostics-banner')?.textContent?.includes('250 of 1210');
   })()`, "Mega Great League Top-250 team matrix", ENGINE_TIMEOUT_MS);
   await browser.navigate("/recommend", "Discover your best teams");
   await browser.clickButton("Continue to experiment");
