@@ -1,7 +1,7 @@
 # Phase 9 — Battle Dossier UI and UX
 
 > **Status:** Complete for the current MVP
-> **Last reviewed:** 2026-07-26
+> **Last reviewed:** 2026-10-19
 
 ## Objective
 
@@ -144,7 +144,7 @@ npm run sync:sprites
 
 The script:
 
-1. reads the inherited PvPoke Game Master;
+1. reads the bundled PvPoke Game Master;
 2. resolves released PvPoke species/form IDs against PokeAPI;
 3. downloads HOME artwork from a pinned `PokeAPI/sprites` revision;
 4. resizes it into transparent 256 px WebP assets;
@@ -154,7 +154,7 @@ The script:
 Generated output is intentionally checked in so normal development and
 production builds do not require network access.
 
-Current output:
+Historical output at the original UI overhaul (not current catalog counts):
 
 - 1,123 TeamLab species/form manifest entries;
 - 1,097 unique WebP files;
@@ -212,8 +212,10 @@ data, and restored 12 records plus two teams.
   base artwork because PokeAPI has no exact HOME asset mapping.
 - `modern-feature-overrides.css` remains a documented transition layer. Rules
   can move into their owning feature modules incrementally as touched.
-- The current application remains Open Great League-specific.
+- Supported formats now include Great, Ultra, and Master League and their Mega
+  variants; limited cups remain outside the UI.
 
 ## Relevant commits
 
-Not yet committed.
+See the owning file histories; current extensions are indexed in
+[the implementation overview](../README.md).

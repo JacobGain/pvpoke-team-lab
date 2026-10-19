@@ -1,8 +1,8 @@
 # Phase 1 — Upstream Data Boundary
 
-> **Status:** Complete for the initial Great League slice  
+> **Status:** Complete for six supported open/Mega formats
 > **Project-plan phase:** Phase 1: upstream data boundary  
-> **Last reviewed:** 2026-07-24
+> **Last reviewed:** 2026-10-19
 
 ## Objective
 
@@ -38,7 +38,8 @@ Feature UI
 - structured HTTP/JSON/schema errors
 - TanStack Query definitions
 - bundled-data health UI
-- Open Great League configuration
+- Great/Ultra/Master and Mega configuration
+- explicit outgoing/current source pins and generated roster comparison
 - immutable normalized Pokémon catalog
 - catalog integrity diagnostics
 - searchable catalog UI
@@ -53,12 +54,14 @@ Feature UI
 - inventory
 - exact IV rank calculation
 - sprites and final type styling
-- limited cups and other leagues
+- limited cups beyond the six supported formats
 
 ## Implementation records
 
 - [PvPoke data connection](data-connection.md)
-- [Great League Pokémon catalog](pokemon-catalog.md)
+- [Initial Pokémon catalog](pokemon-catalog.md)
+- [Shared leagues and Mega inventory](shared-leagues-and-mega-inventory.md)
+- [Complete upstream refresh procedure](../../PVPOKE-DATA.md)
 
 ## Important decisions
 

@@ -32,6 +32,18 @@ Future contributors should be able to use this directory to understand the
 current application without reconstructing every decision from Git history or
 chat transcripts.
 
+## Current capabilities
+
+TeamLab supports six open/Mega formats with shared inventory, current/planned
+build analysis, TeamLab CSV import, saved-team matrices and what-if changes,
+configurable battle replay, full-inventory or anchored recommendations,
+recommendation history, and roster update review. Current persistence uses
+IndexedDB version four and full-data backup envelope version three; older
+phase validation counts and schema milestones describe their original slices.
+
+For maintenance, follow the [complete upstream refresh runbook](../PVPOKE-DATA.md).
+For hosted previews, see [deployment and stack selection](../DEPLOYMENT-BUILDS.md).
+
 ## Index
 
 ### Phase 0 — Application foundation
@@ -58,11 +70,13 @@ Primary commit:
 
 ### Phase 1 — Upstream data boundary
 
-Status: **Complete for the initial Great League slice**
+Status: **Complete for six supported open/Mega formats**
 
 - [Phase overview](phase-01-upstream-data/README.md)
 - [PvPoke data connection](phase-01-upstream-data/data-connection.md)
-- [Great League Pokémon catalog](phase-01-upstream-data/pokemon-catalog.md)
+- [Initial Pokémon catalog](phase-01-upstream-data/pokemon-catalog.md)
+- [Shared leagues and Mega inventory](phase-01-upstream-data/shared-leagues-and-mega-inventory.md)
+- [Pinned upstream refresh runbook](../PVPOKE-DATA.md)
 
 Implemented:
 
@@ -75,7 +89,7 @@ Implemented:
 - bundled-data health UI
 - immutable TeamLab catalog models
 - catalog normalization and integrity diagnostics
-- searchable Open Great League catalog
+- searchable format-specific catalog for all six open/Mega formats
 - real-data CLI validation
 
 Primary commits:
@@ -134,7 +148,7 @@ Status: **Complete for the initial analysis slice**
 Implemented:
 
 - exact effective stats and stat product
-- exhaustive Open Great League IV ranking
+- exhaustive league-specific IV ranking
 - percentile, rank-one, and Attack/CMP context
 - separate current and planned read models
 - PvPoke overall and six-role ranking context
@@ -168,7 +182,7 @@ Status: **Complete for MVP**
 
 Implemented:
 
-- versioned Great League saved-team schema
+- versioned saved-team schema with explicit six-format identity
 - ordered lead, switch, and closer inventory references
 - missing-member and species-clause validation
 - current/planned target-species resolution
@@ -181,10 +195,8 @@ Implemented:
 - saved-team list and ordered editor
 - create, reopen, reorder, duplicate, repair, and delete workflows
 
-Deferred enhancements:
-
-- team backup/restore
-- inventory usage counts
+Team backup/restore is delivered through the version-three full-data backup.
+Inventory usage counts remain a separate enhancement.
 
 ### Phase 5 — PvPoke simulation adapter
 
@@ -195,6 +207,7 @@ Status: **Complete for MVP**
 - [Real-engine browser characterization](phase-05-simulation-adapter/real-engine-characterization.md)
 - [TeamRanker adapter](phase-05-simulation-adapter/team-ranker-adapter.md)
 - [Saved-team meta matrix service](phase-05-simulation-adapter/saved-team-meta-matrix.md)
+- [Configurable Battle and engine-observed replay](phase-05-simulation-adapter/battle-replay.md)
 
 Implemented:
 
@@ -215,7 +228,8 @@ Implemented:
 - real-browser TeamRanker diagnostic
 - ordered saved-team exact-build preparation
 - catalog-derived top-meta targets
-- measured saved-team TeamRanker service and raw matrix route
+- measured saved-team TeamRanker service and matrix/scorecard route
+- configurable six-format duel editor and engine-observed turn replay
 
 Deferred enhancements:
 
@@ -268,12 +282,13 @@ Status: **Complete for MVP**
 - [Static candidate generation and pre-score](phase-07-anchor-recommendations/static-candidate-generation-and-pre-score.md)
 - [Exact finalist simulation and selection](phase-07-anchor-recommendations/exact-finalist-simulation-and-selection.md)
 - [Recommendation workflow and result presentation](phase-07-anchor-recommendations/recommendation-workflow-and-result-presentation.md)
+- [Recommendation history and current-data comparison](phase-07-anchor-recommendations/recommendation-history.md)
 
 Implemented:
 
-- runtime-validated one-or-two-anchor request
+- runtime-validated full-inventory or one/two-anchor requests
 - fixed or flexible anchor positions
-- configurable one-to-five result count
+- configurable one-to-five or ten-result count
 - ready-now-only, planned-only, and combined scopes
 - exact current/planned owned-build preparation
 - current-catalog and anchor legality validation
@@ -321,13 +336,13 @@ Status: **Complete for MVP**
 
 Implemented:
 
-- version-two full-data JSON backup
-- inventory and saved teams in one portable artifact
-- legacy version-one inventory backup import
+- version-three full-data JSON backup
+- inventory, saved teams, and recommendation history in one portable artifact
+- legacy version-one inventory and version-two inventory/team backup import
 - complete inventory, catalog, team-reference, and species-clause inspection
 - cross-collection merge and replace semantics
 - final merged-state validation
-- atomic two-table Dexie restore and rollback
+- atomic three-table Dexie restore and rollback
 - application-wide backup UI counts, diagnostics, and query invalidation
 - clear-saved-teams with inventory preservation
 - reference-guarded bulk inventory clearing
@@ -348,10 +363,9 @@ Implemented:
 - complete local setup, operation, recovery, troubleshooting, and limitations
   guide
 
-Post-MVP:
-
-- hosted deployment documentation when a supported target exists
-- user-guide updates alongside future leagues, imports, and persistence changes
+Hosted Cloudflare Pages deployment and immutable-artifact verification are
+delivered; see the [deployment guide](../CLOUDFLARE-DEPLOYMENT.md). Update the
+user guide alongside future format, import, or persistence changes.
 
 ### Phase 9 — Modern battle lab UI and UX
 
@@ -377,6 +391,23 @@ Implemented:
 - feature-owned stylesheet modules with an explicit cascade contract
 - checked-in desktop, tablet, and mobile visual-regression baselines
 
+### Phase 10 — Roster update review
+
+Status: **Complete for the current implementation**
+
+- [Phase overview](phase-10-roster-updates/README.md)
+- [Roster comparison, review, and analysis freshness](phase-10-roster-updates/roster-review-and-freshness.md)
+
+Implemented:
+
+- explicit outgoing/active Git pins and deterministic public change artifact;
+- selected-format impact on owned, planned, and projected Mega builds;
+- rank/move changes, current-reference validation, and repair actions;
+- `/updates` and per-format dashboard reminders with local dismissal;
+- team data/revision provenance, conservative edit detection, and atomic
+  snapshot-checked analysis stamping;
+- production/development Chrome workflows and two new visual scenes.
+
 ## Updating these records
 
 Documentation is part of the definition of done for an implementation slice.
@@ -401,48 +432,23 @@ Read [DOCUMENTATION-GUIDE.md](DOCUMENTATION-GUIDE.md) for the full convention.
 
 ## Current implementation boundary
 
-At this point, TeamLab can:
-
 ```text
-Start React application
-    ↓
-Load upstream PvPoke JSON over HTTP
-    ↓
-Validate raw external data with Zod
-    ↓
-Cache through TanStack Query
-    ↓
-Normalize into immutable TeamLab catalog records
-    ↓
-Search and inspect Open Great League Pokémon
-    ↓
-Create a versioned, catalog-validated inventory record
-    ↓
-Persist and retrieve it through a repository-backed IndexedDB database
-    ↓
-Maintain current/planned builds with exact level validation
-    ↓
-Export or atomically restore inventory and saved teams in one versioned backup
-    ↓
-Derive exact stats, IV rank, roles, moves, and build requirements
-    ↓
-Create, order, and reopen exact inventory-backed saved teams
-    ↓
-Prepare and run exact saved-team TeamRanker matrices
-    ↓
-Derive scorecards, threats, alternatives, and upstream links
-    ↓
-Resolve anchors into an exact, ready-now-prioritized candidate pool
-    ↓
-Generate, pre-score, deduplicate, and shortlist ordered candidate teams
-    ↓
-Simulate finalists, derive scorecards, and select diverse exact results
-    ↓
-Present recommendation evidence and explicitly save selected teams
-    ↓
-Guard or atomically reset persisted local data
+Pinned upstream assets and outgoing/current comparison
+    ↓ validate, cache, and normalize by open/Mega format
+Shared exact inventory with current/planned targets and optional Mega choice
+    ↓ derive legal CP, IV, move, and matchup evidence
+Saved ordered teams / full-inventory or anchored recommendations
+    ↓ run bounded exact simulations
+Scorecards, threats, what-if substitutions, and configurable duel replay
+    ↓ preserve selected recommendation evidence and data/formula provenance
+Local recommendation history and current-data rerun comparison
+    ↓ inspect impact when upstream data changes
+Roster review, repair actions, and safe team analysis freshness
+    ↓ protect portable browser-local state
+Version-three inventory/team/history backups and atomic restore/reset
 ```
 
-The local MVP implementation, Phase 8 hardening, and Phase 9 experience
-overhaul are complete. Post-MVP capabilities remain intentionally outside this
-implementation boundary.
+The original MVP phases and UI overhaul are delivered, with the post-MVP
+extensions documented above. Limited cups, accounts/cloud synchronization,
+resource-cost optimization, complete stored battle matrices, and full-team
+battle prediction remain outside the implementation boundary.
