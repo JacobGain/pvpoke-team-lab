@@ -62,7 +62,8 @@ maintainers own updates to these temporarily stacked branches.
 
 Artifact verification and CodeQL run for PRs targeting any branch, and rerun
 when PR metadata or the base changes. Deployment remains limited to eligible
-PRs targeting `staging` or `master`, and production pushes to `master`.
+PRs targeting `staging` or `master`, explicitly selected `staging-preview` PRs,
+and production pushes to `master`.
 
 Land a stack from bottom to top using merge commits to preserve ancestry.
 After each parent lands, retarget the next PR to `staging` and wait for fresh
@@ -70,3 +71,16 @@ required checks against that base. If a parent is squash-merged instead,
 restack the remaining branches before proceeding so already landed commits do
 not reappear in their diffs. Do not merge the top PR into its parent as a
 shortcut for landing the whole stack.
+
+### Previewing the complete stack
+
+Apply the `staging-preview` label to the top same-repository PR to deploy the
+complete stack to the shared staging Pages alias before its parents land.
+Adding the label triggers the full artifact gate and then deploys those exact
+verified files. Keep this label on the one stack tip you want to preview.
+
+Dependency PRs are excluded by author and branch name as well as run actor, so
+editing or rerunning a Dependabot PR as a maintainer cannot deploy its older
+application version. Normal trusted PRs into `staging` or `master` remain
+eligible for preview deployments. The label never authorizes production;
+production still requires a successful push to `master`.
