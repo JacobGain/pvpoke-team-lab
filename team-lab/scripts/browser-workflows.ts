@@ -3176,6 +3176,22 @@ async function runRosterUpdateWorkflow(browser: BrowserWorkflow, visual: VisualR
   await browser.setLabeledControl("Meta target count", "5", "select");
   await browser.clickButton("Run exact team matrix");
   await browser.waitFor(`document.querySelector('.team-scorecard') !== null`, "refreshed team analysis", ENGINE_TIMEOUT_MS);
+  // The scorecard renders before recordAnalysis commits its IndexedDB write.
+  // A full navigation here can interrupt that write on slower CI runners.
+  await browser.waitFor(`Array.from(document.querySelectorAll('button')).some(button => button.textContent?.trim() === 'Run exact team matrix' && !button.disabled)`, "completed analysis freshness save", PERSISTENCE_TIMEOUT_MS);
+  const analysisStamp = await browser.evaluate<{ dataVersion?: string; upstreamCommit?: string }>(`new Promise((resolve, reject) => {
+    const request = indexedDB.open('team-lab');
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const database = request.result;
+      const transaction = database.transaction('savedTeams', 'readonly');
+      const lookup = transaction.objectStore('savedTeams').get(${JSON.stringify(seed.teamId)});
+      lookup.onsuccess = () => resolve({ dataVersion: lookup.result?.lastAnalyzedDataVersion, upstreamCommit: lookup.result?.lastAnalyzedUpstreamCommit });
+      transaction.oncomplete = () => database.close();
+      transaction.onerror = () => { database.close(); reject(transaction.error); };
+    };
+  })`);
+  invariant(Boolean(analysisStamp.dataVersion && analysisStamp.dataVersion !== '2026-09-28 01:57:22' && analysisStamp.upstreamCommit), `Analysis freshness was not persisted: ${JSON.stringify(analysisStamp)}; page: ${await browser.evaluate<string>(`document.querySelector('.analysis-notice')?.textContent ?? ''`)}`);
   await browser.navigate("/updates", "What changed for my roster?");
   await browser.waitFor(`document.querySelector('.roster-review-summary') && ![...document.querySelectorAll('.roster-review-card h3')].some(h => h.textContent === 'Update Review Team')`, "persisted team analysis freshness");
   await browser.clickButton("Dismiss this update reminder");

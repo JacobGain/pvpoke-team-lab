@@ -141,6 +141,14 @@ boundaries. Chrome tests seed an outgoing version only in a temporary browser
 profile; they verify changed moves, stale/fresh teams, removed-species repair,
 dismissal persistence, unchanged owned moves, and 320 px layout.
 
+The scorecard can render before the analysis provenance transaction completes.
+Browser workflows must wait for the matrix button to become enabled again
+(the run's persistence step has settled), then inspect the saved provenance
+before performing a full page navigation. Waiting only for `.team-scorecard`
+can interrupt the write and leave the team outdated on slower release runners.
+The regression reports the stored stamp and any analysis warning if saving fails;
+the subsequent `/updates` assertion still verifies freshness after a reload.
+
 ## Known limitations
 
 The comparison describes two published snapshots, not every change since an
