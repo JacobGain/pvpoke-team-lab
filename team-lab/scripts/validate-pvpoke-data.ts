@@ -10,6 +10,7 @@ import {
 } from "../src/pvpoke/types/schemas.ts";
 import { buildPokemonCatalog } from "../src/pvpoke/adapters/buildPokemonCatalog.ts";
 import { dashboardDataSchema } from "../src/pvpoke/types/dashboard.ts";
+import { updateReviewSchema } from "../src/pvpoke/types/updateReview.ts";
 
 const dataDirectory = resolve(
   process.env.TEAMLAB_PVPOKE_DATA_DIR ??
@@ -110,3 +111,6 @@ for (const [name, cp, group, id] of [["Great", 1500, "megagreat", "mega-great-le
 
 const dashboardData = dashboardDataSchema.parse(await readJson("dashboard.json"));
 console.log(`Dashboard species names: ${Object.keys(dashboardData.speciesNames).length}\nDashboard leaders: ${Object.values(dashboardData.leaders).flat().length}`);
+const updateReview = updateReviewSchema.parse(await readJson("update-review.json"));
+if (updateReview.toVersion !== gameMaster.timestamp) throw new Error("Roster update review does not match the current Game Master.");
+console.log(`Roster update comparison: ${updateReview.fromVersion} → ${updateReview.toVersion}`);

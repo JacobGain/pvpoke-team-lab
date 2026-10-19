@@ -5,8 +5,18 @@ import great from "../../public/vendor/pvpoke/data/rankings/all/overall/rankings
 import ultra from "../../public/vendor/pvpoke/data/rankings/all/overall/rankings-2500.json";
 import master from "../../public/vendor/pvpoke/data/rankings/all/overall/rankings-10000.json";
 import { ACTIVE_SEASON } from "./season";
+import { UPSTREAM_COMPARISON_COMMIT } from "./season";
+import updateReview from "../../public/vendor/pvpoke/data/update-review.json";
+import { updateReviewSchema } from "./types/updateReview";
 
 describe("active Season 28 bundle", () => {
+  it("ships the roster comparison for the exact outgoing and current pins", () => {
+    expect(updateReviewSchema.parse(updateReview)).toMatchObject({
+      fromCommit: UPSTREAM_COMPARISON_COMMIT,
+      toCommit: ACTIVE_SEASON.upstreamCommit,
+      toVersion: gameMaster.timestamp,
+    });
+  });
   it("identifies the pinned Twilight Trails revision", () => {
     expect(manifest.season).toEqual(ACTIVE_SEASON);
     expect(gameMaster.timestamp).toBe("2026-10-17 03:10:24");
