@@ -130,6 +130,7 @@ export function InventoryPage() {
                 <ChevronDown aria-hidden="true" className="inventory-more-actions__chevron" size={16} />
               </summary>
               <div className="inventory-more-actions__menu">
+                <Link className="secondary-link" to="/updates">Review roster updates</Link>
                 <Link className="secondary-link" to="/inventory/bulk-add">
                   <ListPlus size={18} />
                   Bulk add

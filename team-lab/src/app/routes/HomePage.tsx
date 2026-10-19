@@ -22,6 +22,7 @@ import { dashboardDataQueryOptions } from "@/features/meta/dashboardData";
 import { useSavedTeamList } from "@/features/teams/savedTeamQueries";
 import { ACTIVE_SEASON } from "@/pvpoke/season";
 import { formatIdentifier, formatMoveList } from "@/utils/formatters";
+import { RosterUpdateNotice } from "@/features/updates/RosterUpdateNotice";
 
 function MetricCard({
   label,
@@ -245,6 +246,8 @@ export function HomePage() {
           </Link>
         </section>
       </div>
+
+      <RosterUpdateNotice />
 
       <section className="dashboard-section">
         <div className="section-heading">

@@ -17,6 +17,7 @@ import {
   RecommendationPage,
   RecommendationHistoryPage,
   ReleaseNotesPage,
+  RosterUpdatePage,
   SavedTeamFormPage,
   SavedTeamSimulationPage,
   SavedTeamsPage,
@@ -45,6 +46,7 @@ export const router = createBrowserRouter(
       path: "/",
       element: <AppLayout />,
       children: [
+        { path: "updates", element: <LazyRoute><RosterUpdatePage /></LazyRoute> },
         { path: "battle", element: <LazyRoute><DuelPage /></LazyRoute> },
         { path: "team-builder", element: <TeamBuilderPage /> },
         {

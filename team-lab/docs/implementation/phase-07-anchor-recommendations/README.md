@@ -6,8 +6,8 @@
 
 ## Objective
 
-Generate useful, distinct Open Great League teams around one or two owned
-anchors without exhaustively simulating every possible team. Teammates may be
+Generate useful, distinct teams for the selected open/Mega format from the
+full eligible inventory or around one or two owned anchors without exhaustively simulating every possible team. Teammates may be
 restricted to inventory or optionally include ranked PvPoke-default builds.
 
 The phase must preserve the distinction between:
@@ -19,7 +19,7 @@ The phase must preserve the distinction between:
 ## Implemented scope
 
 - runtime-validated recommendation request contract
-- one-or-two distinct owned anchor requirement
+- full-inventory mode or one/two distinct owned anchors
 - flexible or fixed lead/switch/closer anchor positions
 - configurable one-to-five or ten-result count
 - all, ready-now-only, and planned-only build scopes
@@ -74,6 +74,7 @@ The phase must preserve the distinction between:
 - [Static candidate generation and pre-score](static-candidate-generation-and-pre-score.md)
 - [Exact finalist simulation and selection](exact-finalist-simulation-and-selection.md)
 - [Recommendation workflow and result presentation](recommendation-workflow-and-result-presentation.md)
+- [Recommendation history and current-data comparison](recommendation-history.md)
 
 ## Important decisions
 
@@ -161,7 +162,7 @@ npm run build     passed with the existing >500 kB chunk warning
 
 ## Exit criteria
 
-- [x] One or two owned anchors are structurally represented.
+- [x] Full-inventory and one/two-anchor requests are represented.
 - [x] Fixed and flexible anchor positions are represented.
 - [x] One-to-five or ten requested results are validated.
 - [x] Ready-now/current builds are prioritized.
@@ -170,7 +171,7 @@ npm run build     passed with the existing >500 kB chunk warning
 - [x] Ranking, role, and complementarity policies produce plausible teams.
 - [x] Candidate teams receive static pre-scores.
 - [x] Finalists are evaluated through exact TeamRanker simulations.
-- [x] One-to-five ordered, materially distinct domain results are returned
+- [x] One-to-five or ten ordered, materially distinct domain results are returned
       when enough finalists succeed.
 - [x] Recommendations include explanations, scorecards, threats, alternatives,
       and build requirements.
@@ -181,14 +182,13 @@ npm run build     passed with the existing >500 kB chunk warning
 
 ## Next phase dependencies
 
-History records preserve prior evidence rather than claiming that old analysis
-is current. Full-result cache identity and invalidation remain separate deferred
-work. Phase 8 hardening is complete. Remaining followups include representative
-100-record profiling, worker or chunked engine execution if measurements call
-for it, broader responsive verification, and critical browser-level workflow
-coverage. Recommendation result caching remains deferred until its freshness
-and formula-version policy is designed.
+History preserves prior evidence rather than claiming old analysis is current.
+Full-result cache identity and invalidation remain separate work. Phase 8
+hardening, representative-scale profiling, and critical Chrome workflows are
+implemented. Worker/chunked execution remains an extension to pursue when
+measurements justify it. Current archive/backup contracts are described in
+[recommendation history](recommendation-history.md).
 
 ## Relevant commits
 
-Not yet committed.
+See the owning file histories and the focused records, including the 1.2.1 history release.

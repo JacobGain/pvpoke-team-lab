@@ -9,6 +9,8 @@ import {
   type SavedTeam,
 } from "@/domain/teams/schemas";
 import type { TeamLabDatabase } from "@/infrastructure/database/TeamLabDatabase";
+import { inventoryPokemonSchema, type InventoryPokemon } from "@/domain/inventory/schemas";
+import { getSavedTeamInventoryIds } from "@/domain/teams/schemas";
 
 function parseStoredTeam(value: unknown): SavedTeam {
   const result = savedTeamSchema.safeParse(value);
@@ -88,6 +90,21 @@ export class DexieSavedTeamRepository implements SavedTeamRepository {
     }
 
     await this.database.savedTeams.delete(teamId);
+  }
+
+  async recordAnalysis(team: SavedTeam, inventory: readonly InventoryPokemon[], dataVersion: string, upstreamCommit: string): Promise<boolean> {
+    // A completed run must not mark builds edited in another tab as analyzed.
+    return this.database.transaction("rw", this.database.savedTeams, this.database.inventory, async () => {
+      const current = await this.get(team.teamId);
+      if (!current || JSON.stringify(current) !== JSON.stringify(savedTeamSchema.parse(team))) return false;
+      for (const id of getSavedTeamInventoryIds(team.members)) {
+        const expected = inventory.find(record => record.inventoryId === id);
+        const stored = await this.database.inventory.get(id);
+        if (!expected || !stored || JSON.stringify(inventoryPokemonSchema.parse(stored)) !== JSON.stringify(inventoryPokemonSchema.parse(expected))) return false;
+      }
+      await this.update({ ...current, lastAnalyzedDataVersion: dataVersion, lastAnalyzedUpstreamCommit: upstreamCommit, updatedAt: new Date().toISOString() });
+      return true;
+    });
   }
 
   count(): Promise<number> {

@@ -13,8 +13,9 @@ upstream global constructors and mutable battle objects.
 ## Implemented scope
 
 - TeamLab-owned exact-build simulation contracts
-- Open Great League simulation-format contract
+- six-format open/Mega simulation contract
 - configurable shield counts
+- configurable duel editor and engine-observed turn replay
 - exact analyzed-build serialization
 - explicit rejection of ambiguous CP-to-level builds
 - upstream classic-script bootstrap
@@ -45,12 +46,9 @@ upstream global constructors and mutable battle objects.
 ## Deferred scope
 
 - real-browser output fixture capture
-- inventory or saved-team simulation UI
-- selectable opponent builds
+- arbitrary starting HP/energy and scripted opponent decisions
 - shield-scenario matrices
-- timeline translation
-- team-versus-meta orchestration
-- cancellation and progress reporting
+- interruption of an in-flight synchronous engine battle
 
 ## Implementation records
 
@@ -58,6 +56,7 @@ upstream global constructors and mutable battle objects.
 - [Real-engine browser characterization](real-engine-characterization.md)
 - [TeamRanker adapter](team-ranker-adapter.md)
 - [Saved-team meta matrix service](saved-team-meta-matrix.md)
+- [Configurable Battle and engine-observed replay](battle-replay.md)
 
 ## Exit criteria
 
@@ -72,10 +71,12 @@ upstream global constructors and mutable battle objects.
 
 ## Next slice
 
-Begin Phase 6 team analysis using the measured matrix contract. Start with
-scope-aware threat aggregation and coverage evidence before adding grades,
-alternatives, and scorecard presentation.
+Phase 6 scorecards, threats, alternatives, and what-if substitutions are
+implemented. The adapter also powers Battle replay and recommendation
+finalists. Future scenario controls must preserve explicit assumptions and
+upstream result parity. Team analysis stamps are documented in
+[roster review and freshness](../phase-10-roster-updates/roster-review-and-freshness.md).
 
 ## Relevant commits
 
-Not yet committed.
+See the owning file histories and the focused implementation records.

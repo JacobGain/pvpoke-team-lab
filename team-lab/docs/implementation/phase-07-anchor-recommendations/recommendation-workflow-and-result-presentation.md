@@ -3,13 +3,13 @@
 > **Phase:** Phase 7 — Anchor Recommendations  
 > **Status:** Complete for MVP  
 > **Route:** `/recommend`  
-> **Last reviewed:** 2026-09-30
+> **Last reviewed:** 2026-10-19
 
 ## Summary
 
 TeamLab now exposes the complete anchor-recommendation pipeline as a user
-workflow. A user can select one or two owned anchors, constrain their
-positions, choose discovery and exact-simulation scope, monitor the bounded
+workflow. A user can generate from the full eligible inventory or select one
+or two owned anchors and constrain their positions, choose discovery and exact-simulation scope, monitor the bounded
 finalist run, inspect evidence-rich ordered results, and explicitly save a
 fully owned result as an ordinary saved team. An opt-in setting can also
 simulate highly ranked teammates the user does not yet own.
@@ -26,6 +26,10 @@ The page distinguishes:
 - published static evidence used to shortlist finalists;
 - exact TeamRanker scorecards used for final selection;
 - TeamLab-authored selection formulas and explanation prose.
+
+The complete archive and current-data comparison contract is documented in
+[recommendation history](recommendation-history.md). Full-inventory mode uses
+owned builds only; optional ranked teammates are an anchored-mode setting.
 
 ## Problem being solved
 
@@ -50,7 +54,7 @@ The workflow therefore had to:
     ↓
 load current inventory and normalized catalog
     ↓
-choose 1–2 anchors and role constraints
+choose full-inventory mode or 1–2 anchors and role constraints
     +
 choose result, build-status, target, and shield scope
     ↓
@@ -78,7 +82,7 @@ the displayed request scope cannot drift from the in-flight service call.
 
 The page provides:
 
-- one required owned anchor;
+- full-inventory mode without anchors, or one required owned anchor;
 - an optional second distinct owned anchor;
 - `flex`, Lead, Safe Switch, or Closer position per anchor;
 - one through five or ten requested results;
@@ -291,7 +295,8 @@ npm run build     passed with the existing >500 kB chunk warning
   TeamRanker matrices.
 - Score and explanation policy remain English-only and version-one
   heuristics.
-- Browser-level interaction tests are not yet configured.
+- Chrome workflow coverage is implemented in `scripts/browser-workflows.ts`;
+  it covers generation, cancellation, history comparison, and backup/restore.
 
 ## Safe extension points
 

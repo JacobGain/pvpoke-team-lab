@@ -27,7 +27,7 @@ import {
 import type { ShieldCount } from "@/domain/simulation/contracts";
 import { useInventoryList } from "@/features/inventory/inventoryQueries";
 import { usePokemonCatalog } from "@/features/meta/usePokemonCatalog";
-import { useSavedTeam } from "@/features/teams/savedTeamQueries";
+import { useSavedTeam, useRecordTeamAnalysis } from "@/features/teams/savedTeamQueries";
 import { createPvpokeTeamRankerAdapter } from "@/pvpoke/simulation";
 import { deriveTeamAlternatives } from "@/domain/teamAnalysis/alternatives";
 import { analyzeSavedTeamMatrix } from "@/domain/teamAnalysis/teamAnalysis";
@@ -48,6 +48,7 @@ function formatError(error: unknown): string {
 export function SavedTeamSimulationPage() {
   const { teamId } = useParams();
   const teamResult = useSavedTeam(teamId);
+  const recordAnalysis = useRecordTeamAnalysis();
   const inventoryResult = useInventoryList();
   const catalogResult = usePokemonCatalog();
   const [targetLimit, setTargetLimit] = useState<MetaTargetLimit>(48);
@@ -153,7 +154,14 @@ export function SavedTeamSimulationPage() {
         catalog,
         { targetLimit, teamShields, targetShields },
       );
-      setRun(await rankingService.rank(prepared));
+      const completed = await rankingService.rank(prepared);
+      setRun(completed);
+      try {
+        const recorded = await recordAnalysis.mutateAsync({ team, inventory, dataVersion: catalog.dataVersion });
+        if (!recorded) setTeamUpdateNotice("Analysis completed, but the team or a member was edited during the run. Review the latest builds before rerunning.");
+      } catch {
+        setTeamUpdateNotice("Analysis completed, but its freshness status could not be saved. You can still review this result.");
+      }
     } catch (error) {
       setRunError(error);
     } finally {
@@ -181,7 +189,8 @@ export function SavedTeamSimulationPage() {
           options,
         );
         setRun(await rankingService.rank(prepared));
-        setTeamUpdateNotice("Saved team updated and exact report refreshed.");
+        const recorded = await recordAnalysis.mutateAsync({ team: updatedTeam, inventory, dataVersion: catalog.dataVersion });
+        setTeamUpdateNotice(recorded ? "Saved team updated and exact report refreshed." : "Report completed, but a build changed during the run. Review the latest team before rerunning.");
       } catch (error) {
         setRunError(error);
         setTeamUpdateNotice(

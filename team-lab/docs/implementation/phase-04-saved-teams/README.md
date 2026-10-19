@@ -2,11 +2,11 @@
 
 > **Status:** Complete for MVP
 > **Project-plan phase:** Phase 4: saved teams
-> **Last reviewed:** 2026-07-25
+> **Last reviewed:** 2026-10-19
 
 ## Objective
 
-Allow a user to persist an ordered, legal Great League team made from exactly
+Allow a user to persist an ordered, legal team for a supported open/Mega format made from exactly
 three inventory records:
 
 1. Lead
@@ -17,13 +17,19 @@ Saved teams reference inventory identities rather than copying Pokémon builds.
 Inventory therefore remains the source of truth for later analysis and
 simulation.
 
+Current data-update and freshness behavior is documented in
+[roster review and freshness](../phase-10-roster-updates/roster-review-and-freshness.md).
+Version-three full-data backups include teams and recommendation history; the
+original phase’s version-two database milestone below is historical.
+
 ## Implemented scope
 
 - version-one saved-team Zod schema
-- explicit Open Great League format identity
+- explicit identity for all six supported formats
 - persisted lead, switch, and closer order
 - three distinct inventory-reference requirement
-- names, notes, timestamps, and optional analysis-version metadata
+- names, notes, timestamps, and optional data-version/upstream-commit analysis metadata
+- atomic analysis stamping only when persisted team/member snapshots are unchanged
 - inventory-reference resolution
 - current/planned target-species resolution
 - Pokédex-identity species clause
@@ -32,7 +38,7 @@ simulation.
 - analysis freshness invalidation on update
 - storage-independent repository contract
 - Dexie CRUD implementation with read/write validation
-- additive TeamLab IndexedDB version-two schema
+- saved-team table introduced in IndexedDB version two, retained in current version four
 - characterized version-one inventory preservation during upgrade
 - real IndexedDB tests through `fake-indexeddb`
 - TanStack Query list/detail and CRUD mutations
@@ -71,10 +77,12 @@ simulation.
 
 ## Next phase
 
-Begin the Phase 5 PvPoke simulation adapter using these stable ordered-team
-contracts. Saved-team backup/restore and inventory usage visibility remain
-useful Phase 4 enhancements but are not required by the MVP exit criterion.
+Phase 5 simulation adapters and saved-team matrices are delivered. Teams are
+included in version-three full-data backups. Current freshness and repair
+behavior is documented in the Phase 10 record linked above; inventory usage
+visibility remains a separate enhancement.
 
 ## Relevant commits
 
-Not yet committed.
+See the owning file histories; `cdeef5032` adds the current snapshot-checked
+analysis freshness persistence.

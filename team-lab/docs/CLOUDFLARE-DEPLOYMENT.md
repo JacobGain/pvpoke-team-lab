@@ -1,6 +1,6 @@
 # Cloudflare Pages deployment
 
-TeamLab 0.0.5 uses a hardened static-only Cloudflare Pages deployment. The
+TeamLab uses a hardened static-only Cloudflare Pages deployment. The
 application does not use Pages Functions, Workers, D1, KV, R2, authentication,
 or any other metered server-side service. PvPoke data and simulation code ship
 inside the public artifact, while inventory and teams remain in browser
@@ -54,14 +54,24 @@ each GitHub deployment identifies the exact uploaded artifact.
 
 ## Release pipeline
 
-PRs targeting `staging` or `master` run the complete **Verify public artifact**
-gate and both CodeQL analyses. A same-repository PR targeting `staging` or
-`master` deploys to staging on `opened`, `synchronize`, `reopened`, and
-`ready_for_review`. Fork and Dependabot PRs validate without deploying because
-they do not receive deployment secrets. A merge into protected `master` produces
-the push that deploys production; the active master ruleset
-requires a PR and passing checks, with no bypass actors. Manual runs validate
-without deploying. Staging pushes do not repeat the PR's build and checks.
+PRs targeting any branch run the complete **Verify public artifact** gate and
+both CodeQL analyses, including intermediate stack bases. Opening, updating,
+reopening, marking ready, or editing a PR reruns checks. Adding a label also
+triggers the artifact workflow so preview selection can initiate a deployment.
+
+A trusted same-repository PR targeting `staging` or `master` is eligible for a
+staging preview. A trusted top-of-stack PR targeting another branch becomes
+eligible with the `staging-preview` label. Apply that label to the PR containing
+the complete feature set you want to preview; a visual stack alone does not
+change deployment eligibility. The shared alias is the latest successful
+eligible upload, not an exclusive per-stack preview URL.
+
+Forks, Dependabot-authored PRs, and `dependabot/` branches do not deploy. Both
+PR identity and run actor are checked, so a maintainer editing a dependency PR
+does not authorize its older app version to replace staging. A merge into
+protected `master` produces the push that deploys production; the active master
+ruleset requires a PR and passing checks, with no bypass actors. Manual runs
+validate without deploying. Staging pushes do not repeat the PR gate.
 
 Each deployment:
 
@@ -71,7 +81,8 @@ Each deployment:
 4. uploads it as `team-lab-public-<commit SHA>`;
 5. downloads the verified artifact in the deployment job;
 6. deploys it to the matching `pvpoke-team-lab` Pages branch with pinned
-   Wrangler (matching the project dependency);
+   Wrangler selected by the workflow’s explicit `wranglerVersion` (review that
+   version separately from the local package dependency);
 7. polls the returned immutable HTTPS URL until its public release metadata
    identifies the expected commit and every entry asset is available;
 8. browser-tests that exact URL, with bounded retries for only the initial
@@ -122,6 +133,23 @@ stable `staging.pvpoke-team-lab.pages.dev` branch alias. Cloudflare also returns
 an immutable deployment URL for each upload; post-deployment verification uses
 that immutable URL to prove the exact commit before the stable alias is used for
 manual acceptance testing.
+
+## Select and verify a stack preview
+
+```bash
+gh pr edit <top-pr-number> --add-label staging-preview
+```
+
+Wait for **Verify public artifact**, **Deploy verified artifact**, and **Verify
+deployed origin**. Check that the deployment belongs to the intended PR, then
+compare `release.json` at the immutable deployment URL and stable staging alias.
+The app version, upstream revision, and source commit must match. GitHub’s PR
+merge-preview commit is the artifact identity; do not substitute the PR head
+SHA in a deployment check unless that is actually what the artifact records.
+
+Keep merge order separate from preview selection: land parents into `staging`
+first, retarget the next PR, and require fresh checks. See
+[stack landing instructions](DEPENDENCY-MAINTENANCE.md#stacking-related-pull-requests).
 
 ## Cloudflare challenges
 

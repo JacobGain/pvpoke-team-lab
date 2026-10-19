@@ -12,8 +12,13 @@ describe("release workflow policy", () => {
 
   it.each([
     ["PR creation", "types: [opened, synchronize", "types: [synchronize"],
+    ["PR retargeting", "ready_for_review, edited", "ready_for_review"],
     ["master PR staging deployment", "github.base_ref == 'master'", "github.base_ref == 'main'"],
     ["fork isolation", "github.event.pull_request.head.repo.full_name == github.repository", "true"],
+    ["selected stack preview", "contains(github.event.pull_request.labels.*.name, 'staging-preview')", "false"],
+    ["label trigger", ", labeled]", "]"],
+    ["Dependabot author isolation", "github.event.pull_request.user.login != 'dependabot[bot]'", "true"],
+    ["dependency branch isolation", "!startsWith(github.head_ref, 'dependabot/')", "true"],
     ["Dependabot isolation", "github.actor != 'dependabot[bot]'", "true"],
     ["production trigger", "github.ref == 'refs/heads/master'", "github.ref == 'refs/heads/staging'"],
     ["artifact gate", "needs: verify-public-artifact", "needs: other-job"],
@@ -26,7 +31,10 @@ describe("release workflow policy", () => {
     expect(() => validateDeploymentPolicy(release.replace(before, after), codeql)).toThrow();
   });
 
-  it("requires CodeQL on staging PRs", () => {
-    expect(() => validateDeploymentPolicy(release, codeql.replace("branches: [staging, master]", "branches: [master]"))).toThrow();
+  it.each(["branches: [staging, master]", "branches-ignore: [feature/**]"])("rejects restricting stacked PR checks with %s", (filter) => {
+    for (const target of ["release", "codeql"]) {
+      const restricted = (target === "release" ? release : codeql).replace("  pull_request:\n", `  pull_request:\n    ${filter}\n`);
+      expect(() => validateDeploymentPolicy(target === "release" ? restricted : release, target === "codeql" ? restricted : codeql)).toThrow();
+    }
   });
 });

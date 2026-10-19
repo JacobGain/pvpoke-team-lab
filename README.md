@@ -1,9 +1,10 @@
 # TeamLab
 
 [TeamLab](https://pvpoke-team-lab.pages.dev/) is a local-first Pokémon GO PvP
-inventory and team-planning app for Great, Ultra, and Master League. Track exact
+inventory and team-planning app for Great, Ultra, and Master League, each with
+a Mega variant. Track exact
 owned and planned builds, analyze IVs and teams, explore recommendations backed
-by PvPoke simulations, and back up your data as JSON. Inventory and saved teams
+by PvPoke simulations, review roster changes after upstream refreshes, and back up your data as JSON. Inventory and saved teams
 stay in your browser.
 
 TeamLab is the application developed in this repository. It uses data and the
@@ -13,12 +14,12 @@ for the full development, deployment, and validation instructions.
 
 ## Run TeamLab
 
-Requires Node.js 22.22 or newer on the 22.x line, or a supported newer line,
-and npm 11 or newer.
+Requires Node.js `^22.22.0`, `^24.0.0`, or `>=26.0.0`, and npm 11 or newer.
+Node 25 is excluded by the package engine requirement.
 
 ```bash
 cd team-lab
-npm install
+npm ci
 npm run dev
 ```
 

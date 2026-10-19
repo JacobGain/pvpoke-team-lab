@@ -1,10 +1,12 @@
 import type { SavedTeam } from "@/domain/teams/schemas";
+import type { InventoryPokemon } from "@/domain/inventory/schemas";
 
 export interface SavedTeamRepository {
   list(): Promise<readonly SavedTeam[]>;
   get(teamId: string): Promise<SavedTeam | undefined>;
   create(team: SavedTeam): Promise<void>;
   update(team: SavedTeam): Promise<void>;
+  recordAnalysis(team: SavedTeam, inventory: readonly InventoryPokemon[], dataVersion: string, upstreamCommit: string): Promise<boolean>;
   delete(teamId: string): Promise<void>;
   count(): Promise<number>;
 }

@@ -13,6 +13,9 @@ import {
 } from "@/domain/teams/schemas";
 import { TeamLabDatabase } from "@/infrastructure/database/TeamLabDatabase";
 import { DexieSavedTeamRepository } from "@/infrastructure/teams/DexieSavedTeamRepository";
+import { createInventoryPokemon } from "@/domain/inventory/factory";
+import { inventoryTestCatalog } from "@/domain/inventory/inventoryTestFixtures";
+import { getSavedTeamInventoryIds } from "@/domain/teams/schemas";
 
 const teamId = "75a53aca-f3d7-476b-a14e-5559c8a7c4bb";
 let database: TeamLabDatabase;
@@ -48,6 +51,27 @@ afterEach(async () => {
 });
 
 describe("DexieSavedTeamRepository", () => {
+  it("records completed analysis only for an unchanged team and inventory snapshot", async () => {
+    const team = createTeam();
+    const inventory = getSavedTeamInventoryIds(team.members).map(inventoryId => createInventoryPokemon({
+      buildStatus: "current", speciesId: "azumarill",
+      currentBuild: { cp: 1499, ivProfile: { source: "assumed-rank-1" }, moveset: { fastMoveId: "BUBBLE", chargedMoveIds: ["ICE_BEAM"] } },
+    }, { catalog: inventoryTestCatalog, createId: () => inventoryId, now: () => new Date(team.createdAt) }));
+    await repository.create(team);
+    await database.inventory.bulkAdd(inventory);
+    await database.inventory.update(inventory[0]!.inventoryId, { notes: "Edited during simulation" });
+    expect(await repository.recordAnalysis(team, inventory, "new-data", "a".repeat(40))).toBe(false);
+    expect((await repository.get(teamId))?.lastAnalyzedDataVersion).toBeUndefined();
+    await database.inventory.put(inventory[0]!);
+    await repository.update({ ...team, name: "Edited during simulation" });
+    expect(await repository.recordAnalysis(team, inventory, "new-data", "a".repeat(40))).toBe(false);
+    await repository.update(team);
+    expect(await repository.recordAnalysis(team, inventory, "new-data", "a".repeat(40))).toBe(true);
+    expect((await repository.get(teamId))?.lastAnalyzedDataVersion).toBe("new-data");
+    await repository.delete(teamId);
+    expect(await repository.recordAnalysis(team, inventory, "new-data", "a".repeat(40))).toBe(false);
+  });
+
   it("creates, reads, updates, lists, counts, and deletes a team", async () => {
     const team = createTeam();
     await repository.create(team);
