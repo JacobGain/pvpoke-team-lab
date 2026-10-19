@@ -83,7 +83,8 @@ license is included at `public/vendor/pvpoke/LICENSE`.
 ## Advancing the active season
 
 Update `src/pvpoke/season.ts` to the reviewed upstream branch and full commit
-SHA, then sync data, engine, and sprites together. The manifest records the
+SHA, and set `UPSTREAM_COMPARISON_COMMIT` to the outgoing pinned revision.
+Then sync data, engine, and sprites together. The manifest records the
 pinned season and source revision; release metadata also identifies the season.
 Update seasonal regression expectations and review visual diffs when rankings
 change. Keep browser simulations in the release gate: season transitions can
@@ -121,3 +122,32 @@ Chrome workflows passed against both the production artifact and development
 server, including all six formats, Top-250 Mega targeting, recommendations,
 battle replay, persistence, and backup/restore. All 15 reviewed visual
 snapshots passed verification.
+
+## Roster update comparison artifact
+
+`npm run sync:pvpoke` also generates `data/update-review.json`, covered by the
+bundle manifest and `validate:data`. It compares the explicit outgoing pin with
+the active pin across all six supported overall rankings and the Game Master.
+It records ranking entries/exits, position changes, recommended moves, species
+additions/removals, release state, base stats, typing, level bounds, default IVs,
+move availability, Elite TM availability, and combat move-stat changes.
+
+The outgoing pin must remain available in local Git objects. Repeated syncs do
+not choose a new baseline from the working directory, so the comparison remains
+deterministic. A source-directory override compares that checkout against the
+same outgoing pin and records a null destination commit rather than claiming
+that the override matches the production revision.
+
+The UI matches this public comparison against local inventory and validates
+current references using the selected league catalog. It does not upload roster
+data or infer missing historical snapshots. Team analysis freshness uses both
+the Game Master data version and pinned upstream commit, because rankings can
+change without a new Game Master timestamp.
+
+For a focused Chrome check (also included in the full browser workflows):
+
+```bash
+npm run test:browser -- --roster-updates
+npm run test:production:artifact -- --roster-updates
+npm run test:visual -- --roster-updates
+```

@@ -576,6 +576,40 @@ use the refreshed data. See [PvPoke asset maintenance](PVPOKE-DATA.md).
 An upstream change can make an old species, form, move, or team reference
 invalid. Repair the affected inventory or team before exporting a new backup.
 
+## Review an upstream data update
+
+Open **Inventory → More actions → Review roster updates**, or choose
+**Review roster updates** from Saved teams. The dashboard also shows a reminder
+when older roster data or analyzed teams are detected.
+
+The review compares two published PvPoke snapshots for the selected league:
+
+- owned and planned Pokémon with changed movepools, move stats, release state,
+  stats, or recommended moves;
+- previous and current ranking positions, with shifts under ten places hidden
+  unless enabled;
+- missing species, invalid moves, and other build validation issues;
+- saved teams requiring repair or fresh analysis.
+
+Switch the league or Mega setting to review another format. The roster scope
+includes builds best suited to that league and every member of its saved teams.
+The comparison dates are shown explicitly: it cannot reconstruct every change
+since a much older inventory record was created. Saved IVs and moves are never
+automatically changed by this review.
+
+Use **Repair build** or **Repair team** to correct invalid references. Use
+**Review and run team analysis**, choose your targets and shield settings, then
+run the exact matrix. A completed run records the data version and upstream
+revision so the team’s refresh flag clears. If the team or its members change
+while a simulation runs, that result does not mark the changed builds as fresh.
+Older teams without recorded analysis provenance need one fresh run. Freshness
+indicates the snapshot used; it does not mean a previous report is stored or
+that every shield scenario has been evaluated.
+
+**Dismiss this update reminder** hides the dashboard reminder for this update
+and format. The review remains available, and repair issues stay visible.
+Reminder preferences are local to the browser and are not part of JSON backups.
+
 ## Troubleshooting
 
 ### The home page says “Data unavailable”

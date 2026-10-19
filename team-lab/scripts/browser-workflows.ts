@@ -3116,6 +3116,94 @@ async function runCriticalWorkflows(
   };
 }
 
+async function runRosterUpdateWorkflow(browser: BrowserWorkflow, visual: VisualRegression): Promise<void> {
+  // Each run uses a temporary browser profile. Seed an outgoing data version to
+  // exercise an upgrade without changing any real user's local inventory.
+  await browser.setViewport(1440, 1000);
+  await browser.navigate("/inventory", "Your inventory");
+  await browser.evaluate(`new Promise((resolve, reject) => {
+    const request = indexedDB.open('team-lab');
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const database = request.result;
+      const transaction = database.transaction(['inventory', 'savedTeams', 'recommendationHistory'], 'readwrite');
+      for (const name of ['inventory', 'savedTeams', 'recommendationHistory']) transaction.objectStore(name).clear();
+      transaction.oncomplete = () => { database.close(); localStorage.removeItem('team-lab-reviewed-updates'); resolve(true); };
+      transaction.onerror = () => { database.close(); reject(transaction.error); };
+    };
+  })`);
+  await createInventory(browser, ["zoroark", "altaria", "whiscash"]);
+  await browser.navigate("/teams/new", "Create saved team");
+  await browser.setLabeledControl("Team name", "Update Review Team", "input");
+  await browser.clickButton("Save team");
+  await browser.waitFor(`document.querySelector('.team-card h2')?.textContent === 'Update Review Team'`, "update review team");
+  const seed = await browser.evaluate<{ teamId: string; recordId: string; moves: string }>(`new Promise((resolve, reject) => {
+    const request = indexedDB.open('team-lab');
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const database = request.result;
+      const transaction = database.transaction(['inventory', 'savedTeams'], 'readwrite');
+      let result;
+      const inventoryRequest = transaction.objectStore('inventory').getAll();
+      inventoryRequest.onsuccess = () => {
+        const record = inventoryRequest.result.find(item => item.speciesId === 'zoroark');
+        record.sourceDataVersion = '2026-09-28 01:57:22';
+        transaction.objectStore('inventory').put(record);
+        result = { recordId: record.inventoryId, moves: JSON.stringify(record.currentBuild.moveset) };
+      };
+      const teamRequest = transaction.objectStore('savedTeams').getAll();
+      teamRequest.onsuccess = () => {
+        const team = teamRequest.result.find(item => item.name === 'Update Review Team');
+        team.lastAnalyzedDataVersion = '2026-09-28 01:57:22';
+        transaction.objectStore('savedTeams').put(team);
+        result = { ...result, teamId: team.teamId };
+      };
+      transaction.oncomplete = () => { database.close(); resolve(result); };
+      transaction.onerror = () => { database.close(); reject(transaction.error); };
+    };
+  })`);
+  await browser.navigate("/", "Pokémon GO PvP Team Builder for Your Own Roster");
+  await browser.waitFor(`document.querySelector('.roster-update-notice a')?.textContent === 'Review roster updates'`, "roster update reminder");
+  await browser.navigate("/updates", "What changed for my roster?");
+  await browser.waitFor(`document.querySelector('.roster-review-list')?.textContent?.includes('Sucker Punch') && document.body.textContent.includes('Update Review Team')`, "owned move changes and stale team");
+  invariant(await browser.evaluate(`document.querySelector('.roster-review-summary')?.textContent?.includes('2026-09-28') && document.querySelector('.roster-review-summary')?.textContent?.includes('2026-10-17')`), "The comparison scope dates are missing.");
+  await visual.capture(browser, "roster-updates-desktop", 1440, 1000);
+  await browser.setViewport(320, 900);
+  await browser.assertNoHorizontalOverflow("roster update review");
+  await visual.capture(browser, "roster-updates-mobile", 320, 900);
+  await browser.setViewport(1440, 1000);
+  await browser.navigate(`/teams/${seed.teamId}/simulation`, "Update Review Team");
+  await browser.setLabeledControl("Meta target count", "5", "select");
+  await browser.clickButton("Run exact team matrix");
+  await browser.waitFor(`document.querySelector('.team-scorecard') !== null`, "refreshed team analysis", ENGINE_TIMEOUT_MS);
+  await browser.navigate("/updates", "What changed for my roster?");
+  await browser.waitFor(`document.querySelector('.roster-review-summary') && ![...document.querySelectorAll('.roster-review-card h3')].some(h => h.textContent === 'Update Review Team')`, "persisted team analysis freshness");
+  await browser.clickButton("Dismiss this update reminder");
+  await browser.navigate("/", "Pokémon GO PvP Team Builder for Your Own Roster");
+  invariant(await browser.evaluate(`!document.querySelector('.roster-update-notice')`), "Dismissed update reminder reappeared after navigation.");
+  const moves = await browser.evaluate<string>(`new Promise((resolve, reject) => {
+    const request = indexedDB.open('team-lab');
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const database = request.result;
+      const transaction = database.transaction('inventory', 'readwrite');
+      const lookup = transaction.objectStore('inventory').get(${JSON.stringify(seed.recordId)});
+      let original;
+      lookup.onsuccess = () => {
+        const record = lookup.result;
+        original = JSON.stringify(record.currentBuild.moveset);
+        transaction.objectStore('inventory').put({ ...record, inventoryId: crypto.randomUUID(), speciesId: 'retired_species', megaSpeciesId: undefined });
+      };
+      transaction.oncomplete = () => { database.close(); resolve(original); };
+      transaction.onerror = () => { database.close(); reject(transaction.error); };
+    };
+  })`);
+  invariant(moves === seed.moves, "Reviewing updates modified the owned moveset.");
+  await browser.navigate("/updates", "What changed for my roster?");
+  await browser.waitFor(`document.querySelector('.roster-review-list')?.textContent?.includes('retired_species') && [...document.querySelectorAll('.roster-review-card a')].some(a => a.textContent === 'Repair build')`, "removed species repair action after dismissal");
+  console.log("[browser-workflows] Roster update reminder, owned move changes, comparison scope, team freshness, repair actions, dismissal persistence, and mobile layout passed");
+}
+
 async function runDuelWorkflow(browser: BrowserWorkflow, buildTarget: BrowserTestTarget): Promise<void> {
   await browser.setViewport(1440, 1000);
   await browser.navigate("/battle", "One matchup. Every turn.");
@@ -3341,6 +3429,10 @@ async function main(): Promise<void> {
     client = await DevToolsClient.connect(webSocketUrl);
     const browser = new BrowserWorkflow(client, appUrl);
     await browser.initializeDiagnostics();
+    if (process.argv.includes('--roster-updates')) {
+      await runRosterUpdateWorkflow(browser, visual);
+      return;
+    }
     if (process.argv.includes('--duel')) {
       await runDuelWorkflow(browser, buildTarget);
       return;
@@ -3356,6 +3448,8 @@ async function main(): Promise<void> {
     );
 
     await runDuelWorkflow(browser, buildTarget);
+
+    await runRosterUpdateWorkflow(browser, visual);
 
     console.log(
       `[browser-workflows] ${JSON.stringify(report)}`,
