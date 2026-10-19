@@ -19,9 +19,12 @@ interface Workflow {
 const productionCondition = "github.event_name == 'push' && github.ref == 'refs/heads/master'";
 const deploymentCondition = `(${productionCondition}) ||
   (github.event_name == 'pull_request' &&
-   (github.base_ref == 'staging' || github.base_ref == 'master') &&
+   (github.base_ref == 'staging' || github.base_ref == 'master' ||
+    contains(github.event.pull_request.labels.*.name, 'staging-preview')) &&
    github.event.pull_request.head.repo.full_name == github.repository &&
-   github.actor != 'dependabot[bot]')`;
+   github.actor != 'dependabot[bot]' &&
+   github.event.pull_request.user.login != 'dependabot[bot]' &&
+   !startsWith(github.head_ref, 'dependabot/'))`;
 const normalize = (value: string | undefined) => value?.replace(/\s+/g, " ").trim();
 
 export function validateDeploymentPolicy(releaseSource: string, codeqlSource: string): void {
@@ -31,14 +34,14 @@ export function validateDeploymentPolicy(releaseSource: string, codeqlSource: st
     assert.ok(workflow.on.pull_request, "Keep checks on pull requests, including stacked bases.");
     assert.equal(workflow.on.pull_request.branches, undefined, "Validate PRs to every base in a stack.");
     assert.equal(workflow.on.pull_request["branches-ignore"], undefined, "Do not exclude stacked PR bases.");
-    assert.deepEqual(workflow.on.pull_request.types, ["opened", "synchronize", "reopened", "ready_for_review", "edited"], "Creation, updates, and base changes must rerun PR checks.");
+    assert.deepEqual(workflow.on.pull_request.types, ["opened", "synchronize", "reopened", "ready_for_review", "edited", ...(workflow === release ? ["labeled"] : [])], "Creation, updates, and base changes must rerun PR checks.");
   }
   assert.deepEqual(release.on.push?.branches, ["master"], "Only master pushes need a second artifact build for production.");
   assert.equal(release.concurrency["cancel-in-progress"], "${{ github.event_name == 'pull_request' }}", "Do not cancel production deployments.");
 
   const deploy = release.jobs["deploy-cloudflare"];
   assert.ok(deploy, "Keep one shared deployment job.");
-  assert.equal(normalize(deploy.if), normalize(deploymentCondition), "Deploy only master pushes and trusted PRs into staging or master, never forks or Dependabot.");
+  assert.equal(normalize(deploy.if), normalize(deploymentCondition), "Deploy only master pushes and trusted release-target or explicitly selected preview PRs, never forks or Dependabot.");
   assert.equal(deploy.needs, "verify-public-artifact", "Deploy only a verified artifact.");
   assert.equal(release.jobs["verify-public-artifact"]?.name, "Verify public artifact", "Preserve the required branch-protection check.");
   assert.equal(deploy.environment?.name, "${{ github.event_name == 'push' && 'cloudflare-pages' || 'cloudflare-pages-staging' }}");
