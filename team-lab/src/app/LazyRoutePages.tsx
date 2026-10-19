@@ -1,5 +1,9 @@
 import { lazy, Suspense, type ReactNode } from "react";
 
+export const RosterUpdatePage = lazy(() =>
+  import("@/features/updates/RosterUpdatePage").then(module => ({ default: module.RosterUpdatePage })),
+);
+
 export const BulkInventoryPage = lazy(() =>
   import("@/features/inventory/BulkInventoryPage").then((module) => ({
     default: module.BulkInventoryPage,

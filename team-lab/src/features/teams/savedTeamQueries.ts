@@ -7,7 +7,9 @@ import {
 } from "@tanstack/react-query";
 
 import type { SavedTeam } from "@/domain/teams/schemas";
+import type { InventoryPokemon } from "@/domain/inventory/schemas";
 import { savedTeamRepository } from "@/infrastructure/teams";
+import { ACTIVE_SEASON } from "@/pvpoke/season";
 
 export const savedTeamQueryKeys = {
   all: ["saved-teams"] as const,
@@ -80,6 +82,18 @@ export function useDeleteSavedTeam() {
       await queryClient.invalidateQueries({
         queryKey: savedTeamQueryKeys.all,
       });
+    },
+  });
+}
+
+export function useRecordTeamAnalysis() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ team, inventory, dataVersion }: {
+      team: SavedTeam; inventory: readonly InventoryPokemon[]; dataVersion: string;
+    }) => savedTeamRepository.recordAnalysis(team, inventory, dataVersion, ACTIVE_SEASON.upstreamCommit),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: savedTeamQueryKeys.all });
     },
   });
 }

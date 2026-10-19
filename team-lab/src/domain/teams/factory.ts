@@ -53,6 +53,7 @@ export function updateSavedTeam(
     members: input.members,
     notes: input.notes ?? "",
     lastAnalyzedDataVersion: undefined,
+    lastAnalyzedUpstreamCommit: undefined,
     updatedAt: (dependencies.now ?? (() => new Date()))().toISOString(),
   });
 
