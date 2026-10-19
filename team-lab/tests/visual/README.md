@@ -2,10 +2,14 @@
 
 The checked-in PNGs under `baselines/` cover:
 
-- Rankings and the desktop application shell at 1440 × 1000;
-- the guided inventory form at the 768 × 1000 tablet width;
-- simulation score and threat evidence at 1440 × 1000; and
-- the same simulation evidence at the supported 320 × 900 mobile width.
+- the dashboard and rankings at desktop and narrow mobile widths;
+- the guided inventory form at tablet width and owned inventory/team cards;
+- simulation evidence and recommendation results at desktop and mobile widths;
+- release notes and footer navigation at desktop and mobile widths.
+
+The 1.3.0 refresh records the October 17, 2026 rankings, updated release
+identity, and current Chrome scrollbar rendering. Review data-derived scores,
+matchups, dates, and release notes when refreshing these snapshots.
 
 Verify them with:
 
