@@ -1,0 +1,26 @@
+.roster-update-notice,
+.roster-review-summary,
+.roster-review-card {
+  padding: 1.25rem;
+  border: 1px solid var(--line-strong);
+  background: var(--surface, #fffdf5);
+  color: var(--ink-900);
+  overflow-wrap: anywhere;
+}
+.roster-update-notice { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; border-left: 4px solid #00b5c4; }
+.roster-update-notice p { margin: .4rem 0 0; }
+.roster-review-page { display: grid; gap: 1.5rem; }
+.roster-review-summary small { display: block; margin-top: .75rem; }
+.roster-review-scope { margin: 1rem 0; }
+.roster-review-scope summary { cursor: pointer; font-weight: 700; }
+.roster-review-list { display: grid; gap: 1rem; }
+.roster-review-card__heading { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; }
+.roster-review-card h3 { margin: 0; }
+.roster-review-filter { display: flex; align-items: center; gap: .6rem; }
+.roster-review-rank { font-size: 1.1rem; }
+.roster-review-card .page-actions { flex-wrap: wrap; }
+@media (max-width: 600px) {
+  .roster-review-page .section-heading { align-items: flex-start; flex-direction: column; gap: 1rem; }
+  .roster-review-card, .roster-review-summary { padding: 1rem; }
+  .roster-update-notice > *, .roster-review-card__heading > div { min-width: 0; }
+}

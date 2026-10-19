@@ -1,32 +1,34 @@
 # Full-Data Backup and Atomic Restore
 
 > **Phase:** Phase 8 — Backup and MVP Hardening  
-> **Status:** Implemented  
+> **Status:** Complete
 > **Route:** `/inventory/backup`  
-> **Last reviewed:** 2026-07-25
+> **Last reviewed:** 2026-10-19
 
 ## Summary
 
-TeamLab backups now protect the complete persisted MVP relationship:
-inventory records and the saved teams that reference them.
+The current backup envelope is version three. It protects inventory, saved
+teams, and recommendation history in one portable artifact. Export/restore
+validates inventory and team references against the current catalog; archived
+history is structurally validated without requiring its historical species and
+moves to match today’s catalog.
 
-Schema version two is a self-contained, human-readable artifact. TeamLab
-validates every record, current-catalog reference, saved-team member, and
-species-clause constraint before export or restore. Merge and replace operate
-on both Dexie tables in one transaction.
+Merge and replace operate on all three Dexie tables in one transaction. A
+failed inspection or final merged-state validation writes nothing. The backup
+normalizer accepts version-one inventory-only and version-two inventory/team
+backups with empty incoming history. Merge preserves unrelated local teams and
+history when valid; Replace removes local collections absent from the incoming
+legacy backup, as disclosed in the UI.
 
-Legacy schema-version-one inventory backups remain importable.
+Saved-team analysis provenance fields are optional and are preserved when
+present. Roster reminder-dismissal preferences are localStorage settings and
+are not in the backup. Full battle matrices/replays are not persisted there.
 
-### Current extension: recommendation history
-
-TeamLab v1.2.1 uses backup schema version three. It adds a
-`recommendationHistory` collection containing versioned result snapshots,
-settings, anchors, formula versions, and PvPoke data version. Archived history
-is structurally validated but is not required to match the current catalog;
-its purpose is to preserve the original result for review after data refreshes.
-Merge and replace include history in the same transaction. Version-one and
-version-two backups remain supported and restore with an empty history
-collection.
+Version two and the two-table examples below describe the original Phase 8
+slice; extend their reasoning to the current three-collection contract. See
+[recommendation history](../phase-07-anchor-recommendations/recommendation-history.md),
+[roster review](../phase-10-roster-updates/roster-review-and-freshness.md), and the
+[current user guide](../../USER-GUIDE.md) for delivered extensions.
 
 ## Problem being solved
 

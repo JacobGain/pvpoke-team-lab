@@ -467,6 +467,16 @@ export const pokemonSpriteManifest: Readonly<
     "pokeApiId": 654,
     "match": "exact"
   },
+  "brambleghast": {
+    "path": "/assets/pokemon/947.webp",
+    "pokeApiId": 947,
+    "match": "exact"
+  },
+  "bramblin": {
+    "path": "/assets/pokemon/946.webp",
+    "pokeApiId": 946,
+    "match": "exact"
+  },
   "braviary": {
     "path": "/assets/pokemon/628.webp",
     "pokeApiId": 628,
@@ -565,6 +575,11 @@ export const pokemonSpriteManifest: Readonly<
   "camerupt": {
     "path": "/assets/pokemon/323.webp",
     "pokeApiId": 323,
+    "match": "exact"
+  },
+  "camerupt_mega": {
+    "path": "/assets/pokemon/10087.webp",
+    "pokeApiId": 10087,
     "match": "exact"
   },
   "carbink": {
@@ -1871,11 +1886,6 @@ export const pokemonSpriteManifest: Readonly<
     "path": "/assets/pokemon/768.webp",
     "pokeApiId": 768,
     "match": "exact"
-  },
-  "golisopodsh": {
-    "path": "/assets/pokemon/768.webp",
-    "pokeApiId": 768,
-    "match": "base-fallback"
   },
   "golurk": {
     "path": "/assets/pokemon/623.webp",

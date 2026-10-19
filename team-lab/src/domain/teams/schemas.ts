@@ -39,6 +39,7 @@ export const savedTeamSchema = z
     members: savedTeamMembersSchema,
     notes: z.string().trim().max(2000),
     lastAnalyzedDataVersion: z.string().trim().min(1).max(200).optional(),
+    lastAnalyzedUpstreamCommit: z.string().regex(/^[a-f0-9]{40}$/).optional(),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
   })

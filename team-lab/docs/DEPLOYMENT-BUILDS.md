@@ -106,8 +106,10 @@ and the job exposes the generic artifact ID, URL, and digest as outputs.
 
 ### Cloudflare Pages deployment
 
-Successful same-repository PRs into `staging` or `master` deploy the verified
-artifact to the staging Pages branch. A successful push to `master` after merge
+Eligible same-repository PRs into `staging` or `master` deploy the verified
+artifact to the staging Pages branch. A `staging-preview` label also opts in a
+trusted PR targeting another stack branch, so the top of the stack can be
+previewed before its parents land. A successful push to `master` after merge
 deploys the verified artifact to production. Each deployment job checks out only the repository
 configuration; it does not install application dependencies, rebuild TeamLab,
 or invoke a Cloudflare build. It downloads the named GitHub artifact and sends
@@ -140,8 +142,18 @@ current production deployment.
 Fork and Dependabot PRs, and manual release-gate runs, verify artifacts without
 deploying. Direct pushes to `staging` do not trigger this release workflow.
 The stable staging alias is `https://staging.pvpoke-team-lab.pages.dev`; it
-updates after a verified PR into either release branch and does not affect the
-production alias or custom domain.
+updates after an eligible verified PR, including a selected stack tip, and does
+not affect the production alias or custom domain.
+To preview a stack, apply `staging-preview` to its top PR and wait for artifact,
+deployment, and deployed-origin checks. Creating a visual stack does not select
+its preview: without the label, the only PR directly targeting `staging` may
+contain an older application version. Dependabot author and `dependabot/` head
+checks prevent a maintainer-triggered dependency run from overwriting staging.
+Other eligible direct-target PRs still share this alias; it is not an exclusive
+reservation. Check the latest deployment and compare the stable alias’s
+`release.json` with the immutable deployment URL. For PRs, the expected source
+commit is GitHub’s merge-preview SHA, which can differ from the head SHA.
+
 The application remains static-only and configures no Functions, Workers, D1,
 KV, R2, authentication, or server-side persistence. See
 [Cloudflare Pages deployment](CLOUDFLARE-DEPLOYMENT.md) for account bootstrap,

@@ -4,5 +4,6 @@ Disallow: /diagnostics
 Disallow: /inventory
 Disallow: /recommend
 Disallow: /teams
+Disallow: /updates
 
 Sitemap: https://pogoteamlab.com/sitemap.xml

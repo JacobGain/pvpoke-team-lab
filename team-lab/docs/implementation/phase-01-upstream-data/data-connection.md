@@ -10,6 +10,11 @@
 > URL described below were removed. See
 > [PvPoke asset maintenance](../../PVPOKE-DATA.md).
 
+> **Current maintenance reference:** Follow the
+> [pinned upstream refresh runbook](../../PVPOKE-DATA.md) for all six formats,
+> engine/artwork sync, outgoing/current comparison, release metadata, and
+> validation. The proxy configuration below is retained as historical context.
+
 ## Summary
 
 TeamLab reads upstream PvPoke JSON through typed HTTP repositories, validates

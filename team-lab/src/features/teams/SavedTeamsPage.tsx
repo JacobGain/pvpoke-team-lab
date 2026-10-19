@@ -14,6 +14,9 @@ import {
   useSavedTeamList,
 } from "@/features/teams/savedTeamQueries";
 import { formatCalendarDate, formatTeamPosition } from "@/utils/formatters";
+import { ACTIVE_SEASON } from "@/pvpoke/season";
+import { validateSavedTeamLegality } from "@/domain/teams/validation";
+import { validateInventoryPokemonAgainstCatalog } from "@/domain/inventory/validation";
 
 function formatError(error: unknown): string {
   return error instanceof Error ? error.message : "Unable to load saved teams.";
@@ -58,9 +61,15 @@ export function SavedTeamsPage() {
   const inventory = inventoryResult.data;
   const catalog = catalogResult.data;
 
-  const resolvedTeams = teams.map((team) =>
-    resolveSavedTeam(team, inventory, catalog.entries, catalog),
-  );
+  const resolvedTeams = teams.map((team) => {
+    const resolved = resolveSavedTeam(team, inventory, catalog.entries, catalog);
+    const issues = [...new Set([
+      ...validateSavedTeamLegality(team, inventory, catalog).map(issue => issue.message),
+      ...resolved.members.flatMap(member => member.status === "resolved"
+        ? validateInventoryPokemonAgainstCatalog(member.inventory, catalog).map(issue => issue.message) : []),
+    ])];
+    return { ...resolved, isComplete: resolved.isComplete && issues.length === 0, issues };
+  });
 
   return (
     <main className="teams-page">
@@ -75,6 +84,7 @@ export function SavedTeamsPage() {
               <Sparkles size={18} />
               Find a team
             </Link>
+            <Link className="secondary-link" to="/updates">Review roster updates</Link>
           </>
         }
         aside={
@@ -101,12 +111,14 @@ export function SavedTeamsPage() {
       ) : null}
 
       <section className="team-grid" aria-label="Saved teams">
-        {resolvedTeams.map(({ team, members, isComplete }) => (
+        {resolvedTeams.map(({ team, members, isComplete, issues }) => (
           <article className="team-card" key={team.teamId}>
             <div className="team-card__heading">
               <div>
                 <p className="eyebrow">
-                  {isComplete ? "Ready to analyze" : "Needs attention"}
+                  {!isComplete ? "Needs attention" : !team.lastAnalyzedDataVersion ? "Not yet analyzed" :
+                    team.lastAnalyzedDataVersion !== catalog.dataVersion || team.lastAnalyzedUpstreamCommit !== ACTIVE_SEASON.upstreamCommit || members.some(member => member.status === "resolved" && member.inventory.updatedAt > team.updatedAt)
+                      ? "Analysis needs refresh" : "Analyzed with current data"}
                 </p>
                 <h2>{team.name}</h2>
               </div>
@@ -152,6 +164,7 @@ export function SavedTeamsPage() {
               ))}
             </ol>
             {team.notes ? <p className="inventory-notes">{team.notes}</p> : null}
+            {issues.length > 0 ? <ul className="invalid-value">{issues.map(issue => <li key={issue}>{issue}</li>)}</ul> : null}
             <small>
               Last updated: {formatCalendarDate(team.updatedAt)}
               {team.lastAnalyzedDataVersion
