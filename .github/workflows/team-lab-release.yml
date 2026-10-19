@@ -2,7 +2,7 @@ name: Team Lab release gate
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review, edited]
+    types: [opened, synchronize, reopened, ready_for_review, edited, labeled]
   push:
     branches:
       - master
@@ -88,13 +88,17 @@ jobs:
 
   deploy-cloudflare:
     name: Deploy verified artifact
-    # Forks and Dependabot receive no deployment credentials. All PRs still test.
+    # A staging-preview label opts a trusted stack tip into the shared preview.
+    # Dependabot PRs stay excluded even when a maintainer triggers the run.
     if: >-
       (github.event_name == 'push' && github.ref == 'refs/heads/master') ||
       (github.event_name == 'pull_request' &&
-       (github.base_ref == 'staging' || github.base_ref == 'master') &&
+       (github.base_ref == 'staging' || github.base_ref == 'master' ||
+        contains(github.event.pull_request.labels.*.name, 'staging-preview')) &&
        github.event.pull_request.head.repo.full_name == github.repository &&
-       github.actor != 'dependabot[bot]')
+       github.actor != 'dependabot[bot]' &&
+       github.event.pull_request.user.login != 'dependabot[bot]' &&
+       !startsWith(github.head_ref, 'dependabot/'))
     needs: verify-public-artifact
     runs-on: ubuntu-24.04
     timeout-minutes: 10
