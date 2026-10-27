@@ -19,7 +19,7 @@ describe("active Season 28 bundle", () => {
   });
   it("identifies the pinned Twilight Trails revision", () => {
     expect(manifest.season).toEqual(ACTIVE_SEASON);
-    expect(gameMaster.timestamp).toBe("2026-10-17 03:10:24");
+    expect(gameMaster.timestamp).toBe("2026-10-26 22:08:07");
     expect(manifest.dataVersion).toBe(gameMaster.timestamp);
   });
 
@@ -47,6 +47,15 @@ describe("active Season 28 bundle", () => {
     }
     expect(pokemon.get("zoroark")?.fastMoves).toContain("SUCKER_PUNCH");
     expect(pokemon.get("zoroark")?.eliteMoves).toContain("SUCKER_PUNCH");
+  });
+
+  it("releases Minior with the upstream battle-start and HP form transitions", () => {
+    const core = gameMaster.pokemon.find((entry) => entry.speciesId === "minior_core");
+    const meteor = gameMaster.pokemon.find((entry) => entry.speciesId === "minior_meteor");
+    expect(core).toMatchObject({ released: true, formChange: { trigger: "battle_start", alternativeFormId: "minior_meteor" } });
+    expect(meteor).toMatchObject({ released: false, formChange: { trigger: "hp", amount: 0.5, alternativeFormId: "minior_core" }, defaultIVs: { cp1500: [44, 5, 14, 13] } });
+    expect(great.some((entry) => entry.speciesId === "minior_core")).toBe(true);
+    expect(ultra.some((entry) => entry.speciesId === "minior_core")).toBe(true);
   });
 
   it("ships the matching rankings for every supported league", () => {

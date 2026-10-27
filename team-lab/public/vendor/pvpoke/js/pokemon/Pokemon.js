@@ -2489,7 +2489,6 @@ function Pokemon(id, i, b, d){
 			this.baseStats = { atk: form.baseStats.atk, def: form.baseStats.def, hp: form.baseStats.hp};
 			this.stats.atk = newStats.atk;
 			this.stats.def = newStats.def;
-			//this.stats.hp = newStats.hp;
 		}
 
 		// Apply form specific stat buffs or debuffs
@@ -2531,6 +2530,7 @@ function Pokemon(id, i, b, d){
 		let newLevel = self.level;
 		let cpmIndex = cpms.indexOf(self.cpm);
 		let battleCP = battle.getCP();
+		let oldCP = self.cp;
 
 		// Form specific cases
 		if(self.speciesId != formId){
@@ -2558,8 +2558,33 @@ function Pokemon(id, i, b, d){
 
 					cpmIndex = cpms.indexOf(self.getCPMByLevel(newLevel));
 					break;
+
+				case "minior_meteor":
+					if(battleCP == 1500){
+						// Formulas as posted by u/Ok_Lobster8494
+						newLevel = Math.floor((47 * self.level / 25 + 1) * 2) / 2; // Floor to 0.5 level increment
+					}
+
+					if(battleCP == 2500){
+						// Formulas as posted by u/Ok_Lobster8494
+						newLevel = Math.floor((73 * self.level/50 + (26/25)) * 2) / 2; // Floor to 0.5 level increment
+					}
+					break;
+
+				case "minior_core":
+					// Inverse of the formulas above
+					if(battleCP == 1500){
+						newLevel = Math.round((self.level - 1) * 25 / 47 * 2) / 2;
+					}
+
+					if(battleCP == 2500){
+						newLevel = Math.round((self.level - 26 / 25) * 50 / 73 * 2) / 2;
+					}
+					break;
 			}
 		}
+
+		newLevel = Math.min(newLevel, 55);
 
 		let newCPM = cpms[cpmIndex];
 		let newCP = self.cp;
@@ -2579,7 +2604,12 @@ function Pokemon(id, i, b, d){
 				level: newLevel
 			}
 
-			newLevel--;
+			let decrementer = 1;
+
+			if(this.activeFormId == "minior_core" || this.decrementer == "minior_meteor")
+				decrementer = 0.5;
+
+			newLevel -= decrementer;
 		}
 
 		return newStats;
