@@ -3112,6 +3112,11 @@ export const pokemonSpriteManifest: Readonly<
     "pokeApiId": 572,
     "match": "exact"
   },
+  "minior_core": {
+    "path": "/assets/pokemon/774.webp",
+    "pokeApiId": 774,
+    "match": "base-fallback"
+  },
   "minun": {
     "path": "/assets/pokemon/312.webp",
     "pokeApiId": 312,

@@ -27,9 +27,9 @@ three supported open leagues and their Mega variants.
 
 The active season is **Season 28 — Twilight Trails**. `src/pvpoke/season.ts`
 sets the active branch to `master` and the reviewed source revision to
-`bdbb22c6888d0999f9bee1712a0296309dcab3fb` (Game Master dated October 17, 2026).
+`d98f52174e01f8f67414bc6973599788d098c10e` (Game Master dated October 26, 2026).
 `UPSTREAM_COMPARISON_COMMIT` is the outgoing revision,
-`e87448291024aff808f21a2e5f74e69f68b521df` (September 28, 2026).
+`bdbb22c6888d0999f9bee1712a0296309dcab3fb` (October 17, 2026).
 
 These pins have different jobs: the active revision supplies runtime assets;
 the outgoing revision supplies the baseline for roster update comparisons.
@@ -147,7 +147,7 @@ compatibility. Check missing catalog references, move legality, league/Mega
 projection, rank entries/exits, dashboard leaders, and comparison dates.
 `src/pvpoke/season.test.ts` contains seasonal expectations. The browser workflow
 also contains deliberate dataset expectations, including the Mega Great target
-count and the Zoroark roster-review example. Update those fixtures when their
+count and the Minior roster-review example. Update those fixtures when their
 reviewed upstream facts change; keep their behavioral assertions intact.
 
 For a versioned release, run `npm version <next-version> --no-git-tag-version`
@@ -244,6 +244,53 @@ Update seasonal regression expectations and review visual diffs when rankings
 change. Keep browser simulations in the release gate: season transitions can
 change battle timing as well as move stats. Asset URLs include the pinned
 revision to invalidate outgoing-season browser caches.
+
+## 1.3.1 refresh review
+
+The October 26 snapshot (`d98f52174`) releases Minior Core, updates Minior
+Meteor's Great League default IVs, and adds battle-start/HP form transitions.
+The catalog still contains 1,751 entries and 352 unchanged move definitions.
+Great/Ultra overall rankings now contain 1,154/851 entries and their Mega
+variants 1,211/913; both Master files and all six meta groups are unchanged.
+Four bundled engine modules change: GameMaster, Pokemon, Battle, and
+ActionLogic. The other six scripts are unchanged. The full Game Master is now
+compact JSON upstream; its large line deletion is formatting, not lost data.
+New limited-cup definitions remain in the full payload without adding UI formats.
+
+Artwork sync produces 1,135 mappings and downloads one Minior image. Minior
+Core intentionally uses National Dex 774 base artwork, recorded in attribution;
+there are nine reported base-art fallbacks.
+
+### Review findings and runbook clarifications
+
+- Upstream `Pokemon.js` tests `this.decrementer == "minior_meteor"` in the
+  form-stat level loop, where the neighboring condition uses `activeFormId`.
+  This appears to be a typo: Core-to-Meteor can decrement by whole rather than
+  half levels if its initial transformed CP exceeds the cap. Keep the bundled
+  source byte-for-byte with the pin; do not silently patch the vendor file.
+  This remains an upstream concern, not a claim of independently verified
+  Pokémon GO form mechanics.
+- The roster comparison describes release/default-IV and ranking changes,
+  but does not compare `formChange` or engine algorithms. Read engine diffs
+  and release notes as well as the generated roster report. Minior's browser
+  replay characterization checks both transitions and direct/replay parity.
+- The old Zoroark/Sucker Punch browser example belonged to the previous pin
+  pair. It must become Minior's release change for this pair; keeping it would
+  wait forever for a change outside the current comparison window.
+- Use the same supported Node binary for npm and all subprocesses. A supported
+  `node --version` alone is insufficient if npm's launcher selects another
+  installation; putting the supported Node bin directory first in PATH fixes it.
+- The audit gate required Wrangler 4.154.0 to remove vulnerable transitive
+  Undici dependencies. This maintenance change is committed separately.
+- The local `v1.3.1` tag belongs to upstream PvPoke commit `5ef231186` from
+  February 2019; origin currently has no matching 1.3.x tags. Do not reuse or
+  force-update that name. Release preparation updates app versions and cache
+  keys without creating a tag; use a TeamLab-specific namespace such as
+  `teamlab-v1.3.1` if tagging the final merged release later.
+- This machine's user npm configuration contains `allow-scripts=pnpm`, which
+  npm 11.19 rejects in nested npm commands. The audit passes with
+  `NPM_CONFIG_USERCONFIG=/dev/null`; no project script or lockfile change is
+  needed for that environment-specific setting.
 
 ## 1.3.0 refresh review
 

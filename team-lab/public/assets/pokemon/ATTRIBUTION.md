@@ -9,13 +9,14 @@ Generated from PokeAPI/sprites revision `8dfa3d97e953caaafaafd4963eff7621811af08
 - PokeMiners states that its mined image contents remain property of The Pokémon Company and Niantic.
 - Pokémon and Pokémon character names are trademarks of Nintendo.
 
-Manifest SHA-256: `76c2c8911937bc462a8aeecb62ebc121c9ef61834d2bf24e05d1941c964eb3a7`
+Manifest SHA-256: `76a6d29c5d305dc04c15354b6bdf99fc66b40dc4b2adc8c39398af5e091ea064`
 
 ## Intentional base-art fallbacks
 
 The following cosmetic or duplicate PvPoke entries use their National Dex base
 artwork while retaining their exact TeamLab label.
 
+- minior_core (Minior (Core)) -> National Dex 774
 - pikachu_5th_anniversary (Pikachu (5th Anniversary)) -> National Dex 25
 - pikachu_flying (Pikachu (Flying)) -> National Dex 25
 - pikachu_horizons (Pikachu (Horizons)) -> National Dex 25
