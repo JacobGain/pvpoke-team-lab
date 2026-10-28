@@ -8,7 +8,7 @@ The checked-in PNGs under `baselines/` cover:
 - release notes and footer navigation at desktop and mobile widths;
 - roster update review at desktop and narrow mobile widths.
 
-The 1.3.0 refresh records the October 17, 2026 rankings, updated release
+The 1.3.1 refresh records the October 26, 2026 rankings, updated release
 identity, and current Chrome scrollbar rendering. Review data-derived scores,
 matchups, dates, and release notes when refreshing these snapshots.
 

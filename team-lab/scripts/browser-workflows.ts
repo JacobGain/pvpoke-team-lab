@@ -1230,7 +1230,7 @@ async function assertBuildTarget(
   invariant(
     productionState.dataHealthIndicators === 0 &&
       productionState.diagnosticsLinks === 0 &&
-      productionState.favicon.endsWith("/favicon-48x48.png?v=1.3.0") &&
+      productionState.favicon.endsWith("/favicon-48x48.png?v=1.3.1") &&
       productionState.visibleVersions.includes(`v${release.appVersion ?? ""}`),
     `Production exposed diagnostics navigation: ${JSON.stringify(productionState)}.`,
   );
@@ -2941,7 +2941,7 @@ async function runCriticalWorkflows(
     ...document.querySelectorAll(".release-note__heading h2")
   ].map((heading) => heading.textContent?.trim() ?? "")`);
   invariant(
-    releaseHeadings[0] === "Release v1.3.0" &&
+    releaseHeadings[0] === "Release v1.3.1" &&
       releaseHeadings.at(-1) === "Release v0.0.1" &&
       releaseHeadings.indexOf("Release v0.0.10") <
         releaseHeadings.indexOf("Release v0.0.9"),
@@ -3054,7 +3054,7 @@ async function runCriticalWorkflows(
   await browser.waitFor(`(() => {
     const alert = document.querySelector('[role="alert"]');
     if (alert) throw new Error(alert.textContent);
-    return document.querySelector('.diagnostics-banner')?.textContent?.includes('250 of 1210');
+    return document.querySelector('.diagnostics-banner')?.textContent?.includes('250 of 1211');
   })()`, "Mega Great League Top-250 team matrix", ENGINE_TIMEOUT_MS);
   await browser.navigate("/recommend", "Discover your best teams");
   await browser.clickButton("Continue to experiment");
@@ -3132,7 +3132,7 @@ async function runRosterUpdateWorkflow(browser: BrowserWorkflow, visual: VisualR
       transaction.onerror = () => { database.close(); reject(transaction.error); };
     };
   })`);
-  await createInventory(browser, ["zoroark", "altaria", "whiscash"]);
+  await createInventory(browser, ["minior_core", "altaria", "whiscash"]);
   await browser.navigate("/teams/new", "Create saved team");
   await browser.setLabeledControl("Team name", "Update Review Team", "input");
   await browser.clickButton("Save team");
@@ -3146,15 +3146,15 @@ async function runRosterUpdateWorkflow(browser: BrowserWorkflow, visual: VisualR
       let result;
       const inventoryRequest = transaction.objectStore('inventory').getAll();
       inventoryRequest.onsuccess = () => {
-        const record = inventoryRequest.result.find(item => item.speciesId === 'zoroark');
-        record.sourceDataVersion = '2026-09-28 01:57:22';
+        const record = inventoryRequest.result.find(item => item.speciesId === 'minior_core');
+        record.sourceDataVersion = '2026-10-17 03:10:24';
         transaction.objectStore('inventory').put(record);
         result = { recordId: record.inventoryId, moves: JSON.stringify(record.currentBuild.moveset) };
       };
       const teamRequest = transaction.objectStore('savedTeams').getAll();
       teamRequest.onsuccess = () => {
         const team = teamRequest.result.find(item => item.name === 'Update Review Team');
-        team.lastAnalyzedDataVersion = '2026-09-28 01:57:22';
+        team.lastAnalyzedDataVersion = '2026-10-17 03:10:24';
         transaction.objectStore('savedTeams').put(team);
         result = { ...result, teamId: team.teamId };
       };
@@ -3165,8 +3165,8 @@ async function runRosterUpdateWorkflow(browser: BrowserWorkflow, visual: VisualR
   await browser.navigate("/", "Pokémon GO PvP Team Builder for Your Own Roster");
   await browser.waitFor(`document.querySelector('.roster-update-notice a')?.textContent === 'Review roster updates'`, "roster update reminder");
   await browser.navigate("/updates", "What changed for my roster?");
-  await browser.waitFor(`document.querySelector('.roster-review-list')?.textContent?.includes('Sucker Punch') && document.body.textContent.includes('Update Review Team')`, "owned move changes and stale team");
-  invariant(await browser.evaluate(`document.querySelector('.roster-review-summary')?.textContent?.includes('2026-09-28') && document.querySelector('.roster-review-summary')?.textContent?.includes('2026-10-17')`), "The comparison scope dates are missing.");
+  await browser.waitFor(`document.querySelector('.roster-review-list')?.textContent?.includes('Now marked as released.') && document.body.textContent.includes('Update Review Team')`, "owned release changes and stale team");
+  invariant(await browser.evaluate(`document.querySelector('.roster-review-summary')?.textContent?.includes('2026-10-17') && document.querySelector('.roster-review-summary')?.textContent?.includes('2026-10-26')`), "The comparison scope dates are missing.");
   await visual.capture(browser, "roster-updates-desktop", 1440, 1000);
   await browser.setViewport(320, 900);
   await browser.assertNoHorizontalOverflow("roster update review");
@@ -3191,7 +3191,7 @@ async function runRosterUpdateWorkflow(browser: BrowserWorkflow, visual: VisualR
       transaction.onerror = () => { database.close(); reject(transaction.error); };
     };
   })`);
-  invariant(Boolean(analysisStamp.dataVersion && analysisStamp.dataVersion !== '2026-09-28 01:57:22' && analysisStamp.upstreamCommit), `Analysis freshness was not persisted: ${JSON.stringify(analysisStamp)}; page: ${await browser.evaluate<string>(`document.querySelector('.analysis-notice')?.textContent ?? ''`)}`);
+  invariant(Boolean(analysisStamp.dataVersion && analysisStamp.dataVersion !== '2026-10-17 03:10:24' && analysisStamp.upstreamCommit), `Analysis freshness was not persisted: ${JSON.stringify(analysisStamp)}; page: ${await browser.evaluate<string>(`document.querySelector('.analysis-notice')?.textContent ?? ''`)}`);
   await browser.navigate("/updates", "What changed for my roster?");
   await browser.waitFor(`document.querySelector('.roster-review-summary') && ![...document.querySelectorAll('.roster-review-card h3')].some(h => h.textContent === 'Update Review Team')`, "persisted team analysis freshness");
   await browser.clickButton("Dismiss this update reminder");
@@ -3217,7 +3217,7 @@ async function runRosterUpdateWorkflow(browser: BrowserWorkflow, visual: VisualR
   invariant(moves === seed.moves, "Reviewing updates modified the owned moveset.");
   await browser.navigate("/updates", "What changed for my roster?");
   await browser.waitFor(`document.querySelector('.roster-review-list')?.textContent?.includes('retired_species') && [...document.querySelectorAll('.roster-review-card a')].some(a => a.textContent === 'Repair build')`, "removed species repair action after dismissal");
-  console.log("[browser-workflows] Roster update reminder, owned move changes, comparison scope, team freshness, repair actions, dismissal persistence, and mobile layout passed");
+  console.log("[browser-workflows] Roster update reminder, owned release changes, comparison scope, team freshness, repair actions, dismissal persistence, and mobile layout passed");
 }
 
 async function runDuelWorkflow(browser: BrowserWorkflow, buildTarget: BrowserTestTarget): Promise<void> {
@@ -3252,6 +3252,7 @@ async function runDuelWorkflow(browser: BrowserWorkflow, buildTarget: BrowserTes
     cases.push({ builds: [baseline[1], baseline[1]] });
     cases.push({ builds: [{ ...baseline[1], speciesId: 'feraligatr_shadow', speciesName: 'Feraligatr (Shadow)', level: 19, isShadow: true, fastMoveId: 'SHADOW_CLAW', chargedMoveIds: ['HYDRO_CANNON', 'ICE_BEAM'] }, baseline[0]] });
     cases.push({ builds: [{ ...baseline[1], speciesId: 'talonflame', speciesName: 'Talonflame', level: 26, fastMoveId: 'INCINERATE', chargedMoveIds: ['FLAME_CHARGE', 'BRAVE_BIRD'] }, baseline[0]] });
+    cases.push({ builds: [{ ...baseline[1], speciesId: 'minior_core', speciesName: 'Minior (Core)', level: 25, fastMoveId: 'ROLLOUT', chargedMoveIds: ['ACROBATICS', 'ANCIENT_POWER'] }, baseline[0]] });
     for (const testCase of cases) {
       for (const shields of [[0, 0], [1, 1], [2, 2], [0, 2]]) {
         const request = {
@@ -3262,6 +3263,10 @@ async function runDuelWorkflow(browser: BrowserWorkflow, buildTarget: BrowserTes
         const plain = await adapter.simulate(request);
         const replay = await adapter.simulate({ ...request, captureReplay: true });
         if (plain.winner !== replay.winner || JSON.stringify(plain.combatants) !== JSON.stringify(replay.combatants)) return false;
+        if (testCase.builds[0].speciesId === 'minior_core') {
+          if (replay.replay[0].combatants[0].form !== 'minior_meteor') return false;
+          if (!replay.replay.some(frame => frame.events.some(event => event.type === 'formChange') && frame.combatants[0].form === 'minior_core')) return false;
+        }
         const last = replay.replay.at(-1);
         for (let index = 0; index < 2; index++) {
           const state = last.combatants[index], expected = plain.combatants[index];
