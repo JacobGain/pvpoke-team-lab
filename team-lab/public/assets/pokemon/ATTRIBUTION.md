@@ -9,7 +9,7 @@ Generated from PokeAPI/sprites revision `8dfa3d97e953caaafaafd4963eff7621811af08
 - PokeMiners states that its mined image contents remain property of The Pokémon Company and Niantic.
 - Pokémon and Pokémon character names are trademarks of Nintendo.
 
-Manifest SHA-256: `76a6d29c5d305dc04c15354b6bdf99fc66b40dc4b2adc8c39398af5e091ea064`
+Manifest SHA-256: `9faccd2a14ffd365e0db31a59c6fdc0230b6e9ed9845decbf2cebe8191aad44a`
 
 ## Intentional base-art fallbacks
 
