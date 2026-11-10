@@ -672,6 +672,11 @@ export const pokemonSpriteManifest: Readonly<
     "pokeApiId": 609,
     "match": "exact"
   },
+  "chandelure_mega": {
+    "path": "/assets/pokemon/10291.webp",
+    "pokeApiId": 10291,
+    "match": "exact"
+  },
   "chansey": {
     "path": "/assets/pokemon/113.webp",
     "pokeApiId": 113,

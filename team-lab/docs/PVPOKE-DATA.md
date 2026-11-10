@@ -27,9 +27,9 @@ three supported open leagues and their Mega variants.
 
 The active season is **Season 28 — Twilight Trails**. `src/pvpoke/season.ts`
 sets the active branch to `master` and the reviewed source revision to
-`d98f52174e01f8f67414bc6973599788d098c10e` (Game Master dated October 26, 2026).
+`a9dfd500421cacf2842d54d8adcb15830c1eef2b` (Game Master dated November 9, 2026).
 `UPSTREAM_COMPARISON_COMMIT` is the outgoing revision,
-`bdbb22c6888d0999f9bee1712a0296309dcab3fb` (October 17, 2026).
+`d98f52174e01f8f67414bc6973599788d098c10e` (October 26, 2026).
 
 These pins have different jobs: the active revision supplies runtime assets;
 the outgoing revision supplies the baseline for roster update comparisons.
@@ -244,6 +244,50 @@ Update seasonal regression expectations and review visual diffs when rankings
 change. Keep browser simulations in the release gate: season transitions can
 change battle timing as well as move stats. Asset URLs include the pinned
 revision to invalidate outgoing-season browser caches.
+
+## 1.3.2 refresh review
+
+The November 9 snapshot (`a9dfd500421cacf2842d54d8adcb15830c1eef2b`)
+adds released Mega Chandelure with corrected base stats (335/227/155), bringing
+the full catalog to 1,752 species/forms and 355 moves. The three added moves
+are Kowtow Cleave, Ominous Wind+, and Night Shade+; ordinary Ominous Wind also
+has an updated archetype label. Mega Sableye gains the `supermega` tag and
+`extraChargedMoves: ["NIGHT_SHADE_PLUS"]`; Mega Chandelure has the same tag and
+Ominous Wind+ as its extra move.
+
+Open Great rankings change but retain 1,154 entries. Open Ultra/Master rankings
+remain byte-for-byte unchanged at 851/409 entries. Mega Great/Ultra/Master now
+contain 1,212/914/472 entries. All six bundled meta groups and all ten engine
+scripts are byte-for-byte unchanged. The large full Game Master diff restores
+pretty-printed JSON upstream; it does not represent tens of thousands of new
+records. The LAIC cup and Battle Frontier changes are preserved in the full
+Game Master without exposing new TeamLab formats or importing upstream UI code.
+
+The outgoing pin advances to the previous active October 26 snapshot. Browser
+roster-review coverage now uses Whiscash’s Great League change (#375 → #398),
+rather than Minior’s release flag from the preceding comparison window.
+Artwork sync produces 1,136 mappings, adds exact Mega Chandelure artwork, and
+retains the same nine documented base-art fallbacks.
+
+### Compatibility and maintenance findings
+
+- This release preserves TeamLab’s existing two-charged-move build contract.
+  Mega Sableye and Mega Chandelure’s published movesets can contain a third
+  charged move. The catalog preserves these ranking recommendations and the raw
+  extra-move definitions, but the inventory, exact simulation adapter, and meta
+  target builder do not represent that third slot or expose a Mega-level control.
+  Do not describe these simulations as reproducing the published Super Mega
+  rankings. Full support requires a separate change across build storage,
+  validation, UI, simulation contracts, and browser characterization.
+- The generated roster report compares ordinary move availability and rankings,
+  but not `extraChargedMoves` or tags. Review this source delta alongside the
+  report; Mega Sableye’s special-move change is not an ordinary movepool change.
+- The existing Minior form-change concern recorded for 1.3.1 remains: the bundled
+  engine has not changed in this refresh.
+- The inherited dependency lock reports ten moderate development-tool findings
+  stemming from minimatch in the ESLint/TypeScript-ESLint chain. No high or
+  critical findings were reported. Keep this separate from the upstream refresh;
+  do not apply npm’s proposed forced lint-tool downgrades as an automatic fix.
 
 ## 1.3.1 refresh review
 

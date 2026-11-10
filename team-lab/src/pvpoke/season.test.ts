@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import gameMaster from "../../public/vendor/pvpoke/data/gamemaster.min.json";
 import manifest from "../../public/vendor/pvpoke/manifest.json";
+import megaGreat from "../../public/vendor/pvpoke/data/rankings/mega/overall/rankings-1500.json";
 import great from "../../public/vendor/pvpoke/data/rankings/all/overall/rankings-1500.json";
 import ultra from "../../public/vendor/pvpoke/data/rankings/all/overall/rankings-2500.json";
 import master from "../../public/vendor/pvpoke/data/rankings/all/overall/rankings-10000.json";
@@ -19,7 +20,7 @@ describe("active Season 28 bundle", () => {
   });
   it("identifies the pinned Twilight Trails revision", () => {
     expect(manifest.season).toEqual(ACTIVE_SEASON);
-    expect(gameMaster.timestamp).toBe("2026-10-26 22:08:07");
+    expect(gameMaster.timestamp).toBe("2026-11-09 18:40:51");
     expect(manifest.dataVersion).toBe(gameMaster.timestamp);
   });
 
@@ -56,6 +57,23 @@ describe("active Season 28 bundle", () => {
     expect(meteor).toMatchObject({ released: false, formChange: { trigger: "hp", amount: 0.5, alternativeFormId: "minior_core" }, defaultIVs: { cp1500: [44, 5, 14, 13] } });
     expect(great.some((entry) => entry.speciesId === "minior_core")).toBe(true);
     expect(ultra.some((entry) => entry.speciesId === "minior_core")).toBe(true);
+  });
+
+  it("includes the November Mega forms and move definitions without dropping special move data", () => {
+    const chandelure = gameMaster.pokemon.find((entry) => entry.speciesId === "chandelure_mega");
+    const sableye = gameMaster.pokemon.find((entry) => entry.speciesId === "sableye_mega");
+    expect(chandelure).toMatchObject({
+      released: true,
+      baseStats: { atk: 335, def: 227, hp: 155 },
+      extraChargedMoves: ["OMINOUS_WIND_PLUS"],
+    });
+    expect(sableye).toMatchObject({ extraChargedMoves: ["NIGHT_SHADE_PLUS"] });
+    expect(sableye?.tags).toContain("supermega");
+    expect(gameMaster.moves.find((move) => move.moveId === "KOWTOW_CLEAVE")).toBeDefined();
+    expect(gameMaster.moves.find((move) => move.moveId === "OMINOUS_WIND_PLUS")).toBeDefined();
+    expect(gameMaster.moves.find((move) => move.moveId === "NIGHT_SHADE_PLUS")).toBeDefined();
+    expect(megaGreat.find((entry) => entry.speciesId === "sableye_mega")?.moveset).toContain("NIGHT_SHADE_PLUS");
+    expect(megaGreat.find((entry) => entry.speciesId === "chandelure_mega")?.moveset).toContain("OMINOUS_WIND_PLUS");
   });
 
   it("ships the matching rankings for every supported league", () => {

@@ -1,6 +1,6 @@
 # TeamLab Local User Guide
 
-TeamLab 1.3.1 treats **Season 28 — Twilight Trails** as the active season for
+TeamLab 1.3.2 treats **Season 28 — Twilight Trails** as the active season for
 rankings, recommended moves, meta opponents, and simulations. The dashboard
 identifies the active season. Existing inventory and saved teams remain stored;
 re-run analyses to evaluate them against the new season. There is no preview
@@ -24,6 +24,11 @@ cap). Planned builds maximize level with the entered IVs. Existing support for
 exact Best Buddy builds remains available; default rankings use level 50.
 Backups and reset tools cover all formats together; switching leagues does
 not remove any records.
+
+The November 9 data includes Super Mega rankings for Mega Sableye and Mega
+Chandelure. TeamLab builds currently support two charged moves and do not expose
+a Mega-level selector. Published rankings using an extra charged move therefore
+can differ from TeamLab’s exact-build simulation results.
 
 ## What TeamLab does
 
