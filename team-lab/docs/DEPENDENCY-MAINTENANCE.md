@@ -4,6 +4,38 @@ TeamLab uses Dependabot for weekly version discovery and GitHub's repository
 security settings for vulnerability alerts and automated security fixes.
 Routine version maintenance is deliberately separate from production releases.
 
+## 1.4.0 minimatch security remediation
+
+The inherited 1.3.2 lockfile reported ten moderate development-tool findings
+through [GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249).
+ESLint 10.14.0, config-array 0.23.5, and TypeScript-ESLint through 8.72.2 still
+request minimatch 10.x, while the advisory's patched version is 11.0.1. npm's
+automatic suggestions downgrade the lint stack and are not used.
+
+The remediation uses exact minimatch 11.0.1 overrides scoped to its three
+consumers: `eslint`, `@eslint/config-array`, and
+`@typescript-eslint/typescript-estree`. This intentionally crosses their
+declared major-version ranges. It is a reviewed compatibility exception, not a
+claim that their 10.x ranges include 11.x. The patched package replaces its
+internal matching implementation; its published README explains why the change
+will not be backported. Inspect upstream parent releases when removing the
+overrides rather than retaining them indefinitely.
+
+Source review confirms these consumers use exported `Minimatch`, its `pattern`
+and `match(path, partial)` APIs, or exported `minimatch(path, pattern, options)`;
+11.0.1 retains those APIs, including dot, negation, and partial-path options.
+Its Node engine range includes all TeamLab-supported Node versions. No lint rule,
+parser, project-service setting, dependency-audit threshold, or TypeScript major
+policy is weakened. The lockfile changes only minimatch and its new nonrecursive
+matcher dependency. They remain development dependencies.
+
+`scripts/lint-toolchain.test.ts` verifies source/TSX/script coverage, generated
+and vendor exclusions, and enforcement of typed TypeScript and React Hooks
+rules. The complete lint, unit, production-artifact, and CodeQL gates remain
+required; a zero-vulnerability audit alone is insufficient compatibility proof.
+The first clean locked install with these overrides reports zero vulnerabilities.
+Final artifact and remote checks must still be recorded for the release.
+
 ## Version-update policy
 
 Dependabot checks npm and GitHub Actions every Monday at 09:00
