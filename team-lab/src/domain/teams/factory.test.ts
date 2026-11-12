@@ -66,7 +66,7 @@ describe("saved-team factory and legality", () => {
     );
 
     expect(team).toMatchObject({
-      schemaVersion: 1,
+      schemaVersion: 2,
       teamId: ids.team,
       name: "Waterline",
       formatId: "great-league",

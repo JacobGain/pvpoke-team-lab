@@ -12,7 +12,18 @@ export function formatIdentifier(value: string): string {
 }
 
 export function formatMoveName(moveId: string): string {
-  return formatIdentifier(moveId);
+  return formatIdentifier(moveId).replace(/ plus$/i, "+");
+}
+
+export function formatMegaBuild(settings: { readonly megaLevel?: number; readonly extraChargedMoveId?: string }): string {
+  return [settings.megaLevel === undefined ? "" : `Mega level ${settings.megaLevel}`,
+    settings.extraChargedMoveId ? `Extra attack: ${formatMoveName(settings.extraChargedMoveId)}` : ""].filter(Boolean).join(" · ");
+}
+
+export function formatInventoryMegaBuild(record: import("@/domain/inventory/schemas").InventoryPokemon): string {
+  const build = record.buildStatus === "planned" ? record.plannedBuild : record.currentBuild;
+  const moves = "desiredMoveset" in build ? build.desiredMoveset : build.moveset;
+  return formatMegaBuild({ megaLevel: build.megaLevel, extraChargedMoveId: moves.extraChargedMoveId });
 }
 
 export function formatMoveList(

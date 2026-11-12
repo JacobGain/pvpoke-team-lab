@@ -1,4 +1,14 @@
 export interface PvpokePokemon {
+  readonly level?: number;
+  readonly cp?: number;
+  readonly megaLevel?: number;
+  readonly fastMove?: { readonly moveId: string } | null;
+  chargedMoves?: ({ readonly moveId: string } | null)[];
+  readonly tags?: readonly string[];
+  readonly fastMovePool?: readonly { readonly moveId: string }[];
+  readonly chargedMovePool?: readonly { readonly moveId: string }[];
+  readonly extraChargedMovePool?: readonly { readonly moveId: string }[];
+  setMegaLevel(level: number): void;
   readonly speciesId: string;
   readonly stats: { readonly hp: number };
   readonly activeFormId?: string;
@@ -10,7 +20,7 @@ export interface PvpokePokemon {
   setLevel(level: number, initialize?: boolean): void;
   setShadowType(value: "normal" | "shadow"): void;
   selectMove(
-    type: "fast" | "charged",
+    type: "fast" | "charged" | "extra-charged",
     moveId: string,
     index?: number,
   ): boolean | void;
@@ -24,6 +34,7 @@ export interface PvpokeWinner {
 }
 
 export interface PvpokeBattle {
+  getCup?(): { readonly name: string };
   step?(): unknown;
   getTurns?(): number;
   getTimeline?(): readonly { type: string; name: string; actor: 0 | 1; values: readonly (number | string)[] }[];

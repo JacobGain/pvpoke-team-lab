@@ -1,4 +1,7 @@
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
+import { createHash } from "node:crypto";
+import { INVENTORY_RECORD_SCHEMA_VERSION, SAVED_TEAM_SCHEMA_VERSION, TEAM_LAB_BACKUP_SCHEMA_VERSION, TEAM_LAB_DATABASE_VERSION } from "../src/domain/schemaVersions.ts";
+import { ACTIVE_SEASON } from "../src/pvpoke/season.ts";
 import {
   access,
   mkdir,
@@ -21,7 +24,9 @@ import {
 import sharp from "sharp";
 
 const HOST = "127.0.0.1";
-const GLOBAL_TIMEOUT_MS = 120_000;
+// Includes the full existing workflow plus the 1.3.2 database-upgrade and
+// end-to-end Super Mega acceptance scenario.
+const GLOBAL_TIMEOUT_MS = 180_000;
 const STEP_TIMEOUT_MS = 20_000;
 const PERSISTENCE_TIMEOUT_MS = 45_000;
 const ENGINE_TIMEOUT_MS = 45_000;
@@ -1206,6 +1211,7 @@ async function assertBuildTarget(
       readonly pvpoke?: {
         readonly dataVersion?: string;
         readonly manifestSha256?: string;
+        readonly season?: { readonly upstreamCommit?: string };
       };
     };
   }>(`(async () => ({
@@ -1226,26 +1232,31 @@ async function assertBuildTarget(
     )
   }))()`);
   const release = productionState.release;
+  const expectedPackage = JSON.parse(await readFile(resolve(process.cwd(), "package.json"), "utf8")) as { version: string };
+  const expectedManifest = await readFile(resolve(process.cwd(), "public/vendor/pvpoke/manifest.json"));
+  const expectedBundle = JSON.parse(expectedManifest.toString("utf8")) as { dataVersion: string };
 
   invariant(
     productionState.dataHealthIndicators === 0 &&
       productionState.diagnosticsLinks === 0 &&
-      productionState.favicon.endsWith("/favicon-48x48.png?v=1.3.2") &&
+      productionState.favicon.endsWith("/favicon-48x48.png?v=1.4.0") &&
       productionState.visibleVersions.includes(`v${release.appVersion ?? ""}`),
     `Production exposed diagnostics navigation: ${JSON.stringify(productionState)}.`,
   );
   invariant(
     release.formatVersion === 1 &&
+      release.appVersion === expectedPackage.version &&
       Boolean(release.releaseId) &&
       release.target === "public" &&
       Boolean(release.source?.commitSha) &&
       release.capabilities?.diagnostics === false &&
-      Boolean(release.schemas?.database) &&
-      Boolean(release.schemas?.backup) &&
-      Boolean(release.schemas?.inventoryRecord) &&
-      Boolean(release.schemas?.savedTeam) &&
-      Boolean(release.pvpoke?.dataVersion) &&
-      /^[a-f0-9]{64}$/.test(release.pvpoke?.manifestSha256 ?? ""),
+      release.schemas?.database === TEAM_LAB_DATABASE_VERSION &&
+      release.schemas?.backup === TEAM_LAB_BACKUP_SCHEMA_VERSION &&
+      release.schemas?.inventoryRecord === INVENTORY_RECORD_SCHEMA_VERSION &&
+      release.schemas?.savedTeam === SAVED_TEAM_SCHEMA_VERSION &&
+      release.pvpoke?.dataVersion === expectedBundle.dataVersion &&
+      release.pvpoke?.season?.upstreamCommit === ACTIVE_SEASON.upstreamCommit &&
+      release.pvpoke?.manifestSha256 === createHash("sha256").update(expectedManifest).digest("hex"),
     `Production release metadata is incomplete: ${JSON.stringify(release)}.`,
   );
   invariant(
@@ -1265,6 +1276,7 @@ async function assertBuildTarget(
 
 async function waitForDownload(downloadDirectory: string): Promise<string> {
   const deadline = Date.now() + STEP_TIMEOUT_MS;
+  let lastFailure = "No completed backup file appeared.";
 
   while (Date.now() < deadline) {
     const files = await readdir(downloadDirectory);
@@ -1275,12 +1287,22 @@ async function waitForDownload(downloadDirectory: string): Promise<string> {
     );
 
     if (backupName) {
-      return resolve(downloadDirectory, backupName);
+      const candidate = resolve(downloadDirectory, backupName);
+      const contents = await readFile(candidate, "utf8");
+      // Chrome can create the final filename before all bytes are visible to
+      // the filesystem reader. Wait for complete JSON, not mere file existence.
+      try {
+        JSON.parse(contents) as unknown;
+        return candidate;
+      } catch (error) {
+        if (!(error instanceof SyntaxError)) throw error;
+        lastFailure = error.message;
+      }
     }
     await delay(50);
   }
 
-  throw new Error("Timed out waiting for the JSON backup download.");
+  throw new Error(`Timed out waiting for a complete JSON backup download: ${lastFailure}`);
 }
 
 async function setFileInput(
@@ -2916,49 +2938,7 @@ async function runCriticalWorkflows(
     `Mobile route audit found issues:\n${mobileAuditIssues.join("\n")}`,
   );
 
-  await browser.setViewport(1440, 1_000);
-  await browser.navigate("/", "Pokémon GO PvP Team Builder for Your Own Roster");
-  const footerReleaseLink = await browser.evaluate<{
-    readonly href: string;
-    readonly label: string;
-  } | null>(`(() => {
-    const link = document.querySelector(".app-footer__release-link");
-    return link instanceof HTMLAnchorElement
-      ? { href: link.getAttribute("href") ?? "", label: link.textContent?.trim() ?? "" }
-      : null;
-  })()`);
-  invariant(
-    footerReleaseLink?.label === "Release notes" &&
-      footerReleaseLink.href.endsWith("/releases"),
-    `Footer release link is missing or points to the wrong page: ${JSON.stringify(footerReleaseLink)}.`,
-  );
-  await browser.evaluate(`document.querySelector(".app-footer__release-link")?.click()`);
-  await browser.waitFor(
-    `document.querySelector(".release-notes-page h1")?.textContent?.trim() === "Release notes"`,
-    "footer release notes navigation",
-  );
-  const releaseHeadings = await browser.evaluate<readonly string[]>(`[
-    ...document.querySelectorAll(".release-note__heading h2")
-  ].map((heading) => heading.textContent?.trim() ?? "")`);
-  invariant(
-    releaseHeadings[0] === "Release v1.3.2" &&
-      releaseHeadings.at(-1) === "Release v0.0.1" &&
-      releaseHeadings.indexOf("Release v0.0.10") <
-        releaseHeadings.indexOf("Release v0.0.9"),
-    `Release history is not in descending semantic-version order: ${releaseHeadings.join(", ")}.`,
-  );
-  await visual.capture(browser, "release-notes-desktop", 1440, 1_000);
-  await visual.capture(browser, "release-notes-mobile", 390, 844);
-  await visual.capture(
-    browser,
-    "release-notes-footer-mobile",
-    390,
-    844,
-    ".app-footer",
-  );
-  await browser.setViewport(1440, 1_000);
-  await browser.assertNoHorizontalOverflow("release notes at desktop width");
-  await browser.navigate("/", "Pokémon GO PvP Team Builder for Your Own Roster");
+  await runReleaseNotesWorkflow(browser, visual);
 
   await browser.setLabeledControl("Battle league", "ultra-league", "select");
   await browser.waitFor(`document.querySelector("#current-format-title")?.textContent?.trim() === "Open Ultra League"`, "Ultra League data");
@@ -3250,9 +3230,11 @@ async function runDuelWorkflow(browser: BrowserWorkflow, buildTarget: BrowserTes
     const cases = [...createOpenGreatLeagueCharacterizationCases()];
     const baseline = cases[0].builds;
     cases.push({ builds: [baseline[1], baseline[1]] });
-    cases.push({ builds: [{ ...baseline[1], speciesId: 'feraligatr_shadow', speciesName: 'Feraligatr (Shadow)', level: 19, isShadow: true, fastMoveId: 'SHADOW_CLAW', chargedMoveIds: ['HYDRO_CANNON', 'ICE_BEAM'] }, baseline[0]] });
-    cases.push({ builds: [{ ...baseline[1], speciesId: 'talonflame', speciesName: 'Talonflame', level: 26, fastMoveId: 'INCINERATE', chargedMoveIds: ['FLAME_CHARGE', 'BRAVE_BIRD'] }, baseline[0]] });
-    cases.push({ builds: [{ ...baseline[1], speciesId: 'minior_core', speciesName: 'Minior (Core)', level: 25, fastMoveId: 'ROLLOUT', chargedMoveIds: ['ACROBATICS', 'ANCIENT_POWER'] }, baseline[0]] });
+    // Keep copied IVs but use each species' actual legal CP/level. The old
+    // fixtures inherited Altaria's 1497 CP even after changing species.
+    cases.push({ builds: [{ ...baseline[1], speciesId: 'feraligatr_shadow', speciesName: 'Feraligatr (Shadow)', level: 19, cp: 1441, isShadow: true, fastMoveId: 'SHADOW_CLAW', chargedMoveIds: ['HYDRO_CANNON', 'ICE_BEAM'] }, baseline[0]] });
+    cases.push({ builds: [{ ...baseline[1], speciesId: 'talonflame', speciesName: 'Talonflame', level: 25.5, cp: 1476, fastMoveId: 'INCINERATE', chargedMoveIds: ['FLAME_CHARGE', 'BRAVE_BIRD'] }, baseline[0]] });
+    cases.push({ builds: [{ ...baseline[1], speciesId: 'minior_core', speciesName: 'Minior (Core)', level: 24.5, cp: 1496, fastMoveId: 'ROLLOUT', chargedMoveIds: ['ACROBATICS', 'ANCIENT_POWER'] }, baseline[0]] });
     for (const testCase of cases) {
       for (const shields of [[0, 0], [1, 1], [2, 2], [0, 2]]) {
         const request = {
@@ -3368,6 +3350,223 @@ async function runDuelWorkflow(browser: BrowserWorkflow, buildTarget: BrowserTes
   console.log('[browser-workflows] Duel empty selection, full roster, navigation, 500 ms timing, log stack, resource animations, customization, and responsive checks passed');
 }
 
+async function runReleaseNotesWorkflow(browser: BrowserWorkflow, visual: VisualRegression): Promise<void> {
+  await browser.setViewport(1440, 1_000);
+  await browser.navigate("/", "Pokémon GO PvP Team Builder for Your Own Roster");
+  const footerReleaseLink = await browser.evaluate<{
+    readonly href: string;
+    readonly label: string;
+  } | null>(`(() => {
+    const link = document.querySelector(".app-footer__release-link");
+    return link instanceof HTMLAnchorElement
+      ? { href: link.getAttribute("href") ?? "", label: link.textContent?.trim() ?? "" }
+      : null;
+  })()`);
+  invariant(
+    footerReleaseLink?.label === "Release notes" &&
+      footerReleaseLink.href.endsWith("/releases"),
+    `Footer release link is missing or points to the wrong page: ${JSON.stringify(footerReleaseLink)}.`,
+  );
+  await browser.evaluate(`document.querySelector(".app-footer__release-link")?.click()`);
+  await browser.waitFor(
+    `document.querySelector(".release-notes-page h1")?.textContent?.trim() === "Release notes"`,
+    "footer release notes navigation",
+  );
+  const releaseHeadings = await browser.evaluate<readonly string[]>(`[
+    ...document.querySelectorAll(".release-note__heading h2")
+  ].map((heading) => heading.textContent?.trim() ?? "")`);
+  invariant(
+    releaseHeadings[0] === "Release v1.4.0" &&
+      releaseHeadings.at(-1) === "Release v0.0.1" &&
+      releaseHeadings.indexOf("Release v0.0.10") <
+        releaseHeadings.indexOf("Release v0.0.9"),
+    `Release history is not in descending semantic-version order: ${releaseHeadings.join(", ")}.`,
+  );
+  await visual.capture(browser, "release-notes-desktop", 1440, 1_000);
+  await visual.capture(browser, "release-notes-mobile", 390, 844);
+  await visual.capture(
+    browser,
+    "release-notes-footer-mobile",
+    390,
+    844,
+    ".app-footer",
+  );
+  await browser.setViewport(1440, 1_000);
+  await browser.assertNoHorizontalOverflow("release notes at desktop width");
+  await browser.navigate("/", "Pokémon GO PvP Team Builder for Your Own Roster");
+
+}
+
+async function runSuperMegaWorkflow(browser: BrowserWorkflow, client: DevToolsClient, appUrl: string, temporaryRoot: string, visual: VisualRegression): Promise<void> {
+  const legacyId = "10c2477d-0393-4c1b-a271-26d42f24a141";
+  // Leave the SPA so its IndexedDB connections close before seeding a real
+  // 1.3.2 database. This browser profile is disposable and owned by this test.
+  await client.call("Page.navigate", { url: new URL("vendor/pvpoke/manifest.json", appUrl).href });
+  await browser.waitFor(`location.pathname.endsWith('/vendor/pvpoke/manifest.json') && document.contentType === 'application/json'`, "static document before legacy database seed");
+  await browser.evaluate(`(async () => {
+    await new Promise((resolve, reject) => {
+      const request = indexedDB.deleteDatabase('team-lab');
+      request.onsuccess = () => resolve(); request.onerror = () => reject(request.error);
+      request.onblocked = () => reject(new Error('Test database is still open'));
+    });
+    await new Promise((resolve, reject) => {
+      const request = indexedDB.open('team-lab', 40);
+      request.onupgradeneeded = () => {
+        const db = request.result;
+        const inventory = db.createObjectStore('inventory', { keyPath: 'inventoryId' });
+        inventory.createIndex('updatedAt', 'updatedAt');
+        const teams = db.createObjectStore('savedTeams', { keyPath: 'teamId' });
+        teams.createIndex('updatedAt', 'updatedAt');
+        const history = db.createObjectStore('recommendationHistory', { keyPath: 'historyId' });
+        for (const key of ['createdAt', 'formatId', 'dataVersion']) history.createIndex(key, key);
+        inventory.put({ schemaVersion: 1, inventoryId: '${legacyId}', speciesId: 'sableye_mega',
+          buildStatus: 'current', formatId: 'mega-great-league', favorite: true, notes: 'Preserve the legacy specimen',
+          sourceDataVersion: '2026-11-09 18:40:51', createdAt: '2026-11-09T12:00:00.000Z', updatedAt: '2026-11-09T12:00:00.000Z',
+          currentBuild: { cp: 1496, ivProfile: { source: 'user-entered', ivs: { attack: 4, defense: 13, hp: 15 } },
+            moveset: { fastMoveId: 'SHADOW_CLAW', chargedMoveIds: ['FOUL_PLAY'] } } });
+      };
+      request.onsuccess = () => { request.result.close(); resolve(); };
+      request.onerror = () => reject(request.error);
+    });
+    localStorage.setItem('team-lab-league', 'mega-great-league');
+  })()`);
+  const readRecord = `(async () => new Promise((resolve, reject) => {
+    const request = indexedDB.open('team-lab');
+    request.onsuccess = () => {
+      const db = request.result;
+      const record = db.transaction('inventory').objectStore('inventory').get('${legacyId}');
+      record.onsuccess = () => { db.close(); resolve(record.result); };
+      record.onerror = () => { db.close(); reject(record.error); };
+    };
+    request.onerror = () => reject(request.error);
+  }))()`;
+  await browser.setViewport(1440, 1000);
+  await browser.navigate('/inventory', 'Your inventory');
+  await browser.waitFor(`document.querySelector('.inventory-card')?.textContent?.includes('Sableye (Mega)')`, 'upgraded legacy Super Mega');
+  invariant(await browser.evaluate(`(async () => {
+    const record = await ${readRecord};
+    return record.schemaVersion === 2 && record.currentBuild.megaLevel === 4 &&
+      record.currentBuild.cp === 1496 && !record.currentBuild.moveset.extraChargedMoveId &&
+      record.createdAt === '2026-11-09T12:00:00.000Z' && record.notes === 'Preserve the legacy specimen';
+  })()`), 'The 1.3.2 upgrade changed owned data or invented an extra attack.');
+  await browser.navigate(`/inventory/${legacyId}`, 'Edit Pokémon');
+  await browser.setLabeledControl('Current Mega level', '2', 'select');
+  await browser.setLabeledControl('Current extra charged attack', 'NIGHT_SHADE_PLUS', 'select');
+  await browser.setLabeledControl('Charged move 2', '', 'select');
+  await visual.capture(browser, 'super-mega-inventory-desktop', 1440, 1000, '[data-mega-level]');
+  await browser.setViewport(320, 900);
+  await browser.assertNoHorizontalOverflow('Super Mega inventory editor');
+  await visual.capture(browser, 'super-mega-inventory-mobile', 320, 900, '[data-mega-level]');
+  await browser.clickButton('Continue');
+  await browser.evaluate(`[...document.querySelectorAll('.status-selector label')].find(label => label.querySelector('strong')?.textContent === 'Planned').querySelector('input').click()`);
+  await browser.waitFor(`Boolean([...document.querySelectorAll('label span')].find(span => span.textContent === 'Desired Mega level'))`, 'independent planned Mega controls');
+  await browser.setLabeledControl('Desired Mega level', '4', 'select');
+  await browser.setLabeledControl('Desired extra charged attack', 'NIGHT_SHADE_PLUS', 'select');
+  await browser.clickButton('Continue');
+  await browser.clickButton('Save changes');
+  await browser.waitFor(`location.pathname.endsWith('/inventory') && document.querySelector('.inventory-card')?.textContent?.includes('Planned: Mega level 4')`, 'Super Mega edit persistence');
+  await browser.navigate('/inventory', 'Your inventory');
+  invariant(await browser.evaluate(`(async () => {
+    const record = await ${readRecord};
+    return record.currentBuild.megaLevel === 2 && record.currentBuild.moveset.extraChargedMoveId === 'NIGHT_SHADE_PLUS' &&
+      record.currentBuild.moveset.chargedMoveIds.length === 1 && record.plannedBuild.megaLevel === 4 &&
+      record.plannedBuild.desiredMoveset.extraChargedMoveId === 'NIGHT_SHADE_PLUS';
+  })()`), 'Current/planned Mega settings did not survive reload.');
+
+  await browser.navigate('/inventory/bulk-add', 'Bulk add Pokémon');
+  await browser.setLabeledControl('Pokémon names or PvPoke IDs', 'Azumarill\nAltaria', 'textarea');
+  await browser.clickButton('Add 2 Pokémon');
+  await browser.waitFor(`document.querySelector('[role="status"]')?.textContent?.includes('Added 2 Pokémon')`, 'Super Mega team partners');
+  await browser.navigate('/teams/new', 'Create saved team');
+  await browser.setLabeledControl('Team name', 'Super Mega acceptance', 'input');
+  await browser.clickButton('Save team');
+  await browser.waitFor(`document.querySelector('.team-card')?.textContent?.includes('Super Mega acceptance')`, 'Super Mega saved team');
+  const simulationHref = await browser.evaluate<string>(`[...document.querySelectorAll('.team-card a')].find(link => link.textContent.trim() === 'Simulate').getAttribute('href')`);
+  await browser.navigate(simulationHref, 'Super Mega acceptance');
+  await browser.setLabeledControl('Meta target count', '5', 'select');
+  await browser.clickButton('Run exact team matrix');
+  await browser.waitFor(`(() => { const alert = document.querySelector('[role="alert"]'); if (alert) throw new Error(alert.textContent); return document.querySelector('.diagnostics-banner')?.textContent?.includes('5 of'); })()`, 'exact owned Super Mega team matrix', ENGINE_TIMEOUT_MS);
+  await browser.navigate('/recommend', 'Discover your best teams');
+  await browser.clickButton('Continue to experiment');
+  await browser.setLabeledControl('Results', '1', 'select');
+  await browser.setLabeledControl('Meta targets', '5', 'select');
+  await browser.clickButton('Generate recommendations');
+  await browser.waitFor(`(() => { const alert = document.querySelector('[role="alert"]'); if (alert) throw new Error(alert.textContent); return document.querySelector('.recommendation-result')?.textContent?.includes('Night shade+'); })()`, 'Super Mega recommendation preserves extra attack', ENGINE_TIMEOUT_MS);
+
+  const downloads = resolve(temporaryRoot, 'super-mega-downloads');
+  await mkdir(downloads, { recursive: true });
+  await client.call('Browser.setDownloadBehavior', { behavior: 'allow', downloadPath: downloads, eventsEnabled: true });
+  await browser.navigate('/inventory/backup', 'Backup and restore');
+  await browser.clickButton('Download JSON backup');
+  const backupPath = await waitForDownload(downloads);
+  const backup = JSON.parse(await readFile(backupPath, 'utf8')) as { schemaVersion: number; recommendationHistory: unknown[] };
+  invariant(backup.schemaVersion === 4 && backup.recommendationHistory.length > 0, 'Super Mega backup omitted schema v4 or recommendation history.');
+  await browser.clickButton('Reset all data');
+  await browser.waitFor(`Boolean(document.querySelector('[role="alertdialog"]'))`, 'Super Mega reset confirmation');
+  await browser.setLabeledControl('Type RESET to continue', 'RESET', 'input');
+  await browser.clickButton('Reset all data', '.destructive-confirmation button');
+  await browser.waitFor(`[...document.querySelectorAll('[role="status"]')].some(status => status.textContent.includes('TeamLab reset complete'))`, 'Super Mega reset');
+  await setFileInput(client, backupPath);
+  await browser.waitFor(`document.querySelector('.backup-inspection--valid strong')?.textContent?.includes('is valid')`, 'Super Mega v4 backup inspection');
+  await browser.clickButton('Restore TeamLab data');
+  await browser.waitFor(`[...document.querySelectorAll('[role="status"]')].some(status => status.textContent.includes('Restore complete'))`, 'Super Mega full restore');
+  invariant(await browser.evaluate(`(async () => { const record = await ${readRecord}; return record.currentBuild.megaLevel === 2 && record.plannedBuild.megaLevel === 4 && record.plannedBuild.desiredMoveset.extraChargedMoveId === 'NIGHT_SHADE_PLUS'; })()`), 'Super Mega settings were lost during full restore.');
+
+  const csvPath = resolve(temporaryRoot, 'super-mega.csv');
+  await writeFile(csvPath, 'species_id,cp,attack_iv,defense_iv,hp_iv,fast_move_id,charged_move_1_id,charged_move_2_id,mega_level,extra_charged_move_id\nchandelure_mega,1499,4,7,13,INCINERATE,FLAME_CHARGE,ENERGY_BALL,3,OMINOUS_WIND_PLUS\n');
+  await browser.navigate('/inventory/import', 'Import CSV');
+  await setFileInput(client, csvPath);
+  await browser.waitFor(`document.querySelector('.csv-import-summary')?.textContent?.includes('1 ready')`, 'Super Mega CSV preview');
+  await browser.assertNoHorizontalOverflow('Super Mega CSV mobile');
+  await browser.clickButton('Import 1 Pokémon');
+  await browser.waitFor(`[...document.querySelectorAll('[role="status"]')].some(status => status.textContent.includes('Imported 1 Pokémon'))`, 'Super Mega CSV import');
+  await browser.navigate('/inventory/bulk-add', 'Bulk add Pokémon');
+  await browser.setLabeledControl('Pokémon names or PvPoke IDs', 'Chandelure (Mega)', 'textarea');
+  await browser.waitFor(`Boolean([...document.querySelectorAll('label span')].find(span => span.textContent === 'Row 1 Mega level'))`, 'Mega bulk row controls');
+  await browser.setLabeledControl('Row 1 Mega level', '2', 'select');
+  await browser.setLabeledControl('Row 1 extra charged attack', '', 'select');
+  await browser.assertNoHorizontalOverflow('Super Mega bulk controls mobile');
+  await visual.capture(browser, 'super-mega-bulk-mobile', 320, 900, '.bulk-add-preview');
+  await browser.clickButton('Add 1 Pokémon');
+  await browser.waitFor(`document.querySelector('[role="status"]')?.textContent?.includes('Added 1 Pokémon')`, 'custom Mega bulk row');
+  invariant(await browser.evaluate(`(async () => new Promise((resolve, reject) => {
+    const open = indexedDB.open('team-lab');
+    open.onsuccess = () => {
+      const db = open.result;
+      const read = db.transaction('inventory').objectStore('inventory').getAll();
+      read.onsuccess = () => { const rows = read.result.filter(record => record.speciesId === 'chandelure_mega'); db.close();
+        resolve(rows.some(record => record.currentBuild.megaLevel === 3 && record.currentBuild.moveset.extraChargedMoveId === 'OMINOUS_WIND_PLUS') &&
+          rows.some(record => record.currentBuild.megaLevel === 2 && !record.currentBuild.moveset.extraChargedMoveId)); };
+      read.onerror = () => reject(read.error);
+    }; open.onerror = () => reject(open.error);
+  }))()`), 'CSV or bulk add dropped Mega settings or restored a cleared default extra attack.');
+
+  await browser.navigate('/battle', 'One matchup. Every turn.');
+  await browser.waitFor(`document.querySelectorAll('.duel-build').length === 2`, 'Super Mega duel editors ready');
+  await browser.setLabeledControl('Pokémon 1 / form', 'sableye_mega', 'input', 0, false);
+  await browser.setLabeledControl('Pokémon 2 / form', 'azumarill', 'input', 0, false);
+  await browser.waitFor(`Boolean(document.querySelector('[data-selected-species-id="sableye_mega"]') && document.querySelector('[data-selected-species-id="azumarill"]'))`, 'Super Mega duel contenders');
+  await browser.setLabeledControl('Contender 1 Mega level', '4', 'select');
+  await browser.setLabeledControl('Charged move 1', 'POWER_GEM', 'select');
+  await browser.setLabeledControl('Charged move 2', '', 'select');
+  await browser.setLabeledControl('Contender 1 extra charged attack', 'NIGHT_SHADE_PLUS', 'select');
+  await browser.setLabeledControl('Shields', '0', 'select', 0);
+  await browser.setLabeledControl('Shields', '0', 'select', 1);
+  await browser.clickButton('Simulate matchup');
+  await browser.waitFor(`Boolean(document.querySelector('.duel-replay'))`, 'Super Mega battle replay', ENGINE_TIMEOUT_MS);
+  await browser.clickButton('Show result');
+  invariant(await browser.evaluate(`document.querySelector('.duel-log')?.textContent?.includes('Night Shade+')`), 'The extra attack never appeared in the actual replay.');
+  await browser.assertNoHorizontalOverflow('Super Mega replay narrow mobile');
+  await visual.capture(browser, 'super-mega-replay-mobile', 320, 1000, '.duel-replay');
+  await browser.setLabeledControl('Contender 1 extra charged attack', '', 'select');
+  invariant(await browser.evaluate(`!document.querySelector('.duel-replay')`), 'Changing the extra attack kept a stale replay.');
+  await browser.clickButton('Simulate matchup');
+  await browser.waitFor(`Boolean(document.querySelector('.duel-replay'))`, 'cleared extra-attack replay', ENGINE_TIMEOUT_MS);
+  await browser.clickButton('Show result');
+  invariant(await browser.evaluate(`!document.querySelector('.duel-log')?.textContent?.includes('Night Shade+')`), 'Clearing the extra slot retained the default attack.');
+  console.log('[browser-workflows] 1.3.2 upgrade, independent current/planned Mega settings, team matrix, recommendation/history backup and restore, CSV/bulk controls, extra-attack replay, clearing, and narrow mobile layout passed');
+}
+
 async function main(): Promise<void> {
   const projectRoot = process.cwd();
   const visualMode = resolveVisualMode();
@@ -3458,6 +3657,14 @@ async function main(): Promise<void> {
       await runDuelWorkflow(browser, buildTarget);
       return;
     }
+    if (process.argv.includes('--release-notes')) {
+      await runReleaseNotesWorkflow(browser, visual);
+      return;
+    }
+    if (process.argv.includes('--super-mega')) {
+      await runSuperMegaWorkflow(browser, client, appUrl, temporaryRoot, visual);
+      return;
+    }
     const report = await runCriticalWorkflows(
       browser,
       client,
@@ -3471,6 +3678,7 @@ async function main(): Promise<void> {
     await runDuelWorkflow(browser, buildTarget);
 
     await runRosterUpdateWorkflow(browser, visual);
+    await runSuperMegaWorkflow(browser, client, appUrl, temporaryRoot, visual);
 
     console.log(
       `[browser-workflows] ${JSON.stringify(report)}`,

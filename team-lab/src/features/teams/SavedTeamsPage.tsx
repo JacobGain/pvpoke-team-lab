@@ -6,7 +6,9 @@ import { Link } from "react-router";
 import { EmptyState } from "@/components/EmptyState";
 import { PageHeader } from "@/components/PageHeader";
 import { PokemonSprite } from "@/components/PokemonSprite";
+import { InventoryMegaSummary } from "@/components/InventoryMegaSummary";
 import { resolveSavedTeam } from "@/domain/teams/resolution";
+import { isSavedTeamAnalysisCurrent } from "@/domain/teams/freshness";
 import { useInventoryList } from "@/features/inventory/inventoryQueries";
 import { usePokemonCatalog } from "@/features/meta/usePokemonCatalog";
 import {
@@ -117,7 +119,7 @@ export function SavedTeamsPage() {
               <div>
                 <p className="eyebrow">
                   {!isComplete ? "Needs attention" : !team.lastAnalyzedDataVersion ? "Not yet analyzed" :
-                    team.lastAnalyzedDataVersion !== catalog.dataVersion || team.lastAnalyzedUpstreamCommit !== ACTIVE_SEASON.upstreamCommit || members.some(member => member.status === "resolved" && member.inventory.updatedAt > team.updatedAt)
+                    !isSavedTeamAnalysisCurrent(team, inventoryResult.data ?? [], catalog.dataVersion, ACTIVE_SEASON.upstreamCommit) || members.some(member => member.status === "resolved" && member.inventory.updatedAt > team.updatedAt)
                       ? "Analysis needs refresh" : "Analyzed with current data"}
                 </p>
                 <h2>{team.name}</h2>
@@ -151,6 +153,7 @@ export function SavedTeamsPage() {
                             </span>
                           ) : null}
                         </div>
+                        <InventoryMegaSummary record={member.inventory} catalog={catalog} />
                       </div>
                     </>
                   ) : (

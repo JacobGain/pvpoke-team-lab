@@ -103,6 +103,16 @@ export class PvpokeTeamRankerAdapter implements TeamRankerAdapter {
     const teamBulkValues = team.map(
       (pokemon) => pokemon.getEffectiveStat(1) * pokemon.stats.hp,
     );
+    // Pinned TeamRanker reads chargedMoves[1].type without checking for an
+    // empty ordinary slot. Combat decisions already use a dense active-move
+    // list. Compact only these disposable engine objects during ranking;
+    // restore original slots afterwards, keeping exact builds untouched.
+    const originalSlots = [...team, ...targets].map(pokemon => ({
+      pokemon, moves: pokemon.chargedMoves,
+    }));
+    for (const { pokemon, moves } of originalSlots) {
+      if (moves) pokemon.chargedMoves = moves.filter(move => move != null);
+    }
 
     try {
       const result = ranker.rank(
@@ -147,6 +157,9 @@ export class PvpokeTeamRankerAdapter implements TeamRankerAdapter {
         ],
       };
     } finally {
+      for (const { pokemon, moves } of originalSlots) {
+        if (moves) pokemon.chargedMoves = moves;
+      }
       ranker.setTargets([]);
     }
   }

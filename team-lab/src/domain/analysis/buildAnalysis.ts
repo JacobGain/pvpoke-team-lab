@@ -1,4 +1,5 @@
 import { leagueForCatalog } from "@/domain/leagues";
+import { defaultMegaLevel, megaBattleLevelCap, ownedLevelForBattleLevel } from "@/domain/pokemon/mega";
 import { projectInventoryForCatalog } from "@/domain/inventory/leagueEligibility";
 import type {
   InventoryIvs,
@@ -26,6 +27,8 @@ export interface AnalyzedLevel {
 }
 
 export interface MoveAnalysis {
+  readonly enteredExtraChargedMoveId?: string;
+  readonly recommendedExtraChargedMoveId?: string;
   readonly enteredFastMoveId: string;
   readonly enteredChargedMoveIds: readonly string[];
   readonly recommendedFastMoveId?: string;
@@ -55,6 +58,7 @@ export interface RoleRankingAnalysis {
 }
 
 export interface AnalyzedPokemonBuild {
+  readonly megaLevel?: import("@/domain/pokemon/mega").MegaLevel;
   readonly speciesId: string;
   readonly speciesName: string;
   readonly context: "current" | "planned";
@@ -73,6 +77,8 @@ export interface BuildRequirement {
   readonly code:
     | "evolve"
     | "mega-evolve"
+    | "change-mega-level"
+    | "change-extra-charged-move"
     | "power-up"
     | "change-fast-move"
     | "change-charged-move"
@@ -106,6 +112,8 @@ function analyzeMoves(
   const enteredChargedMoveIds = [...moveset.chargedMoveIds];
 
   return {
+    enteredExtraChargedMoveId: moveset.extraChargedMoveId,
+    recommendedExtraChargedMoveId: pokemon.extraChargedMoves?.find(move => recommendedMoveIds.includes(move.id))?.id,
     enteredFastMoveId: moveset.fastMoveId,
     enteredChargedMoveIds,
     recommendedFastMoveId,
@@ -132,10 +140,11 @@ function analyzeBuild(
   moveset: InventoryMoveset,
   dataVersion: string,
   catalog: PokemonCatalog,
+  megaLevel = defaultMegaLevel(pokemon),
 ): AnalyzedPokemonBuild {
   const resolvedBuild =
     cp === undefined
-      ? findHighestLegalLevel(pokemon, ivs)
+      ? findHighestLegalLevel(pokemon, ivs, pokemon.cpCap, megaBattleLevelCap(pokemon, megaLevel))
       : undefined;
   const resolvedCp = cp ?? resolvedBuild?.cp;
 
@@ -147,12 +156,12 @@ function analyzeBuild(
 
   const inference =
     resolvedBuild === undefined
-      ? inferCombatPowerLevel(pokemon, ivs, resolvedCp)
+      ? inferCombatPowerLevel(pokemon, ivs, resolvedCp, megaLevel)
       : {
           matches: [
             {
               level: resolvedBuild.level,
-              isBestBuddy: resolvedBuild.level > pokemon.levelCap,
+              isBestBuddy: resolvedBuild.level > megaBattleLevelCap(pokemon, megaLevel),
             },
           ],
         };
@@ -165,6 +174,7 @@ function analyzeBuild(
 
   return {
     speciesId: pokemon.speciesId,
+    megaLevel,
     speciesName: pokemon.speciesName,
     context,
     cp: resolvedCp,
@@ -176,7 +186,7 @@ function analyzeBuild(
       isBestBuddy: match.isBestBuddy,
       stats: calculateEffectiveStats(pokemon, ivs, match.level),
     })),
-    ivRanking: analyzeIvRanking(pokemon, ivs),
+    ivRanking: analyzeIvRanking(pokemon, ivs, megaLevel),
     moves: analyzeMoves(pokemon, moveset),
     metaRanking: pokemon.ranking
       ? (() => {
@@ -244,6 +254,10 @@ function buildTransitionRequirements(
   if (!planned) {
     return requirements;
   }
+  if (current.megaLevel !== planned.megaLevel) requirements.push({ code: "change-mega-level", message: `Change Mega level to ${planned.megaLevel ?? "not applicable"}.` });
+  if (current.moves.enteredExtraChargedMoveId !== planned.moves.enteredExtraChargedMoveId) requirements.push({
+    code: "change-extra-charged-move", message: `Change the extra charged attack to ${planned.moves.enteredExtraChargedMoveId ?? "none"}.`,
+  });
 
   if (planned.speciesId !== current.speciesId) {
     requirements.push({
@@ -252,10 +266,12 @@ function buildTransitionRequirements(
     });
   }
 
-  if (planned.cp > current.cp) {
+  const currentOwnedLevel = Math.max(...current.levels.map(level => ownedLevelForBattleLevel(level.level, current.megaLevel)));
+  const plannedOwnedLevel = Math.min(...planned.levels.map(level => ownedLevelForBattleLevel(level.level, planned.megaLevel)));
+  if (plannedOwnedLevel > currentOwnedLevel) {
     requirements.push({
       code: "power-up",
-      message: `Power up from CP ${current.cp} to CP ${planned.cp}.`,
+      message: `Power up from owned level ${currentOwnedLevel} to at least ${plannedOwnedLevel}.`,
     });
   }
 
@@ -306,6 +322,9 @@ function buildRecommendedRequirements(
   if (!targetPokemon) {
     return requirements;
   }
+  if (target.moves.recommendedExtraChargedMoveId && target.moves.recommendedExtraChargedMoveId !== target.moves.enteredExtraChargedMoveId) {
+    requirements.push({ code: "change-extra-charged-move", message: `Use ${target.moves.recommendedExtraChargedMoveId} as the extra charged attack to match the published moveset.` });
+  }
 
   if (!target.moves.fastMoveMatches && target.moves.recommendedFastMoveId) {
     requirements.push({
@@ -340,19 +359,22 @@ function buildRecommendedRequirements(
   }
 
   const targetMoveIds = [
+    target.moves.recommendedExtraChargedMoveId,
     target.moves.recommendedFastMoveId,
     ...target.moves.recommendedChargedMoveIds,
   ].filter((moveId): moveId is string => moveId !== undefined);
   const selectedMoveIds = [
+    target.moves.enteredExtraChargedMoveId,
     target.moves.enteredFastMoveId,
     ...target.moves.enteredChargedMoveIds,
   ];
   const currentMoveIds = [
+    current.moves.enteredExtraChargedMoveId,
     current.moves.enteredFastMoveId,
     ...current.moves.enteredChargedMoveIds,
   ];
   for (const moveId of targetMoveIds) {
-    const move = [...targetPokemon.fastMoves, ...targetPokemon.chargedMoves]
+    const move = [...targetPokemon.fastMoves, ...targetPokemon.chargedMoves, ...(targetPokemon.extraChargedMoves ?? [])]
       .find((candidate) => candidate.id === moveId);
     const requiresEliteMove =
       target.context === "planned"
@@ -396,6 +418,7 @@ export function analyzeInventoryBuild(
     record.currentBuild.moveset,
     catalog.dataVersion,
     catalog,
+    record.currentBuild.megaLevel,
   );
   let planned: AnalyzedPokemonBuild | undefined;
 
@@ -422,6 +445,7 @@ export function analyzeInventoryBuild(
       record.plannedBuild.desiredMoveset,
       catalog.dataVersion,
       catalog,
+      record.plannedBuild.megaLevel,
     );
   }
 

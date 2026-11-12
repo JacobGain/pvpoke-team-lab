@@ -4,6 +4,7 @@ import {
   getCpMultiplier,
 } from "@/domain/pokemon/combatPower";
 import type { PokemonCatalogEntry } from "@/domain/pokemon/catalog";
+import { defaultMegaLevel, megaBattleLevelCap, type MegaLevel } from "@/domain/pokemon/mega";
 
 export const GREAT_LEAGUE_CP_CAP = 1500;
 export const GREAT_LEAGUE_RANKING_LEVEL_CAP = 50;
@@ -88,9 +89,9 @@ export function findHighestLegalLevel(
   pokemon: PokemonCatalogEntry,
   ivs: InventoryIvs,
   cpCap = pokemon.cpCap ?? GREAT_LEAGUE_CP_CAP,
-  levelCap = GREAT_LEAGUE_RANKING_LEVEL_CAP,
+  levelCap = megaBattleLevelCap(pokemon),
 ): { readonly level: number; readonly cp: number } | undefined {
-  const maximumLevel = Math.min(levelCap, pokemon.levelCap);
+  const maximumLevel = Math.min(levelCap, pokemon.tags.includes("mega") && levelCap === 52 ? 52 : pokemon.levelCap);
 
   for (
     let level = maximumLevel;
@@ -110,7 +111,7 @@ export function findHighestLegalLevel(
 export function generateIvRankingTable(
   pokemon: PokemonCatalogEntry,
   cpCap = pokemon.cpCap ?? GREAT_LEAGUE_CP_CAP,
-  levelCap = GREAT_LEAGUE_RANKING_LEVEL_CAP,
+  levelCap = megaBattleLevelCap(pokemon),
 ): readonly IvRankedCombination[] {
   const cacheKey = rankingCacheKey(pokemon, cpCap, levelCap);
   const cached = rankingCache.get(cacheKey);
@@ -163,8 +164,9 @@ export function generateIvRankingTable(
 export function analyzeIvRanking(
   pokemon: PokemonCatalogEntry,
   ivs: InventoryIvs,
+  megaLevel: MegaLevel | undefined = defaultMegaLevel(pokemon),
 ): IvRankingSummary {
-  const table = generateIvRankingTable(pokemon);
+  const table = generateIvRankingTable(pokemon, pokemon.cpCap, megaBattleLevelCap(pokemon, megaLevel));
   const combination = table.find(
     (candidate) => ivKey(candidate.ivs) === ivKey(ivs),
   );

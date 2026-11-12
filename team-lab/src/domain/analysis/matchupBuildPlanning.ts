@@ -14,6 +14,8 @@ import type {
   PokemonCatalogEntry,
 } from "@/domain/pokemon/catalog";
 import { calculateCombatPower } from "@/domain/pokemon/combatPower";
+import { defaultMegaLevel, megaBattleLevelCap, validateMegaSettings, type MegaLevel } from "@/domain/pokemon/mega";
+import { analyzeIvRanking } from "@/domain/analysis/ivRankings";
 import {
   createMetaDefaultBuild,
 } from "@/domain/simulation/teamRanker";
@@ -125,6 +127,7 @@ function movesForSelection(
       return {
         fastMoveId: profile.moves.enteredFastMoveId,
         chargedMoveIds: [...profile.moves.enteredChargedMoveIds],
+        extraChargedMoveId: profile.moves.enteredExtraChargedMoveId,
       };
     case "recommended": {
       const fastMoveId = profile.moves.recommendedFastMoveId;
@@ -134,7 +137,7 @@ function movesForSelection(
           `${profile.speciesName} does not have a complete published recommended moveset.`,
         );
       }
-      return { fastMoveId, chargedMoveIds };
+      return { fastMoveId, chargedMoveIds, extraChargedMoveId: profile.moves.recommendedExtraChargedMoveId };
     }
     case "custom":
       return selection.moveset;
@@ -159,6 +162,9 @@ function validateMoveset(
       throw new Error(`${moveId} is not a legal charged move for ${pokemon.speciesName}.`);
     }
   }
+  const issues = validateMegaSettings(pokemon, undefined, moveset.extraChargedMoveId);
+  if (issues[0]) throw new Error(issues[0]);
+  if (moveset.extraChargedMoveId && moveset.chargedMoveIds.includes(moveset.extraChargedMoveId)) throw new Error("Choose different charged moves.");
 }
 
 function validateIvs(ivs: InventoryIvs): void {
@@ -171,6 +177,8 @@ function validateIvs(ivs: InventoryIvs): void {
 
 function isSameExactBuild(left: ExactSimulationBuild, right: ExactSimulationBuild): boolean {
   return left.speciesId === right.speciesId &&
+    left.megaLevel === right.megaLevel &&
+    left.extraChargedMoveId === right.extraChargedMoveId &&
     left.speciesName === right.speciesName &&
     left.level === right.level &&
     left.cp === right.cp &&
@@ -193,15 +201,21 @@ export function createMatchupPlanBuild(input: {
   readonly sourceLevel: number;
   readonly ivSelection: MatchupPlanIvSelection;
   readonly movesSelection: MatchupPlanMovesSelection;
+  readonly megaLevel?: MegaLevel;
 }): MatchupPlanBuild {
-  const ivs = ivsForSelection(input.profile, input.ivSelection);
+  const megaLevel = input.megaLevel ?? input.profile.megaLevel ?? defaultMegaLevel(input.pokemon);
+  const megaChanged = megaLevel !== input.profile.megaLevel;
+  const profile = megaChanged ? { ...input.profile, ivRanking: analyzeIvRanking(input.pokemon, input.profile.ivs, megaLevel) } : input.profile;
+  const ivs = ivsForSelection(profile, input.ivSelection);
   validateIvs(ivs);
   const moveset = movesForSelection(input.profile, input.movesSelection);
   validateMoveset(input.pokemon, moveset);
+  const megaIssue = validateMegaSettings(input.pokemon, megaLevel, moveset.extraChargedMoveId)[0];
+  if (megaIssue) throw new Error(megaIssue);
 
   let level: number;
   let cp: number;
-  if (input.ivSelection.kind === "source") {
+  if (input.ivSelection.kind === "source" && !megaChanged) {
     const sourceBuild = serializeAnalyzedBuildForSimulation(
       input.profile,
       input.pokemon,
@@ -214,7 +228,7 @@ export function createMatchupPlanBuild(input: {
       input.pokemon,
       ivs,
       input.cpCap,
-      50,
+      megaBattleLevelCap(input.pokemon, megaLevel),
     );
     if (!fitted) {
       throw new Error(`${input.profile.speciesName} has no legal build at this IV spread.`);
@@ -233,6 +247,8 @@ export function createMatchupPlanBuild(input: {
       cp,
       ivs,
       fastMoveId: moveset.fastMoveId,
+      megaLevel,
+      extraChargedMoveId: moveset.extraChargedMoveId,
       chargedMoveIds: moveset.chargedMoveIds.length === 1
         ? [moveset.chargedMoveIds[0]!] as const
         : [moveset.chargedMoveIds[0]!, moveset.chargedMoveIds[1]!] as const,
@@ -304,6 +320,7 @@ function validatePlan(input: MatchupPlanSimulationInput): void {
     validateMoveset(pokemon, {
       fastMoveId: build.fastMoveId,
       chargedMoveIds: [...build.chargedMoveIds],
+      extraChargedMoveId: build.extraChargedMoveId,
     });
     if (build.isShadow !== pokemon.isShadow) {
       throw new Error(`${build.speciesName} Shadow state does not match the active catalog.`);
@@ -332,6 +349,7 @@ function validatePlan(input: MatchupPlanSimulationInput): void {
     validateMoveset(pokemon, {
       fastMoveId: threat.build.fastMoveId,
       chargedMoveIds: [...threat.build.chargedMoveIds],
+      extraChargedMoveId: threat.build.extraChargedMoveId,
     });
     if (threat.build.isShadow !== pokemon.isShadow) {
       throw new Error(`${threat.speciesName} Shadow state does not match the active catalog.`);

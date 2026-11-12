@@ -1,5 +1,6 @@
 import { LeagueName } from "@/features/leagues/LeagueSelector";
 import { useLeague } from "@/features/leagues/leagueStore";
+import { formatInventoryMegaBuild } from "@/utils/formatters";
 import { projectInventoryForCatalog } from "@/domain/inventory/leagueEligibility";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Save } from "lucide-react";
@@ -158,7 +159,7 @@ function SavedTeamForm({
       record.buildStatus
     } · ${record.currentBuild.ivProfile.ivs.attack}/${
       record.currentBuild.ivProfile.ivs.defense
-    }/${record.currentBuild.ivProfile.ivs.hp}`;
+    }/${record.currentBuild.ivProfile.ivs.hp}${formatInventoryMegaBuild(selected) ? ` · ${formatInventoryMegaBuild(selected)}` : ""}`;
   }
 
   const inventoryPickerOptions: InventoryPokemonOption[] = inventoryOptions.map(

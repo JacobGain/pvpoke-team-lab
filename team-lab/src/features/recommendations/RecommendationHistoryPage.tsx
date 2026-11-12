@@ -1,3 +1,4 @@
+import { formatMegaBuild } from "@/utils/formatters";
 import { useRef, useState } from "react";
 import { Link } from "react-router";
 
@@ -112,6 +113,7 @@ function HistoryResultCard({
             <p>
               {formatMoveName(member.exactBuild.fastMoveId)} ·{" "}
               {formatMoveList(member.exactBuild.chargedMoveIds)}
+              {member.exactBuild.megaLevel || member.exactBuild.extraChargedMoveId ? <small className="mega-build-summary">{formatMegaBuild(member.exactBuild)}</small> : null}
             </p>
             <small>{formatIdentifier(member.readiness)}</small>
           </section>

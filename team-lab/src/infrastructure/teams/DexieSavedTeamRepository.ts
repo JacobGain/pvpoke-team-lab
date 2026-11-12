@@ -11,6 +11,7 @@ import {
 import type { TeamLabDatabase } from "@/infrastructure/database/TeamLabDatabase";
 import { inventoryPokemonSchema, type InventoryPokemon } from "@/domain/inventory/schemas";
 import { getSavedTeamInventoryIds } from "@/domain/teams/schemas";
+import { savedTeamBuildFingerprint } from "@/domain/teams/freshness";
 
 function parseStoredTeam(value: unknown): SavedTeam {
   const result = savedTeamSchema.safeParse(value);
@@ -102,7 +103,8 @@ export class DexieSavedTeamRepository implements SavedTeamRepository {
         const stored = await this.database.inventory.get(id);
         if (!expected || !stored || JSON.stringify(inventoryPokemonSchema.parse(stored)) !== JSON.stringify(inventoryPokemonSchema.parse(expected))) return false;
       }
-      await this.update({ ...current, lastAnalyzedDataVersion: dataVersion, lastAnalyzedUpstreamCommit: upstreamCommit, updatedAt: new Date().toISOString() });
+      await this.update({ ...current, lastAnalyzedDataVersion: dataVersion, lastAnalyzedUpstreamCommit: upstreamCommit,
+        lastAnalyzedBuildFingerprint: savedTeamBuildFingerprint(team, inventory), updatedAt: new Date().toISOString() });
       return true;
     });
   }

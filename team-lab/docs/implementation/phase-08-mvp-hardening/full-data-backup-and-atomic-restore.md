@@ -7,7 +7,8 @@
 
 ## Summary
 
-The current backup envelope is version three. It protects inventory, saved
+The current backup envelope is version four. Version-four migrations and Mega
+build contracts are documented in [phase 11](../phase-11-super-mega/build-contracts-and-migration.md). It protects inventory, saved
 teams, and recommendation history in one portable artifact. Export/restore
 validates inventory and team references against the current catalog; archived
 history is structurally validated without requiring its historical species and
@@ -15,8 +16,8 @@ moves to match today’s catalog.
 
 Merge and replace operate on all three Dexie tables in one transaction. A
 failed inspection or final merged-state validation writes nothing. The backup
-normalizer accepts version-one inventory-only and version-two inventory/team
-backups with empty incoming history. Merge preserves unrelated local teams and
+normalizer accepts version-one inventory-only, version-two inventory/team, and
+version-three inventory/team/history backups. Missing legacy history is empty. Merge preserves unrelated local teams and
 history when valid; Replace removes local collections absent from the incoming
 legacy backup, as disclosed in the UI.
 
@@ -242,7 +243,7 @@ The eight focused tests cover:
 
 ## Safe extension points
 
-- Add a schema-version-three `settings` member when persisted settings exist.
+- Add a separately versioned `settings` member when persisted settings exist.
 - Add explicit migrations before record inspection.
 - Add a pre-restore diff view using the existing collection result model.
 - Add a downloadable validation report.

@@ -1,11 +1,13 @@
 import type { InventoryIvs } from "@/domain/inventory/schemas";
+import { defaultMegaLevel, megaBattleLevelCap, type MegaLevel } from "./mega";
 import type {
   CatalogBaseStats,
   PokemonCatalogEntry,
 } from "@/domain/pokemon/catalog";
 
 // Characterized from src/js/pokemon/Pokemon.js. Index 0 is level 1 and each
-// subsequent value advances one half-level through level 51.
+// subsequent value advances one half-level through level 55. The table is
+// pinned to the bundled engine; legal level limits are checked separately.
 export const CP_MULTIPLIERS = Object.freeze([
   0.0939999967813491, 0.135137430784308, 0.166397869586944,
   0.192650914456886, 0.215732470154762, 0.236572655026622,
@@ -93,8 +95,10 @@ export function inferCombatPowerLevel(
   pokemon: PokemonCatalogEntry,
   ivs: InventoryIvs,
   combatPower: number,
+  megaLevel: MegaLevel | undefined = defaultMegaLevel(pokemon),
 ): CombatPowerInference {
-  const maximumLevel = Math.min(pokemon.levelCap + 1, 51);
+  const battleCap = megaBattleLevelCap(pokemon, megaLevel);
+  const maximumLevel = megaLevel === 4 && pokemon.tags.includes("mega") ? battleCap : Math.min(battleCap + 1, 51);
   const matches: CombatPowerMatch[] = [];
 
   for (
@@ -112,7 +116,7 @@ export function inferCombatPowerLevel(
       matches.push({
         level,
         combatPower: calculatedCombatPower,
-        isBestBuddy: level > pokemon.levelCap,
+        isBestBuddy: level > battleCap,
       });
     }
   }

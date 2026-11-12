@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import type { InventoryPokemon } from "@/domain/inventory/schemas";
+import { megaLevelSchema, type InventoryPokemon } from "@/domain/inventory/schemas";
 import { LEAGUE_IDS } from "@/domain/leagues";
 import { projectInventoryForCatalog } from "@/domain/inventory/leagueEligibility";
 import type { PokemonCatalog } from "@/domain/pokemon/catalog";
@@ -23,6 +23,8 @@ const buildRequirementSchema = z.object({
   code: z.enum([
     "evolve",
     "mega-evolve",
+    "change-mega-level",
+    "change-extra-charged-move",
     "power-up",
     "change-fast-move",
     "change-charged-move",
@@ -34,6 +36,8 @@ const buildRequirementSchema = z.object({
 });
 
 const exactBuildSchema = z.object({
+  megaLevel: megaLevelSchema.optional(),
+  extraChargedMoveId: z.string().min(1).optional(),
   speciesId: z.string().min(1),
   speciesName: z.string().min(1),
   level: z.number().finite(),

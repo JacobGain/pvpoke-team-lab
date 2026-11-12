@@ -238,7 +238,7 @@ export function InventoryCsvImportPage() {
             </label>
           ) : null}
           <p className="csv-import-duplicate-note">
-            Duplicate matching compares species, CP, IVs, and moves. It cannot
+            Duplicate matching compares species, Mega form and level, CP, IVs, and all attack slots. It cannot
             tell whether identical build data belongs to the same individual
             Pokémon. Possible duplicates are skipped unless you include them.
           </p>

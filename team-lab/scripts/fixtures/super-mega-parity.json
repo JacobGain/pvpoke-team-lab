@@ -1,0 +1,2079 @@
+{
+  "fixtureVersion": 1,
+  "provenance": {
+    "upstreamCommit": "a9dfd500421cacf2842d54d8adcb15830c1eef2b",
+    "scripts": [
+      {
+        "path": "js/battle/DamageCalculator.js",
+        "sha256": "557b9345367a272e7822b47d346b67ae05d4124050e9d3876fb2446246915f31"
+      },
+      {
+        "path": "js/battle/actions/ActionLogic.js",
+        "sha256": "9a5a7bb28a01c115e18e5b904646f5fb18bf1b17c2bf8757d2d90144ef7d0e30"
+      },
+      {
+        "path": "js/battle/timeline/TimelineEvent.js",
+        "sha256": "a7793ddbc398769cfb6d8a0f539aa96f597eac3127f5cb594cf94eab7bf70f37"
+      },
+      {
+        "path": "js/battle/timeline/TimelineAction.js",
+        "sha256": "00b77e8e046b74d52d8c385a29ea529bbedfbea0edd7ff64cf49719d2e97cba2"
+      },
+      {
+        "path": "js/training/DecisionOption.js",
+        "sha256": "1b399fd0e58a81d2f2c763e007cec3c3f13572c13cf76e87d0e1785eb0a68571"
+      },
+      {
+        "path": "js/battle/Battle.js",
+        "sha256": "65765dc0214710f6587b4e5d5a07a7bf8d2639090be6a5a59270650d6d5225b4"
+      },
+      {
+        "path": "js/GameMaster.js",
+        "sha256": "e7b1292cdf7ae234a284ce5770802bae3de0bd6d888cf131440e62067b90a4b0"
+      },
+      {
+        "path": "js/pokemon/Pokemon.js",
+        "sha256": "10893308f8e8b408d396d19e541d7482c9657dd9c07fd6c8c9bf8f783669c47d"
+      },
+      {
+        "path": "js/battle/rankers/TeamRanker.js",
+        "sha256": "e5e7b41014a1db8e46bebd0ab52f406670904f6d0c5495a11229dfed99eac42e"
+      }
+    ],
+    "gameMasterSha256": "15c0b4698744654a5ca86ad2a997ad087d0aeb5215e97a9a07b52aade5b53f5e"
+  },
+  "fixtures": [
+    {
+      "id": "sableye_mega-1500-mega-1",
+      "request": {
+        "format": {
+          "id": "mega-great-league",
+          "cpCap": 1500,
+          "cup": "mega",
+          "levelCap": 50
+        },
+        "combatants": [
+          {
+            "build": {
+              "speciesId": "sableye_mega",
+              "speciesName": "Sableye (Mega)",
+              "level": 29,
+              "cp": 1496,
+              "ivs": {
+                "attack": 4,
+                "defense": 13,
+                "hp": 15
+              },
+              "megaLevel": 1,
+              "fastMoveId": "SHADOW_CLAW",
+              "chargedMoveIds": [
+                "FOUL_PLAY",
+                "DAZZLING_GLEAM"
+              ],
+              "extraChargedMoveId": "NIGHT_SHADE_PLUS",
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          },
+          {
+            "build": {
+              "speciesId": "azumarill",
+              "speciesName": "Azumarill",
+              "level": 43,
+              "cp": 1499,
+              "ivs": {
+                "attack": 4,
+                "defense": 15,
+                "hp": 13
+              },
+              "fastMoveId": "BUBBLE",
+              "chargedMoveIds": [
+                "ICE_BEAM",
+                "PLAY_ROUGH"
+              ],
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          }
+        ],
+        "dataVersion": "2026-11-09 18:40:51"
+      },
+      "expected": {
+        "winner": 1,
+        "turnsToWin": [
+          39,
+          0
+        ],
+        "combatants": [
+          {
+            "index": 0,
+            "speciesId": "sableye_mega",
+            "battleRating": 298,
+            "remainingHp": 0,
+            "maximumHp": 109,
+            "remainingEnergy": 18,
+            "remainingShields": 0
+          },
+          {
+            "index": 1,
+            "speciesId": "azumarill",
+            "battleRating": 701,
+            "remainingHp": 77,
+            "maximumHp": 191,
+            "remainingEnergy": 6,
+            "remainingShields": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "sableye_mega-1500-mega-2",
+      "request": {
+        "format": {
+          "id": "mega-great-league",
+          "cpCap": 1500,
+          "cup": "mega",
+          "levelCap": 50
+        },
+        "combatants": [
+          {
+            "build": {
+              "speciesId": "sableye_mega",
+              "speciesName": "Sableye (Mega)",
+              "level": 29,
+              "cp": 1496,
+              "ivs": {
+                "attack": 4,
+                "defense": 13,
+                "hp": 15
+              },
+              "megaLevel": 2,
+              "fastMoveId": "SHADOW_CLAW",
+              "chargedMoveIds": [
+                "FOUL_PLAY",
+                "DAZZLING_GLEAM"
+              ],
+              "extraChargedMoveId": "NIGHT_SHADE_PLUS",
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          },
+          {
+            "build": {
+              "speciesId": "azumarill",
+              "speciesName": "Azumarill",
+              "level": 43,
+              "cp": 1499,
+              "ivs": {
+                "attack": 4,
+                "defense": 15,
+                "hp": 13
+              },
+              "fastMoveId": "BUBBLE",
+              "chargedMoveIds": [
+                "ICE_BEAM",
+                "PLAY_ROUGH"
+              ],
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          }
+        ],
+        "dataVersion": "2026-11-09 18:40:51"
+      },
+      "expected": {
+        "winner": 1,
+        "turnsToWin": [
+          39,
+          0
+        ],
+        "combatants": [
+          {
+            "index": 0,
+            "speciesId": "sableye_mega",
+            "battleRating": 274,
+            "remainingHp": 0,
+            "maximumHp": 109,
+            "remainingEnergy": 38,
+            "remainingShields": 0
+          },
+          {
+            "index": 1,
+            "speciesId": "azumarill",
+            "battleRating": 725,
+            "remainingHp": 86,
+            "maximumHp": 191,
+            "remainingEnergy": 6,
+            "remainingShields": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "sableye_mega-1500-mega-3",
+      "request": {
+        "format": {
+          "id": "mega-great-league",
+          "cpCap": 1500,
+          "cup": "mega",
+          "levelCap": 50
+        },
+        "combatants": [
+          {
+            "build": {
+              "speciesId": "sableye_mega",
+              "speciesName": "Sableye (Mega)",
+              "level": 29,
+              "cp": 1496,
+              "ivs": {
+                "attack": 4,
+                "defense": 13,
+                "hp": 15
+              },
+              "megaLevel": 3,
+              "fastMoveId": "SHADOW_CLAW",
+              "chargedMoveIds": [
+                "FOUL_PLAY",
+                "DAZZLING_GLEAM"
+              ],
+              "extraChargedMoveId": "NIGHT_SHADE_PLUS",
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          },
+          {
+            "build": {
+              "speciesId": "azumarill",
+              "speciesName": "Azumarill",
+              "level": 43,
+              "cp": 1499,
+              "ivs": {
+                "attack": 4,
+                "defense": 15,
+                "hp": 13
+              },
+              "fastMoveId": "BUBBLE",
+              "chargedMoveIds": [
+                "ICE_BEAM",
+                "PLAY_ROUGH"
+              ],
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          }
+        ],
+        "dataVersion": "2026-11-09 18:40:51"
+      },
+      "expected": {
+        "winner": 1,
+        "turnsToWin": [
+          39,
+          0
+        ],
+        "combatants": [
+          {
+            "index": 0,
+            "speciesId": "sableye_mega",
+            "battleRating": 282,
+            "remainingHp": 0,
+            "maximumHp": 109,
+            "remainingEnergy": 38,
+            "remainingShields": 0
+          },
+          {
+            "index": 1,
+            "speciesId": "azumarill",
+            "battleRating": 717,
+            "remainingHp": 83,
+            "maximumHp": 191,
+            "remainingEnergy": 6,
+            "remainingShields": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "sableye_mega-1500-mega-4",
+      "request": {
+        "format": {
+          "id": "mega-great-league",
+          "cpCap": 1500,
+          "cup": "mega",
+          "levelCap": 50
+        },
+        "combatants": [
+          {
+            "build": {
+              "speciesId": "sableye_mega",
+              "speciesName": "Sableye (Mega)",
+              "level": 29,
+              "cp": 1496,
+              "ivs": {
+                "attack": 4,
+                "defense": 13,
+                "hp": 15
+              },
+              "megaLevel": 4,
+              "fastMoveId": "SHADOW_CLAW",
+              "chargedMoveIds": [
+                "FOUL_PLAY",
+                "DAZZLING_GLEAM"
+              ],
+              "extraChargedMoveId": "NIGHT_SHADE_PLUS",
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          },
+          {
+            "build": {
+              "speciesId": "azumarill",
+              "speciesName": "Azumarill",
+              "level": 43,
+              "cp": 1499,
+              "ivs": {
+                "attack": 4,
+                "defense": 15,
+                "hp": 13
+              },
+              "fastMoveId": "BUBBLE",
+              "chargedMoveIds": [
+                "ICE_BEAM",
+                "PLAY_ROUGH"
+              ],
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          }
+        ],
+        "dataVersion": "2026-11-09 18:40:51"
+      },
+      "expected": {
+        "winner": 1,
+        "turnsToWin": [
+          39,
+          0
+        ],
+        "combatants": [
+          {
+            "index": 0,
+            "speciesId": "sableye_mega",
+            "battleRating": 293,
+            "remainingHp": 0,
+            "maximumHp": 109,
+            "remainingEnergy": 38,
+            "remainingShields": 0
+          },
+          {
+            "index": 1,
+            "speciesId": "azumarill",
+            "battleRating": 706,
+            "remainingHp": 79,
+            "maximumHp": 191,
+            "remainingEnergy": 6,
+            "remainingShields": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "chandelure_mega-1500-mega-1",
+      "request": {
+        "format": {
+          "id": "mega-great-league",
+          "cpCap": 1500,
+          "cup": "mega",
+          "levelCap": 50
+        },
+        "combatants": [
+          {
+            "build": {
+              "speciesId": "chandelure_mega",
+              "speciesName": "Chandelure (Mega)",
+              "level": 12.5,
+              "cp": 1499,
+              "ivs": {
+                "attack": 4,
+                "defense": 7,
+                "hp": 13
+              },
+              "megaLevel": 1,
+              "fastMoveId": "INCINERATE",
+              "chargedMoveIds": [
+                "FLAME_CHARGE",
+                "ENERGY_BALL"
+              ],
+              "extraChargedMoveId": "OMINOUS_WIND_PLUS",
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          },
+          {
+            "build": {
+              "speciesId": "azumarill",
+              "speciesName": "Azumarill",
+              "level": 43,
+              "cp": 1499,
+              "ivs": {
+                "attack": 4,
+                "defense": 15,
+                "hp": 13
+              },
+              "fastMoveId": "BUBBLE",
+              "chargedMoveIds": [
+                "ICE_BEAM",
+                "PLAY_ROUGH"
+              ],
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          }
+        ],
+        "dataVersion": "2026-11-09 18:40:51"
+      },
+      "expected": {
+        "winner": 1,
+        "turnsToWin": [
+          28,
+          0
+        ],
+        "combatants": [
+          {
+            "index": 0,
+            "speciesId": "chandelure_mega",
+            "battleRating": 159,
+            "remainingHp": 0,
+            "maximumHp": 79,
+            "remainingEnergy": 60,
+            "remainingShields": 1
+          },
+          {
+            "index": 1,
+            "speciesId": "azumarill",
+            "battleRating": 840,
+            "remainingHp": 130,
+            "maximumHp": 191,
+            "remainingEnergy": 99,
+            "remainingShields": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "chandelure_mega-1500-mega-2",
+      "request": {
+        "format": {
+          "id": "mega-great-league",
+          "cpCap": 1500,
+          "cup": "mega",
+          "levelCap": 50
+        },
+        "combatants": [
+          {
+            "build": {
+              "speciesId": "chandelure_mega",
+              "speciesName": "Chandelure (Mega)",
+              "level": 12.5,
+              "cp": 1499,
+              "ivs": {
+                "attack": 4,
+                "defense": 7,
+                "hp": 13
+              },
+              "megaLevel": 2,
+              "fastMoveId": "INCINERATE",
+              "chargedMoveIds": [
+                "FLAME_CHARGE",
+                "ENERGY_BALL"
+              ],
+              "extraChargedMoveId": "OMINOUS_WIND_PLUS",
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          },
+          {
+            "build": {
+              "speciesId": "azumarill",
+              "speciesName": "Azumarill",
+              "level": 43,
+              "cp": 1499,
+              "ivs": {
+                "attack": 4,
+                "defense": 15,
+                "hp": 13
+              },
+              "fastMoveId": "BUBBLE",
+              "chargedMoveIds": [
+                "ICE_BEAM",
+                "PLAY_ROUGH"
+              ],
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          }
+        ],
+        "dataVersion": "2026-11-09 18:40:51"
+      },
+      "expected": {
+        "winner": 1,
+        "turnsToWin": [
+          29,
+          0
+        ],
+        "combatants": [
+          {
+            "index": 0,
+            "speciesId": "chandelure_mega",
+            "battleRating": 421,
+            "remainingHp": 0,
+            "maximumHp": 79,
+            "remainingEnergy": 10,
+            "remainingShields": 1
+          },
+          {
+            "index": 1,
+            "speciesId": "azumarill",
+            "battleRating": 578,
+            "remainingHp": 30,
+            "maximumHp": 191,
+            "remainingEnergy": 99,
+            "remainingShields": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "chandelure_mega-1500-mega-3",
+      "request": {
+        "format": {
+          "id": "mega-great-league",
+          "cpCap": 1500,
+          "cup": "mega",
+          "levelCap": 50
+        },
+        "combatants": [
+          {
+            "build": {
+              "speciesId": "chandelure_mega",
+              "speciesName": "Chandelure (Mega)",
+              "level": 12.5,
+              "cp": 1499,
+              "ivs": {
+                "attack": 4,
+                "defense": 7,
+                "hp": 13
+              },
+              "megaLevel": 3,
+              "fastMoveId": "INCINERATE",
+              "chargedMoveIds": [
+                "FLAME_CHARGE",
+                "ENERGY_BALL"
+              ],
+              "extraChargedMoveId": "OMINOUS_WIND_PLUS",
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          },
+          {
+            "build": {
+              "speciesId": "azumarill",
+              "speciesName": "Azumarill",
+              "level": 43,
+              "cp": 1499,
+              "ivs": {
+                "attack": 4,
+                "defense": 15,
+                "hp": 13
+              },
+              "fastMoveId": "BUBBLE",
+              "chargedMoveIds": [
+                "ICE_BEAM",
+                "PLAY_ROUGH"
+              ],
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          }
+        ],
+        "dataVersion": "2026-11-09 18:40:51"
+      },
+      "expected": {
+        "winner": 1,
+        "turnsToWin": [
+          29,
+          0
+        ],
+        "combatants": [
+          {
+            "index": 0,
+            "speciesId": "chandelure_mega",
+            "battleRating": 421,
+            "remainingHp": 0,
+            "maximumHp": 79,
+            "remainingEnergy": 10,
+            "remainingShields": 1
+          },
+          {
+            "index": 1,
+            "speciesId": "azumarill",
+            "battleRating": 578,
+            "remainingHp": 30,
+            "maximumHp": 191,
+            "remainingEnergy": 99,
+            "remainingShields": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "chandelure_mega-1500-mega-4",
+      "request": {
+        "format": {
+          "id": "mega-great-league",
+          "cpCap": 1500,
+          "cup": "mega",
+          "levelCap": 50
+        },
+        "combatants": [
+          {
+            "build": {
+              "speciesId": "chandelure_mega",
+              "speciesName": "Chandelure (Mega)",
+              "level": 12.5,
+              "cp": 1499,
+              "ivs": {
+                "attack": 4,
+                "defense": 7,
+                "hp": 13
+              },
+              "megaLevel": 4,
+              "fastMoveId": "INCINERATE",
+              "chargedMoveIds": [
+                "FLAME_CHARGE",
+                "ENERGY_BALL"
+              ],
+              "extraChargedMoveId": "OMINOUS_WIND_PLUS",
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          },
+          {
+            "build": {
+              "speciesId": "azumarill",
+              "speciesName": "Azumarill",
+              "level": 43,
+              "cp": 1499,
+              "ivs": {
+                "attack": 4,
+                "defense": 15,
+                "hp": 13
+              },
+              "fastMoveId": "BUBBLE",
+              "chargedMoveIds": [
+                "ICE_BEAM",
+                "PLAY_ROUGH"
+              ],
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          }
+        ],
+        "dataVersion": "2026-11-09 18:40:51"
+      },
+      "expected": {
+        "winner": 1,
+        "turnsToWin": [
+          29,
+          0
+        ],
+        "combatants": [
+          {
+            "index": 0,
+            "speciesId": "chandelure_mega",
+            "battleRating": 421,
+            "remainingHp": 0,
+            "maximumHp": 79,
+            "remainingEnergy": 10,
+            "remainingShields": 1
+          },
+          {
+            "index": 1,
+            "speciesId": "azumarill",
+            "battleRating": 578,
+            "remainingHp": 30,
+            "maximumHp": 191,
+            "remainingEnergy": 99,
+            "remainingShields": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "sableye_mega-2500-mega-1",
+      "request": {
+        "format": {
+          "id": "mega-ultra-league",
+          "cpCap": 2500,
+          "cup": "mega",
+          "levelCap": 50
+        },
+        "combatants": [
+          {
+            "build": {
+              "speciesId": "sableye_mega",
+              "speciesName": "Sableye (Mega)",
+              "level": 50,
+              "cp": 2196,
+              "ivs": {
+                "attack": 15,
+                "defense": 15,
+                "hp": 15
+              },
+              "megaLevel": 1,
+              "fastMoveId": "SHADOW_CLAW",
+              "chargedMoveIds": [
+                "FOUL_PLAY",
+                "SHADOW_SNEAK"
+              ],
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          },
+          {
+            "build": {
+              "speciesId": "azumarill",
+              "speciesName": "Azumarill",
+              "level": 50,
+              "cp": 1795,
+              "ivs": {
+                "attack": 15,
+                "defense": 15,
+                "hp": 15
+              },
+              "fastMoveId": "BUBBLE",
+              "chargedMoveIds": [
+                "ICE_BEAM",
+                "PLAY_ROUGH"
+              ],
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          }
+        ],
+        "dataVersion": "2026-11-09 18:40:51"
+      },
+      "expected": {
+        "winner": 0,
+        "turnsToWin": [
+          0,
+          43
+        ],
+        "combatants": [
+          {
+            "index": 0,
+            "speciesId": "sableye_mega",
+            "battleRating": 578,
+            "remainingHp": 20,
+            "maximumHp": 127,
+            "remainingEnergy": 4,
+            "remainingShields": 0
+          },
+          {
+            "index": 1,
+            "speciesId": "azumarill",
+            "battleRating": 421,
+            "remainingHp": 0,
+            "maximumHp": 201,
+            "remainingEnergy": 1,
+            "remainingShields": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "sableye_mega-2500-mega-2",
+      "request": {
+        "format": {
+          "id": "mega-ultra-league",
+          "cpCap": 2500,
+          "cup": "mega",
+          "levelCap": 50
+        },
+        "combatants": [
+          {
+            "build": {
+              "speciesId": "sableye_mega",
+              "speciesName": "Sableye (Mega)",
+              "level": 50,
+              "cp": 2196,
+              "ivs": {
+                "attack": 15,
+                "defense": 15,
+                "hp": 15
+              },
+              "megaLevel": 2,
+              "fastMoveId": "SHADOW_CLAW",
+              "chargedMoveIds": [
+                "FOUL_PLAY",
+                "SHADOW_SNEAK"
+              ],
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          },
+          {
+            "build": {
+              "speciesId": "azumarill",
+              "speciesName": "Azumarill",
+              "level": 50,
+              "cp": 1795,
+              "ivs": {
+                "attack": 15,
+                "defense": 15,
+                "hp": 15
+              },
+              "fastMoveId": "BUBBLE",
+              "chargedMoveIds": [
+                "ICE_BEAM",
+                "PLAY_ROUGH"
+              ],
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          }
+        ],
+        "dataVersion": "2026-11-09 18:40:51"
+      },
+      "expected": {
+        "winner": 0,
+        "turnsToWin": [
+          0,
+          43
+        ],
+        "combatants": [
+          {
+            "index": 0,
+            "speciesId": "sableye_mega",
+            "battleRating": 578,
+            "remainingHp": 20,
+            "maximumHp": 127,
+            "remainingEnergy": 4,
+            "remainingShields": 0
+          },
+          {
+            "index": 1,
+            "speciesId": "azumarill",
+            "battleRating": 421,
+            "remainingHp": 0,
+            "maximumHp": 201,
+            "remainingEnergy": 1,
+            "remainingShields": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "sableye_mega-2500-mega-3",
+      "request": {
+        "format": {
+          "id": "mega-ultra-league",
+          "cpCap": 2500,
+          "cup": "mega",
+          "levelCap": 50
+        },
+        "combatants": [
+          {
+            "build": {
+              "speciesId": "sableye_mega",
+              "speciesName": "Sableye (Mega)",
+              "level": 50,
+              "cp": 2196,
+              "ivs": {
+                "attack": 15,
+                "defense": 15,
+                "hp": 15
+              },
+              "megaLevel": 3,
+              "fastMoveId": "SHADOW_CLAW",
+              "chargedMoveIds": [
+                "FOUL_PLAY",
+                "SHADOW_SNEAK"
+              ],
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          },
+          {
+            "build": {
+              "speciesId": "azumarill",
+              "speciesName": "Azumarill",
+              "level": 50,
+              "cp": 1795,
+              "ivs": {
+                "attack": 15,
+                "defense": 15,
+                "hp": 15
+              },
+              "fastMoveId": "BUBBLE",
+              "chargedMoveIds": [
+                "ICE_BEAM",
+                "PLAY_ROUGH"
+              ],
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          }
+        ],
+        "dataVersion": "2026-11-09 18:40:51"
+      },
+      "expected": {
+        "winner": 0,
+        "turnsToWin": [
+          0,
+          43
+        ],
+        "combatants": [
+          {
+            "index": 0,
+            "speciesId": "sableye_mega",
+            "battleRating": 578,
+            "remainingHp": 20,
+            "maximumHp": 127,
+            "remainingEnergy": 4,
+            "remainingShields": 0
+          },
+          {
+            "index": 1,
+            "speciesId": "azumarill",
+            "battleRating": 421,
+            "remainingHp": 0,
+            "maximumHp": 201,
+            "remainingEnergy": 1,
+            "remainingShields": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "sableye_mega-2500-mega-4",
+      "request": {
+        "format": {
+          "id": "mega-ultra-league",
+          "cpCap": 2500,
+          "cup": "mega",
+          "levelCap": 50
+        },
+        "combatants": [
+          {
+            "build": {
+              "speciesId": "sableye_mega",
+              "speciesName": "Sableye (Mega)",
+              "level": 50,
+              "cp": 2196,
+              "ivs": {
+                "attack": 15,
+                "defense": 15,
+                "hp": 15
+              },
+              "megaLevel": 4,
+              "fastMoveId": "SHADOW_CLAW",
+              "chargedMoveIds": [
+                "FOUL_PLAY",
+                "SHADOW_SNEAK"
+              ],
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          },
+          {
+            "build": {
+              "speciesId": "azumarill",
+              "speciesName": "Azumarill",
+              "level": 50,
+              "cp": 1795,
+              "ivs": {
+                "attack": 15,
+                "defense": 15,
+                "hp": 15
+              },
+              "fastMoveId": "BUBBLE",
+              "chargedMoveIds": [
+                "ICE_BEAM",
+                "PLAY_ROUGH"
+              ],
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          }
+        ],
+        "dataVersion": "2026-11-09 18:40:51"
+      },
+      "expected": {
+        "winner": 0,
+        "turnsToWin": [
+          0,
+          43
+        ],
+        "combatants": [
+          {
+            "index": 0,
+            "speciesId": "sableye_mega",
+            "battleRating": 578,
+            "remainingHp": 20,
+            "maximumHp": 127,
+            "remainingEnergy": 4,
+            "remainingShields": 0
+          },
+          {
+            "index": 1,
+            "speciesId": "azumarill",
+            "battleRating": 421,
+            "remainingHp": 0,
+            "maximumHp": 201,
+            "remainingEnergy": 1,
+            "remainingShields": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "chandelure_mega-2500-mega-1",
+      "request": {
+        "format": {
+          "id": "mega-ultra-league",
+          "cpCap": 2500,
+          "cup": "mega",
+          "levelCap": 50
+        },
+        "combatants": [
+          {
+            "build": {
+              "speciesId": "chandelure_mega",
+              "speciesName": "Chandelure (Mega)",
+              "level": 20.5,
+              "cp": 2497,
+              "ivs": {
+                "attack": 4,
+                "defense": 13,
+                "hp": 14
+              },
+              "megaLevel": 1,
+              "fastMoveId": "INCINERATE",
+              "chargedMoveIds": [
+                "FLAME_CHARGE",
+                "ENERGY_BALL"
+              ],
+              "extraChargedMoveId": "OMINOUS_WIND_PLUS",
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          },
+          {
+            "build": {
+              "speciesId": "azumarill",
+              "speciesName": "Azumarill",
+              "level": 50,
+              "cp": 1795,
+              "ivs": {
+                "attack": 15,
+                "defense": 15,
+                "hp": 15
+              },
+              "fastMoveId": "BUBBLE",
+              "chargedMoveIds": [
+                "ICE_BEAM",
+                "PLAY_ROUGH"
+              ],
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          }
+        ],
+        "dataVersion": "2026-11-09 18:40:51"
+      },
+      "expected": {
+        "winner": 0,
+        "turnsToWin": [
+          0,
+          34
+        ],
+        "combatants": [
+          {
+            "index": 0,
+            "speciesId": "chandelure_mega",
+            "battleRating": 642,
+            "remainingHp": 29,
+            "maximumHp": 102,
+            "remainingEnergy": 30,
+            "remainingShields": 0
+          },
+          {
+            "index": 1,
+            "speciesId": "azumarill",
+            "battleRating": 357,
+            "remainingHp": 0,
+            "maximumHp": 201,
+            "remainingEnergy": 44,
+            "remainingShields": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "chandelure_mega-2500-mega-2",
+      "request": {
+        "format": {
+          "id": "mega-ultra-league",
+          "cpCap": 2500,
+          "cup": "mega",
+          "levelCap": 50
+        },
+        "combatants": [
+          {
+            "build": {
+              "speciesId": "chandelure_mega",
+              "speciesName": "Chandelure (Mega)",
+              "level": 20.5,
+              "cp": 2497,
+              "ivs": {
+                "attack": 4,
+                "defense": 13,
+                "hp": 14
+              },
+              "megaLevel": 2,
+              "fastMoveId": "INCINERATE",
+              "chargedMoveIds": [
+                "FLAME_CHARGE",
+                "ENERGY_BALL"
+              ],
+              "extraChargedMoveId": "OMINOUS_WIND_PLUS",
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          },
+          {
+            "build": {
+              "speciesId": "azumarill",
+              "speciesName": "Azumarill",
+              "level": 50,
+              "cp": 1795,
+              "ivs": {
+                "attack": 15,
+                "defense": 15,
+                "hp": 15
+              },
+              "fastMoveId": "BUBBLE",
+              "chargedMoveIds": [
+                "ICE_BEAM",
+                "PLAY_ROUGH"
+              ],
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          }
+        ],
+        "dataVersion": "2026-11-09 18:40:51"
+      },
+      "expected": {
+        "winner": 0,
+        "turnsToWin": [
+          0,
+          36
+        ],
+        "combatants": [
+          {
+            "index": 0,
+            "speciesId": "chandelure_mega",
+            "battleRating": 602,
+            "remainingHp": 21,
+            "maximumHp": 102,
+            "remainingEnergy": 0,
+            "remainingShields": 0
+          },
+          {
+            "index": 1,
+            "speciesId": "azumarill",
+            "battleRating": 397,
+            "remainingHp": 0,
+            "maximumHp": 201,
+            "remainingEnergy": 55,
+            "remainingShields": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "chandelure_mega-2500-mega-3",
+      "request": {
+        "format": {
+          "id": "mega-ultra-league",
+          "cpCap": 2500,
+          "cup": "mega",
+          "levelCap": 50
+        },
+        "combatants": [
+          {
+            "build": {
+              "speciesId": "chandelure_mega",
+              "speciesName": "Chandelure (Mega)",
+              "level": 20.5,
+              "cp": 2497,
+              "ivs": {
+                "attack": 4,
+                "defense": 13,
+                "hp": 14
+              },
+              "megaLevel": 3,
+              "fastMoveId": "INCINERATE",
+              "chargedMoveIds": [
+                "FLAME_CHARGE",
+                "ENERGY_BALL"
+              ],
+              "extraChargedMoveId": "OMINOUS_WIND_PLUS",
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          },
+          {
+            "build": {
+              "speciesId": "azumarill",
+              "speciesName": "Azumarill",
+              "level": 50,
+              "cp": 1795,
+              "ivs": {
+                "attack": 15,
+                "defense": 15,
+                "hp": 15
+              },
+              "fastMoveId": "BUBBLE",
+              "chargedMoveIds": [
+                "ICE_BEAM",
+                "PLAY_ROUGH"
+              ],
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          }
+        ],
+        "dataVersion": "2026-11-09 18:40:51"
+      },
+      "expected": {
+        "winner": 0,
+        "turnsToWin": [
+          0,
+          36
+        ],
+        "combatants": [
+          {
+            "index": 0,
+            "speciesId": "chandelure_mega",
+            "battleRating": 602,
+            "remainingHp": 21,
+            "maximumHp": 102,
+            "remainingEnergy": 0,
+            "remainingShields": 0
+          },
+          {
+            "index": 1,
+            "speciesId": "azumarill",
+            "battleRating": 397,
+            "remainingHp": 0,
+            "maximumHp": 201,
+            "remainingEnergy": 55,
+            "remainingShields": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "chandelure_mega-2500-mega-4",
+      "request": {
+        "format": {
+          "id": "mega-ultra-league",
+          "cpCap": 2500,
+          "cup": "mega",
+          "levelCap": 50
+        },
+        "combatants": [
+          {
+            "build": {
+              "speciesId": "chandelure_mega",
+              "speciesName": "Chandelure (Mega)",
+              "level": 20.5,
+              "cp": 2497,
+              "ivs": {
+                "attack": 4,
+                "defense": 13,
+                "hp": 14
+              },
+              "megaLevel": 4,
+              "fastMoveId": "INCINERATE",
+              "chargedMoveIds": [
+                "FLAME_CHARGE",
+                "ENERGY_BALL"
+              ],
+              "extraChargedMoveId": "OMINOUS_WIND_PLUS",
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          },
+          {
+            "build": {
+              "speciesId": "azumarill",
+              "speciesName": "Azumarill",
+              "level": 50,
+              "cp": 1795,
+              "ivs": {
+                "attack": 15,
+                "defense": 15,
+                "hp": 15
+              },
+              "fastMoveId": "BUBBLE",
+              "chargedMoveIds": [
+                "ICE_BEAM",
+                "PLAY_ROUGH"
+              ],
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          }
+        ],
+        "dataVersion": "2026-11-09 18:40:51"
+      },
+      "expected": {
+        "winner": 0,
+        "turnsToWin": [
+          0,
+          36
+        ],
+        "combatants": [
+          {
+            "index": 0,
+            "speciesId": "chandelure_mega",
+            "battleRating": 602,
+            "remainingHp": 21,
+            "maximumHp": 102,
+            "remainingEnergy": 0,
+            "remainingShields": 0
+          },
+          {
+            "index": 1,
+            "speciesId": "azumarill",
+            "battleRating": 397,
+            "remainingHp": 0,
+            "maximumHp": 201,
+            "remainingEnergy": 55,
+            "remainingShields": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "sableye_mega-10000-mega-1",
+      "request": {
+        "format": {
+          "id": "mega-master-league",
+          "cpCap": 10000,
+          "cup": "mega",
+          "levelCap": 50
+        },
+        "combatants": [
+          {
+            "build": {
+              "speciesId": "sableye_mega",
+              "speciesName": "Sableye (Mega)",
+              "level": 50,
+              "cp": 2196,
+              "ivs": {
+                "attack": 15,
+                "defense": 15,
+                "hp": 15
+              },
+              "megaLevel": 1,
+              "fastMoveId": "SHADOW_CLAW",
+              "chargedMoveIds": [
+                "FOUL_PLAY",
+                "SHADOW_SNEAK"
+              ],
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          },
+          {
+            "build": {
+              "speciesId": "azumarill",
+              "speciesName": "Azumarill",
+              "level": 50,
+              "cp": 1795,
+              "ivs": {
+                "attack": 15,
+                "defense": 15,
+                "hp": 15
+              },
+              "fastMoveId": "BUBBLE",
+              "chargedMoveIds": [
+                "ICE_BEAM",
+                "PLAY_ROUGH"
+              ],
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          }
+        ],
+        "dataVersion": "2026-11-09 18:40:51"
+      },
+      "expected": {
+        "winner": 0,
+        "turnsToWin": [
+          0,
+          43
+        ],
+        "combatants": [
+          {
+            "index": 0,
+            "speciesId": "sableye_mega",
+            "battleRating": 578,
+            "remainingHp": 20,
+            "maximumHp": 127,
+            "remainingEnergy": 4,
+            "remainingShields": 0
+          },
+          {
+            "index": 1,
+            "speciesId": "azumarill",
+            "battleRating": 421,
+            "remainingHp": 0,
+            "maximumHp": 201,
+            "remainingEnergy": 1,
+            "remainingShields": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "sableye_mega-10000-mega-2",
+      "request": {
+        "format": {
+          "id": "mega-master-league",
+          "cpCap": 10000,
+          "cup": "mega",
+          "levelCap": 50
+        },
+        "combatants": [
+          {
+            "build": {
+              "speciesId": "sableye_mega",
+              "speciesName": "Sableye (Mega)",
+              "level": 50,
+              "cp": 2196,
+              "ivs": {
+                "attack": 15,
+                "defense": 15,
+                "hp": 15
+              },
+              "megaLevel": 2,
+              "fastMoveId": "SHADOW_CLAW",
+              "chargedMoveIds": [
+                "FOUL_PLAY",
+                "SHADOW_SNEAK"
+              ],
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          },
+          {
+            "build": {
+              "speciesId": "azumarill",
+              "speciesName": "Azumarill",
+              "level": 50,
+              "cp": 1795,
+              "ivs": {
+                "attack": 15,
+                "defense": 15,
+                "hp": 15
+              },
+              "fastMoveId": "BUBBLE",
+              "chargedMoveIds": [
+                "ICE_BEAM",
+                "PLAY_ROUGH"
+              ],
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          }
+        ],
+        "dataVersion": "2026-11-09 18:40:51"
+      },
+      "expected": {
+        "winner": 0,
+        "turnsToWin": [
+          0,
+          43
+        ],
+        "combatants": [
+          {
+            "index": 0,
+            "speciesId": "sableye_mega",
+            "battleRating": 578,
+            "remainingHp": 20,
+            "maximumHp": 127,
+            "remainingEnergy": 4,
+            "remainingShields": 0
+          },
+          {
+            "index": 1,
+            "speciesId": "azumarill",
+            "battleRating": 421,
+            "remainingHp": 0,
+            "maximumHp": 201,
+            "remainingEnergy": 1,
+            "remainingShields": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "sableye_mega-10000-mega-3",
+      "request": {
+        "format": {
+          "id": "mega-master-league",
+          "cpCap": 10000,
+          "cup": "mega",
+          "levelCap": 50
+        },
+        "combatants": [
+          {
+            "build": {
+              "speciesId": "sableye_mega",
+              "speciesName": "Sableye (Mega)",
+              "level": 50,
+              "cp": 2196,
+              "ivs": {
+                "attack": 15,
+                "defense": 15,
+                "hp": 15
+              },
+              "megaLevel": 3,
+              "fastMoveId": "SHADOW_CLAW",
+              "chargedMoveIds": [
+                "FOUL_PLAY",
+                "SHADOW_SNEAK"
+              ],
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          },
+          {
+            "build": {
+              "speciesId": "azumarill",
+              "speciesName": "Azumarill",
+              "level": 50,
+              "cp": 1795,
+              "ivs": {
+                "attack": 15,
+                "defense": 15,
+                "hp": 15
+              },
+              "fastMoveId": "BUBBLE",
+              "chargedMoveIds": [
+                "ICE_BEAM",
+                "PLAY_ROUGH"
+              ],
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          }
+        ],
+        "dataVersion": "2026-11-09 18:40:51"
+      },
+      "expected": {
+        "winner": 0,
+        "turnsToWin": [
+          0,
+          43
+        ],
+        "combatants": [
+          {
+            "index": 0,
+            "speciesId": "sableye_mega",
+            "battleRating": 578,
+            "remainingHp": 20,
+            "maximumHp": 127,
+            "remainingEnergy": 4,
+            "remainingShields": 0
+          },
+          {
+            "index": 1,
+            "speciesId": "azumarill",
+            "battleRating": 421,
+            "remainingHp": 0,
+            "maximumHp": 201,
+            "remainingEnergy": 1,
+            "remainingShields": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "sableye_mega-10000-mega-4",
+      "request": {
+        "format": {
+          "id": "mega-master-league",
+          "cpCap": 10000,
+          "cup": "mega",
+          "levelCap": 50
+        },
+        "combatants": [
+          {
+            "build": {
+              "speciesId": "sableye_mega",
+              "speciesName": "Sableye (Mega)",
+              "level": 52,
+              "cp": 2248,
+              "ivs": {
+                "attack": 15,
+                "defense": 15,
+                "hp": 15
+              },
+              "megaLevel": 4,
+              "fastMoveId": "SHADOW_CLAW",
+              "chargedMoveIds": [
+                "FOUL_PLAY",
+                "SHADOW_SNEAK"
+              ],
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          },
+          {
+            "build": {
+              "speciesId": "azumarill",
+              "speciesName": "Azumarill",
+              "level": 50,
+              "cp": 1795,
+              "ivs": {
+                "attack": 15,
+                "defense": 15,
+                "hp": 15
+              },
+              "fastMoveId": "BUBBLE",
+              "chargedMoveIds": [
+                "ICE_BEAM",
+                "PLAY_ROUGH"
+              ],
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          }
+        ],
+        "dataVersion": "2026-11-09 18:40:51"
+      },
+      "expected": {
+        "winner": 0,
+        "turnsToWin": [
+          0,
+          43
+        ],
+        "combatants": [
+          {
+            "index": 0,
+            "speciesId": "sableye_mega",
+            "battleRating": 585,
+            "remainingHp": 22,
+            "maximumHp": 129,
+            "remainingEnergy": 4,
+            "remainingShields": 0
+          },
+          {
+            "index": 1,
+            "speciesId": "azumarill",
+            "battleRating": 414,
+            "remainingHp": 0,
+            "maximumHp": 201,
+            "remainingEnergy": 1,
+            "remainingShields": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "chandelure_mega-10000-mega-1",
+      "request": {
+        "format": {
+          "id": "mega-master-league",
+          "cpCap": 10000,
+          "cup": "mega",
+          "levelCap": 50
+        },
+        "combatants": [
+          {
+            "build": {
+              "speciesId": "chandelure_mega",
+              "speciesName": "Chandelure (Mega)",
+              "level": 50,
+              "cp": 5012,
+              "ivs": {
+                "attack": 15,
+                "defense": 15,
+                "hp": 15
+              },
+              "megaLevel": 1,
+              "fastMoveId": "INCINERATE",
+              "chargedMoveIds": [
+                "FLAME_CHARGE",
+                "ENERGY_BALL"
+              ],
+              "extraChargedMoveId": "OMINOUS_WIND_PLUS",
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          },
+          {
+            "build": {
+              "speciesId": "azumarill",
+              "speciesName": "Azumarill",
+              "level": 50,
+              "cp": 1795,
+              "ivs": {
+                "attack": 15,
+                "defense": 15,
+                "hp": 15
+              },
+              "fastMoveId": "BUBBLE",
+              "chargedMoveIds": [
+                "ICE_BEAM",
+                "PLAY_ROUGH"
+              ],
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          }
+        ],
+        "dataVersion": "2026-11-09 18:40:51"
+      },
+      "expected": {
+        "winner": 0,
+        "turnsToWin": [
+          0,
+          29
+        ],
+        "combatants": [
+          {
+            "index": 0,
+            "speciesId": "chandelure_mega",
+            "battleRating": 827,
+            "remainingHp": 93,
+            "maximumHp": 142,
+            "remainingEnergy": 10,
+            "remainingShields": 0
+          },
+          {
+            "index": 1,
+            "speciesId": "azumarill",
+            "battleRating": 172,
+            "remainingHp": 0,
+            "maximumHp": 201,
+            "remainingEnergy": 33,
+            "remainingShields": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "chandelure_mega-10000-mega-2",
+      "request": {
+        "format": {
+          "id": "mega-master-league",
+          "cpCap": 10000,
+          "cup": "mega",
+          "levelCap": 50
+        },
+        "combatants": [
+          {
+            "build": {
+              "speciesId": "chandelure_mega",
+              "speciesName": "Chandelure (Mega)",
+              "level": 50,
+              "cp": 5012,
+              "ivs": {
+                "attack": 15,
+                "defense": 15,
+                "hp": 15
+              },
+              "megaLevel": 2,
+              "fastMoveId": "INCINERATE",
+              "chargedMoveIds": [
+                "FLAME_CHARGE",
+                "ENERGY_BALL"
+              ],
+              "extraChargedMoveId": "OMINOUS_WIND_PLUS",
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          },
+          {
+            "build": {
+              "speciesId": "azumarill",
+              "speciesName": "Azumarill",
+              "level": 50,
+              "cp": 1795,
+              "ivs": {
+                "attack": 15,
+                "defense": 15,
+                "hp": 15
+              },
+              "fastMoveId": "BUBBLE",
+              "chargedMoveIds": [
+                "ICE_BEAM",
+                "PLAY_ROUGH"
+              ],
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          }
+        ],
+        "dataVersion": "2026-11-09 18:40:51"
+      },
+      "expected": {
+        "winner": 0,
+        "turnsToWin": [
+          0,
+          29
+        ],
+        "combatants": [
+          {
+            "index": 0,
+            "speciesId": "chandelure_mega",
+            "battleRating": 827,
+            "remainingHp": 93,
+            "maximumHp": 142,
+            "remainingEnergy": 15,
+            "remainingShields": 0
+          },
+          {
+            "index": 1,
+            "speciesId": "azumarill",
+            "battleRating": 172,
+            "remainingHp": 0,
+            "maximumHp": 201,
+            "remainingEnergy": 33,
+            "remainingShields": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "chandelure_mega-10000-mega-3",
+      "request": {
+        "format": {
+          "id": "mega-master-league",
+          "cpCap": 10000,
+          "cup": "mega",
+          "levelCap": 50
+        },
+        "combatants": [
+          {
+            "build": {
+              "speciesId": "chandelure_mega",
+              "speciesName": "Chandelure (Mega)",
+              "level": 50,
+              "cp": 5012,
+              "ivs": {
+                "attack": 15,
+                "defense": 15,
+                "hp": 15
+              },
+              "megaLevel": 3,
+              "fastMoveId": "INCINERATE",
+              "chargedMoveIds": [
+                "FLAME_CHARGE",
+                "ENERGY_BALL"
+              ],
+              "extraChargedMoveId": "OMINOUS_WIND_PLUS",
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          },
+          {
+            "build": {
+              "speciesId": "azumarill",
+              "speciesName": "Azumarill",
+              "level": 50,
+              "cp": 1795,
+              "ivs": {
+                "attack": 15,
+                "defense": 15,
+                "hp": 15
+              },
+              "fastMoveId": "BUBBLE",
+              "chargedMoveIds": [
+                "ICE_BEAM",
+                "PLAY_ROUGH"
+              ],
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          }
+        ],
+        "dataVersion": "2026-11-09 18:40:51"
+      },
+      "expected": {
+        "winner": 0,
+        "turnsToWin": [
+          0,
+          29
+        ],
+        "combatants": [
+          {
+            "index": 0,
+            "speciesId": "chandelure_mega",
+            "battleRating": 827,
+            "remainingHp": 93,
+            "maximumHp": 142,
+            "remainingEnergy": 20,
+            "remainingShields": 0
+          },
+          {
+            "index": 1,
+            "speciesId": "azumarill",
+            "battleRating": 172,
+            "remainingHp": 0,
+            "maximumHp": 201,
+            "remainingEnergy": 33,
+            "remainingShields": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "chandelure_mega-10000-mega-4",
+      "request": {
+        "format": {
+          "id": "mega-master-league",
+          "cpCap": 10000,
+          "cup": "mega",
+          "levelCap": 50
+        },
+        "combatants": [
+          {
+            "build": {
+              "speciesId": "chandelure_mega",
+              "speciesName": "Chandelure (Mega)",
+              "level": 52,
+              "cp": 5132,
+              "ivs": {
+                "attack": 15,
+                "defense": 15,
+                "hp": 15
+              },
+              "megaLevel": 4,
+              "fastMoveId": "INCINERATE",
+              "chargedMoveIds": [
+                "FLAME_CHARGE",
+                "ENERGY_BALL"
+              ],
+              "extraChargedMoveId": "OMINOUS_WIND_PLUS",
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          },
+          {
+            "build": {
+              "speciesId": "azumarill",
+              "speciesName": "Azumarill",
+              "level": 50,
+              "cp": 1795,
+              "ivs": {
+                "attack": 15,
+                "defense": 15,
+                "hp": 15
+              },
+              "fastMoveId": "BUBBLE",
+              "chargedMoveIds": [
+                "ICE_BEAM",
+                "PLAY_ROUGH"
+              ],
+              "isShadow": false,
+              "source": "meta-default"
+            },
+            "shields": 1
+          }
+        ],
+        "dataVersion": "2026-11-09 18:40:51"
+      },
+      "expected": {
+        "winner": 0,
+        "turnsToWin": [
+          0,
+          29
+        ],
+        "combatants": [
+          {
+            "index": 0,
+            "speciesId": "chandelure_mega",
+            "battleRating": 829,
+            "remainingHp": 95,
+            "maximumHp": 144,
+            "remainingEnergy": 20,
+            "remainingShields": 0
+          },
+          {
+            "index": 1,
+            "speciesId": "azumarill",
+            "battleRating": 170,
+            "remainingHp": 0,
+            "maximumHp": 201,
+            "remainingEnergy": 33,
+            "remainingShields": 0
+          }
+        ]
+      }
+    }
+  ]
+}

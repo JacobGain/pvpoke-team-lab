@@ -45,7 +45,11 @@ describe("shared Mega inventory", () => {
     expect(isPreferredInLeague(owned, megaUltra)).toBe(true);
     const analysis = analyzeInventoryBuild(owned, megaUltra);
     expect(analysis.current.speciesId).toBe("greninja_mega");
-    expect(analysis.current.cp).toBe(calculateCombatPower(mega.baseStats, ivs, level));
+    expect(analysis.current.cp).toBe(calculateCombatPower(mega.baseStats, ivs, level + 2));
+    expect(analysis.current.megaLevel).toBe(4);
+    const projected = projectInventoryForCatalog(owned, megaUltra)!;
+    expect(projectInventoryForCatalog(projected, megaUltra)).toEqual(projected);
+    expect(projectInventoryForCatalog(projected, great)).toBeUndefined();
 
     const lowerLevel = Array.from({ length: 99 }, (_, index) => 1 + index / 2)
       .find((candidate) => calculateCombatPower(mega.baseStats, ivs, candidate) > 10 && calculateCombatPower(mega.baseStats, ivs, candidate) <= 1500)!;
