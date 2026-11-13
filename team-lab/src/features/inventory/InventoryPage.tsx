@@ -1,3 +1,4 @@
+import { formatMegaBuild } from "@/utils/formatters";
 import { useLeague } from "@/features/leagues/leagueStore";
 import { useMemo, useState } from "react";
 import {
@@ -19,7 +20,8 @@ import { PokemonSprite } from "@/components/PokemonSprite";
 import { findHighestLegalLevel } from "@/domain/analysis/ivRankings";
 import { isPreferredInLeague, projectInventoryForCatalog } from "@/domain/inventory/leagueEligibility";
 import { inferCombatPowerLevel } from "@/domain/pokemon/combatPower";
-import { requiresCandyXl } from "@/domain/pokemon/xl";
+import { requiresCandyXlForBattleLevel } from "@/domain/pokemon/xl";
+import { defaultMegaLevel, megaBattleLevelCap } from "@/domain/pokemon/mega";
 import {
   useDeleteInventoryPokemon,
   useInventoryList,
@@ -268,6 +270,7 @@ export function InventoryPage() {
                 pokemon,
                 record.currentBuild.ivProfile.ivs,
                 record.currentBuild.cp,
+                record.currentBuild.megaLevel,
               )
             : undefined;
           const plannedLevels =
@@ -277,14 +280,20 @@ export function InventoryPage() {
                     target,
                     record.currentBuild.ivProfile.ivs,
                     plan.targetCp,
+                    plan.megaLevel,
                   ).matches.map((match) => match.level)
                 : [
                     findHighestLegalLevel(
                       target,
                       record.currentBuild.ivProfile.ivs,
+                      target.cpCap,
+                      megaBattleLevelCap(target, plan.megaLevel),
                     )?.level,
                   ].filter((level): level is number => level !== undefined)
               : [];
+          const megaBattleLevels = displayPokemon && displayed.speciesId !== record.speciesId
+            ? inferCombatPowerLevel(displayPokemon, record.currentBuild.ivProfile.ivs, displayed.currentBuild.cp, displayed.currentBuild.megaLevel).matches.map(match => match.level)
+            : [];
 
           return (
             <article className="inventory-card" key={record.inventoryId}>
@@ -332,12 +341,12 @@ export function InventoryPage() {
                 {record.megaSpeciesId ? <p className="planned-summary">Mega enabled: {catalog.entries.find((entry) => entry.speciesId === record.megaSpeciesId)?.speciesName ?? record.megaSpeciesId}</p> : null}
                 {!eligibleBuild ? <p className="planned-summary">Outside the {league.shortTitle} CP cap</p> : null}
                 <p>
-                  Level{" "}
+                  {megaBattleLevels.length ? "Owned level" : "Level"}{" "}
                   {levelInference?.matches
                     .map((match) => match.level)
                     .join(" or ") ?? "unresolved"}
                   {levelInference?.matches.some((match) =>
-                    requiresCandyXl(match.level),
+                    requiresCandyXlForBattleLevel(match.level, pokemon?.tags.includes("mega") ? record.currentBuild.megaLevel ?? defaultMegaLevel(pokemon) : undefined),
                   ) ? (
                     <span
                       className="xl-badge"
@@ -352,6 +361,7 @@ export function InventoryPage() {
                     record.currentBuild.moveset.chargedMoveIds,
                   )}
                 </p>
+                {megaBattleLevels.length ? <p className="planned-summary">Mega battle level {megaBattleLevels.join(" or ")} · CP {displayed.currentBuild.cp}</p> : null}
                 {plan && target ? (
                   <p className="planned-summary">
                     Planned: {target.speciesName}
@@ -361,7 +371,7 @@ export function InventoryPage() {
                     {plannedLevels.length > 0
                       ? ` · Level ${plannedLevels.join(" or ")}`
                       : ""}
-                    {plannedLevels.some(requiresCandyXl) ? (
+                    {plannedLevels.some(level => requiresCandyXlForBattleLevel(level, plan.megaLevel ?? defaultMegaLevel(target))) ? (
                       <span
                         className="xl-badge"
                         title="This planned build requires Candy XL"
@@ -374,6 +384,8 @@ export function InventoryPage() {
                     {formatMoveList(plan.desiredMoveset.chargedMoveIds)}
                   </p>
                 ) : null}
+                {record.currentBuild.megaLevel || record.currentBuild.moveset.extraChargedMoveId ? <p className="planned-summary">{formatMegaBuild({ ...record.currentBuild, ...record.currentBuild.moveset })}</p> : null}
+                {plan?.megaLevel || plan?.desiredMoveset.extraChargedMoveId ? <p className="planned-summary">Planned: {formatMegaBuild({ ...plan, ...plan.desiredMoveset })}</p> : null}
                 {record.notes ? (
                   <p className="inventory-notes">{record.notes}</p>
                 ) : null}

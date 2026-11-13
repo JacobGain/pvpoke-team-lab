@@ -23,6 +23,8 @@ class CharacterizationPokemon implements PvpokePokemon {
 
   constructor(readonly speciesId: string) {}
 
+  setMegaLevel(level: number): void { this.calls.push(`mega-level:${level}`); }
+
   setIV(stat: "atk" | "def" | "hp", value: number): void {
     this.calls.push(`iv:${stat}:${value}`);
   }
@@ -36,7 +38,7 @@ class CharacterizationPokemon implements PvpokePokemon {
   }
 
   selectMove(
-    type: "fast" | "charged",
+    type: "fast" | "charged" | "extra-charged",
     moveId: string,
     index?: number,
   ): boolean {
@@ -192,6 +194,7 @@ describe("PvPoke one-on-one adapter", () => {
       "move:fast:FAST:undefined",
       "move:charged:CHARGED_ONE:0",
       "move:charged:CHARGED_TWO:1",
+      "move:extra-charged:none:2",
       "shields:1",
     ]);
     expect(runtime.battle.pokemon[1]!.calls).toContain("shadow:shadow");

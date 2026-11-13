@@ -1,5 +1,6 @@
 import { createInventoryPokemon } from "@/domain/inventory/factory";
 import type { InventoryPokemon } from "@/domain/inventory/schemas";
+import { defaultMegaLevel, type MegaLevel } from "@/domain/pokemon/mega";
 import { calculateCombatPower } from "@/domain/pokemon/combatPower";
 import type {
   PokemonCatalog,
@@ -10,6 +11,8 @@ export const MAX_BULK_INVENTORY_ENTRIES = 500;
 export const BULK_INVENTORY_SUGGESTION_LIMIT = 8;
 
 export interface BulkInventoryMatch {
+  readonly megaLevel?: MegaLevel;
+  readonly extraChargedMoveId?: string | null;
   readonly input: string;
   readonly pokemon: PokemonCatalogEntry;
 }
@@ -125,7 +128,7 @@ export function suggestBulkInventoryPokemon(
     .map(({ pokemon }) => pokemon);
 }
 
-function defaultMoves(pokemon: PokemonCatalogEntry) {
+export function bulkInventoryDefaultMoves(pokemon: PokemonCatalogEntry) {
   const recommended = pokemon.ranking?.recommendedMoveIds ?? [];
   const fastMoveId =
     recommended.find((moveId) =>
@@ -142,7 +145,7 @@ function defaultMoves(pokemon: PokemonCatalogEntry) {
     chargedMoveIds.push(pokemon.chargedMoves[0].id);
   }
 
-  return { fastMoveId, chargedMoveIds };
+  return { fastMoveId, chargedMoveIds, extraChargedMoveId: pokemon.extraChargedMoves?.find(move => recommended.includes(move.id))?.id };
 }
 
 export function previewBulkInventory(
@@ -197,9 +200,9 @@ export function createBulkInventoryRecords(
   matches: readonly BulkInventoryMatch[],
   catalog: PokemonCatalog,
 ): readonly InventoryPokemon[] {
-  return matches.map(({ pokemon }) => {
+  return matches.map(({ pokemon, megaLevel, extraChargedMoveId }) => {
     const ivs = pokemon.defaultLeagueIvs;
-    const moveset = defaultMoves(pokemon);
+    const moveset = bulkInventoryDefaultMoves(pokemon);
     if (!ivs || !moveset) {
       throw new Error(`${pokemon.speciesName} has no complete PvPoke defaults.`);
     }
@@ -209,9 +212,10 @@ export function createBulkInventoryRecords(
         speciesId: pokemon.speciesId,
         buildStatus: "current",
         currentBuild: {
+          megaLevel: megaLevel ?? defaultMegaLevel(pokemon),
           cp: calculateCombatPower(pokemon.baseStats, ivs, ivs.level),
           ivProfile: { source: "assumed-rank-1" },
-          moveset,
+          moveset: { ...moveset, extraChargedMoveId: extraChargedMoveId === undefined ? moveset.extraChargedMoveId : extraChargedMoveId ?? undefined },
         },
       },
       { catalog },

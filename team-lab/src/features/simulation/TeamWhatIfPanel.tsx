@@ -4,6 +4,7 @@ import { Link } from "react-router";
 
 import { PokemonSprite } from "@/components/PokemonSprite";
 import { projectInventoryForCatalog } from "@/domain/inventory/leagueEligibility";
+import { formatInventoryMegaBuild } from "@/utils/formatters";
 import type { InventoryPokemon } from "@/domain/inventory/schemas";
 import type { PokemonCatalog, PokemonCatalogEntry } from "@/domain/pokemon/catalog";
 import {
@@ -73,7 +74,7 @@ function displayedCp(record: InventoryPokemon): number {
 
 function optionDetails(record: InventoryPokemon): string {
   const ivs = record.currentBuild.ivProfile.ivs;
-  return `CP ${displayedCp(record)} · ${record.buildStatus} · IV ${ivs.attack}/${ivs.defense}/${ivs.hp}`;
+  return `CP ${displayedCp(record)} · ${record.buildStatus} · IV ${ivs.attack}/${ivs.defense}/${ivs.hp}${formatInventoryMegaBuild(record) ? ` · ${formatInventoryMegaBuild(record)}` : ""}`;
 }
 
 function optionLabel(

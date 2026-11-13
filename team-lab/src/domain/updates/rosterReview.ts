@@ -5,6 +5,7 @@ import { validateInventoryPokemonAgainstCatalog } from "@/domain/inventory/valid
 import type { PokemonCatalog } from "@/domain/pokemon/catalog";
 import { getSavedTeamInventoryIds, type SavedTeam } from "@/domain/teams/schemas";
 import { validateSavedTeamLegality } from "@/domain/teams/validation";
+import { isSavedTeamAnalysisCurrent } from "@/domain/teams/freshness";
 import type { PvpokeUpdateReview } from "@/pvpoke/types/updateReview";
 
 export function reviewRoster(
@@ -26,6 +27,7 @@ export function reviewRoster(
     // Include owned, planned, and selected Mega identities without duplicating details.
     const speciesIds = [...new Set([
       record.speciesId, projected.speciesId,
+      ...(record.megaSpeciesId ? [record.megaSpeciesId] : []),
       ...(record.buildStatus === "planned" ? [record.plannedBuild.targetSpeciesId] : []),
     ])];
     const selectedId = projected.buildStatus === "planned" ? projected.plannedBuild.targetSpeciesId : projected.speciesId;
@@ -60,8 +62,7 @@ export function reviewRoster(
     const changedMembers = ids.filter(id => byId.get(id)?.changed);
     const membersEdited = ids.some(id => (inventoryById.get(id)?.updatedAt ?? "") > team.updatedAt);
     const status = issues.length ? "repair" : !team.lastAnalyzedDataVersion ? "not-analyzed" :
-      team.lastAnalyzedDataVersion !== catalog.dataVersion ||
-        team.lastAnalyzedUpstreamCommit !== comparison.toCommit || membersEdited ? "outdated" : "current";
+      !isSavedTeamAnalysisCurrent(team, inventory, catalog.dataVersion, comparison.toCommit) || membersEdited ? "outdated" : "current";
     return { team, issues: [...new Set(issues)], changedMembers, membersEdited, status };
   });
   return { records, teams: reviewedTeams };

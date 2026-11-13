@@ -12,6 +12,8 @@ export type ShieldCount = 0 | 1 | 2;
 export type CombatantIndex = 0 | 1;
 
 export interface ExactSimulationBuild {
+  readonly megaLevel?: import("@/domain/pokemon/mega").MegaLevel;
+  readonly extraChargedMoveId?: string;
   readonly speciesId: string;
   readonly speciesName: string;
   readonly level: number;

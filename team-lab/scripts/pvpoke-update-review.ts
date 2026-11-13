@@ -18,7 +18,7 @@ export function buildUpdateReview(
   const current = new Map(after.gameMaster.pokemon.map(p => [p.speciesId, p]));
   const oldMoves = new Map(before.gameMaster.moves.map(m => [m.moveId, m]));
   const newMoves = new Map(after.gameMaster.moves.map(m => [m.moveId, m]));
-  const combatFields = ["power", "energy", "energyGain", "cooldown", "turns", "type", "buffs", "buffApplyChance", "buffTarget"] as const;
+  const combatFields = ["power", "energy", "energyGain", "cooldown", "turns", "type", "buffs", "buffApplyChance", "buffTarget", "isMegaMove"] as const;
   const changedMoves = new Set([...newMoves].filter(([id, move]) => {
     const old = oldMoves.get(id);
     return old && combatFields.some(field => JSON.stringify(old[field]) !== JSON.stringify(move[field]));
@@ -37,15 +37,18 @@ export function buildUpdateReview(
       if (JSON.stringify(old.types) !== JSON.stringify(next.types)) details.push("Typing changed.");
       if (JSON.stringify(old.defaultIVs) !== JSON.stringify(next.defaultIVs)) details.push("Published default IVs changed; your saved IVs have not been altered.");
       if (old.levelFloor !== next.levelFloor || old.levelCap !== next.levelCap) details.push("Available level range changed.");
+      const megaTags = (tags: readonly string[] = []) => tags.filter(tag => tag === "mega" || tag === "supermega").sort();
+      if (JSON.stringify(megaTags(old.tags)) !== JSON.stringify(megaTags(next.tags))) details.push("Mega capabilities changed; review Mega level, effective level, and extra attack availability.");
       for (const [label, oldIds, newIds] of [
         ["Fast move", old.fastMoves, next.fastMoves],
         ["Charged move", old.chargedMoves, next.chargedMoves],
+        ["Extra charged attack", old.extraChargedMoves ?? [], next.extraChargedMoves ?? []],
         ["Elite TM move", old.eliteMoves ?? [], next.eliteMoves ?? []],
       ] as const) {
         for (const move of newIds.filter(m => !oldIds.includes(m))) details.push(`${label} added: ${moveName(move)}.`);
         for (const move of oldIds.filter(m => !newIds.includes(m))) details.push(`${label} removed: ${moveName(move)}.`);
       }
-      const availableMoves = new Set([...old.fastMoves, ...old.chargedMoves, ...next.fastMoves, ...next.chargedMoves]);
+      const availableMoves = new Set([...old.fastMoves, ...old.chargedMoves, ...(old.extraChargedMoves ?? []), ...next.fastMoves, ...next.chargedMoves, ...(next.extraChargedMoves ?? [])]);
       for (const move of [...availableMoves].filter(m => changedMoves.has(m)).sort()) details.push(`Move stats changed: ${moveName(move)}.`);
     }
     species[id] = { name: next?.speciesName ?? old?.speciesName ?? id, details, rankings: {} };

@@ -93,7 +93,9 @@ export function getMoveUsagePercent(
   const usage =
     move.kind === "fast"
       ? pokemon.ranking?.moveUsage?.fastMoves
-      : pokemon.ranking?.moveUsage?.chargedMoves;
+      : pokemon.extraChargedMoves?.some(candidate => candidate.id === move.id)
+        ? pokemon.ranking?.moveUsage?.extraChargedMoves
+        : pokemon.ranking?.moveUsage?.chargedMoves;
   const total = usage?.reduce(
     (sum, candidate) => sum + (candidate.uses ?? 0),
     0,

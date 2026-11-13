@@ -3,6 +3,9 @@ import { Play, Pause, RotateCcw, ChevronLeft, ChevronRight, Swords } from 'lucid
 import { PageHeader } from '@/components/PageHeader';
 import { PokemonCombobox } from '@/components/PokemonCombobox';
 import { PokemonSprite } from '@/components/PokemonSprite';
+import { MegaBuildFields } from '@/components/MegaBuildFields';
+import { defaultMegaLevel, megaBattleLevelCap } from '@/domain/pokemon/mega';
+import { formatMoveName } from '@/utils/formatters';
 import { usePokemonCatalog } from '@/features/meta/usePokemonCatalog';
 import { useLeague } from '@/features/leagues/leagueStore';
 import type { PokemonCatalog, PokemonCatalogEntry } from '@/domain/pokemon/catalog';
@@ -20,7 +23,7 @@ function BuildEditor({ index, catalog, value, onChange }: {
   const league = useLeague();
   const pokemon = catalog.entries.find(entry => entry.speciesId === value.build.speciesId)!;
   const build = value.build;
-  const error = duelBuildError(build, pokemon, league.cp);
+  const error = duelBuildError(build, pokemon, league.cp, league.cup);
   const cp = getCpMultiplier(build.level) === undefined ? '—' : calculateCombatPower(pokemon.baseStats, build.ivs, build.level);
   function update(patch: Partial<ExactSimulationBuild>) { onChange({ ...value, build: { ...build, ...patch } }); }
   function select(pokemon: PokemonCatalogEntry) { onChange({ ...value, build: defaultDuelBuild(pokemon, league.cp) }); }
@@ -38,11 +41,17 @@ function BuildEditor({ index, catalog, value, onChange }: {
         update({ chargedMoveIds: ids[1] ? [ids[0]!, ids[1]] : [ids[0]!] });
       }}>{slot === 1 && <option value="">None</option>}{pokemon.chargedMoves.map(move => <option key={move.id} value={move.id}>{move.name}{move.isElite || move.isLegacy ? ' *' : ''} · {move.energy} energy</option>)}</select></label>)}
       <label><span>Shields</span><select value={value.shields} onChange={event => onChange({ ...value, shields: Number(event.target.value) as ShieldCount })}>{[0, 1, 2].map(count => <option key={count} value={count}>{count} shields</option>)}</select></label>
+      <MegaBuildFields pokemon={pokemon} value={build} label={`Contender ${index + 1}`} onChange={settings => {
+        const before = build.megaLevel ?? defaultMegaLevel(pokemon);
+        const level = league.cp === 10000 && before !== settings.megaLevel && (before === 4 || settings.megaLevel === 4)
+          ? settings.megaLevel === 4 ? 52 : 50 : build.level;
+        update({ ...settings, level });
+      }} />
     </div>
     <details className="duel-advanced">
       <summary>Level &amp; IVs <span>Lv {build.level} · {build.ivs.attack}/{build.ivs.defense}/{build.ivs.hp}</span></summary>
-      <div className="duel-ivs"><label><span>Level</span><input type="number" min={pokemon.levelFloor} max={Math.min(50, pokemon.levelCap)} step="0.5" value={build.level} onChange={event => update({ level: Number(event.target.value) })} /></label>{(['attack', 'defense', 'hp'] as const).map(stat => <label key={stat}><span>{stat === 'hp' ? 'HP IV' : `${stat} IV`}</span><input type="number" min="0" max="15" step="1" value={build.ivs[stat]} onChange={event => update({ ivs: { ...build.ivs, [stat]: Number(event.target.value) } })} /></label>)}</div>
-      <button className="duel-fit" type="button" onClick={() => update({ level: fitDuelLevel(pokemon, build.ivs, league.cp) })}>Fit to league</button>
+      <div className="duel-ivs"><label><span>Level</span><input type="number" min={pokemon.levelFloor} max={megaBattleLevelCap(pokemon, build.megaLevel)} step="0.5" value={build.level} onChange={event => update({ level: Number(event.target.value) })} /></label>{(['attack', 'defense', 'hp'] as const).map(stat => <label key={stat}><span>{stat === 'hp' ? 'HP IV' : `${stat} IV`}</span><input type="number" min="0" max="15" step="1" value={build.ivs[stat]} onChange={event => update({ ivs: { ...build.ivs, [stat]: Number(event.target.value) } })} /></label>)}</div>
+      <button className="duel-fit" type="button" onClick={() => update({ level: fitDuelLevel(pokemon, build.ivs, league.cp, build.megaLevel) })}>Fit to league</button>
     </details>
     <small className="duel-move-note">* Elite / legacy move</small>
     {error && <p className="duel-error" role="alert">{error}</p>}
@@ -68,7 +77,7 @@ function DuelWorkspace({ catalog }: { catalog: PokemonCatalog }) {
   const frame = frames[cursor];
   const finished = frames.length > 0 && cursor === frames.length - 1;
   const names = combatants.map(value => value?.build.speciesName ?? 'Choose a Pokémon');
-  const invalid = combatants.some(value => !value || duelBuildError(value.build, catalog.entries.find(entry => entry.speciesId === value.build.speciesId)!, league.cp));
+  const invalid = combatants.some(value => !value || duelBuildError(value.build, catalog.entries.find(entry => entry.speciesId === value.build.speciesId)!, league.cp, league.cup));
   useEffect(() => {
     if (!playing || cursor >= frames.length - 1) return;
     const timer = window.setTimeout(() => setCursor(current => current + 1), playbackDelay(speed));
@@ -115,7 +124,7 @@ function DuelWorkspace({ catalog }: { catalog: PokemonCatalog }) {
       <div className="duel-arena">{frame.combatants.map((state, index) => {
         const changes = turnChanges(state, frames[cursor - 1]?.combatants[index]);
         return <div className={`duel-fighter duel-side-${index}${state.hp === 0 ? ' duel-fighter--fainted' : ''}`} key={index}>
-        <h3>{names[index]}</h3><div className="duel-fighter__sprite" key={`${cursor}-${index}`} data-shielding={frame.events.some(event => event.actor === index && event.type === 'shield')} data-attacking={frame.events.some(event => event.actor === index && /^(fast|charged)/.test(event.type))}><PokemonSprite speciesId={combatants[index]!.build.isShadow && !state.form.endsWith('_shadow') ? `${state.form}_shadow` : state.form} speciesName={names[index]!} size="hero" eager /></div>
+        <h3>{names[index]}</h3>{combatants[index]?.build.megaLevel ? <p>Mega level {combatants[index].build.megaLevel} · Battle level {combatants[index].build.level} · {combatants[index].build.extraChargedMoveId ? formatMoveName(combatants[index].build.extraChargedMoveId) : 'No extra attack'}</p> : null}<div className="duel-fighter__sprite" key={`${cursor}-${index}`} data-shielding={frame.events.some(event => event.actor === index && event.type === 'shield')} data-attacking={frame.events.some(event => event.actor === index && /^(fast|charged)/.test(event.type))}><PokemonSprite speciesId={combatants[index]!.build.isShadow && !state.form.endsWith('_shadow') ? `${state.form}_shadow` : state.form} speciesName={names[index]!} size="hero" eager /></div>
         <label>HP <span className="duel-resource-value">{changes.hp !== 0 && <span key={`hp-${cursor}`} className="duel-delta duel-delta--damage" data-resource="hp">{changes.hp > 0 ? '+' : ''}{changes.hp} HP</span>}<strong>{state.hp} / {state.maximumHp}</strong></span><meter min="0" max={state.maximumHp} value={state.hp} aria-label={`${names[index]} HP`} /></label>
         <label>Energy <span className="duel-resource-value">{changes.energy !== 0 && <span key={`energy-${cursor}`} className={`duel-delta ${changes.energy > 0 ? 'duel-delta--gain' : 'duel-delta--spend'}`} data-resource="energy">{changes.energy > 0 ? '+' : ''}{changes.energy} energy</span>}<strong>{state.energy} / 100</strong></span><progress max="100" value={state.energy} aria-label={`${names[index]} energy`} /></label>
         <div className="duel-fighter__stats"><span>◈ {state.shields} shields</span><span>ATK {state.buffs[0] ?? 0} / DEF {state.buffs[1] ?? 0}</span></div>
@@ -138,7 +147,7 @@ function DuelWorkspace({ catalog }: { catalog: PokemonCatalog }) {
           </ol>}
       </section>
     </section> : <div className="duel-empty"><Swords size={30} /><h2>See how the matchup unfolds</h2><p>Choose two Pokémon, customize their builds, then simulate to inspect every turn.</p></div>}
-    <details className="duel-method"><summary>How this simulation works</summary><p>Uses the bundled PvPoke engine and its default move and shield decisions, including charged-move priority and default buff behavior. Results describe this simulated strategy, not every possible player decision. Each playback frame records the engine’s actual state after a turn, including turns without attacks. At 1×, playback advances two turns per second (500 ms per turn). Charged-attack minigame animations are condensed into their battle turn. Resource changes show the actual net HP and energy change for that turn.</p><p>Both Pokémon start at full HP and zero energy. No switching. Forms are selected in the Pokémon search; available Shadow variants have a toggle. Changing a form or Shadow variant resets its build to defaults. Levels are supported up to 50. Data version: {catalog.dataVersion}.</p></details>
+    <details className="duel-method"><summary>How this simulation works</summary><p>Uses the bundled PvPoke engine and its default move and shield decisions, including charged-move priority and default buff behavior. Results describe this simulated strategy, not every possible player decision. Each playback frame records the engine’s actual state after a turn, including turns without attacks. At 1×, playback advances two turns per second (500 ms per turn). Charged-attack minigame animations are condensed into their battle turn. Resource changes show the actual net HP and energy change for that turn.</p><p>Both Pokémon start at full HP and zero energy. No switching. Forms are selected in the Pokémon search; available Shadow variants have a toggle. Changing a form or Shadow variant resets its build to defaults. Ordinary builds support levels up to 50; Mega level 4 supports effective battle levels up to 52. Data version: {catalog.dataVersion}.</p></details>
   </>;
 }
 

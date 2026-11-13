@@ -9,6 +9,7 @@ import type {
 } from "@/domain/pokemon/catalog";
 import { inferCombatPowerLevel } from "@/domain/pokemon/combatPower";
 import { megaFormsForSpecies } from "@/domain/inventory/leagueEligibility";
+import { validateMegaSettings, type MegaLevel } from "@/domain/pokemon/mega";
 
 export interface InventoryValidationIssue {
   readonly code:
@@ -38,8 +39,19 @@ function validateMoveset(
   moveset: InventoryMoveset,
   pokemon: PokemonCatalogEntry,
   path: string,
+  megaPokemon = pokemon,
+  megaLevel?: MegaLevel,
 ): InventoryValidationIssue[] {
   const issues: InventoryValidationIssue[] = [];
+  issues.push(...validateMegaSettings(megaPokemon, megaLevel, moveset.extraChargedMoveId).map(message => ({
+    code: "invalid-mega" as const, path, message,
+  })));
+  if (megaPokemon.speciesId !== pokemon.speciesId) {
+    if (!megaPokemon.fastMoves.some(move => move.id === moveset.fastMoveId)) issues.push({ code: "fast-move-not-found", path: `${path}.fastMoveId`, message: `${moveset.fastMoveId} is not usable by the selected ${megaPokemon.speciesName}.` });
+    for (const id of moveset.chargedMoveIds) {
+      if (!megaPokemon.chargedMoves.some(move => move.id === id)) issues.push({ code: "charged-move-not-found", path: `${path}.chargedMoveIds`, message: `${id} is not usable by the selected ${megaPokemon.speciesName}.` });
+    }
+  }
 
   const fastMoveIds = new Set(pokemon.fastMoves.map((move) => move.id));
   const chargedMoveIds = new Set(
@@ -96,6 +108,8 @@ export function validateInventoryPokemonAgainstCatalog(
       record.currentBuild.moveset,
       currentPokemon,
       "currentBuild.moveset",
+      entries.get(record.megaSpeciesId ?? record.speciesId) ?? currentPokemon,
+      record.currentBuild.megaLevel,
     ),
   );
 
@@ -103,6 +117,7 @@ export function validateInventoryPokemonAgainstCatalog(
     currentPokemon,
     record.currentBuild.ivProfile.ivs,
     record.currentBuild.cp,
+    record.currentBuild.megaLevel,
   );
 
   if (currentCpInference.status === "no-match") {
@@ -136,7 +151,8 @@ export function validateInventoryPokemonAgainstCatalog(
     } else {
       if (
         targetPokemon.speciesId !== currentPokemon.speciesId &&
-        !currentPokemon.evolutionIds.includes(targetPokemon.speciesId)
+        !currentPokemon.evolutionIds.includes(targetPokemon.speciesId) &&
+        !megaFormsForSpecies(currentPokemon.speciesId, catalog).some(entry => entry.speciesId === targetPokemon.speciesId)
       ) {
         issues.push({
           code: "invalid-evolution",
@@ -150,6 +166,8 @@ export function validateInventoryPokemonAgainstCatalog(
           record.plannedBuild.desiredMoveset,
           targetPokemon,
           "plannedBuild.desiredMoveset",
+          targetPokemon,
+          record.plannedBuild.megaLevel,
         ),
       );
 
@@ -158,6 +176,7 @@ export function validateInventoryPokemonAgainstCatalog(
           targetPokemon,
           record.currentBuild.ivProfile.ivs,
           record.plannedBuild.targetCp,
+          record.plannedBuild.megaLevel,
         );
 
         if (targetCpInference.status === "no-match") {

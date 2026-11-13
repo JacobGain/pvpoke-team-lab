@@ -9,8 +9,11 @@ import { Check, ListPlus } from "lucide-react";
 import { Link } from "react-router";
 
 import { PageHeader } from "@/components/PageHeader";
+import { MegaBuildFields, type MegaBuildSettings } from "@/components/MegaBuildFields";
+import { defaultMegaLevel } from "@/domain/pokemon/mega";
 import {
   bulkInventoryInputRangeAt,
+  bulkInventoryDefaultMoves,
   completeBulkInventoryInput,
   createBulkInventoryRecords,
   MAX_BULK_INVENTORY_ENTRIES,
@@ -41,6 +44,7 @@ export function BulkInventoryPage() {
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const [activeSuggestion, setActiveSuggestion] = useState(0);
   const [showAllMatches, setShowAllMatches] = useState(false);
+  const [megaOverrides, setMegaOverrides] = useState<Record<string, MegaBuildSettings>>({});
   const preview = useMemo(
     () =>
       catalogResult.data
@@ -100,7 +104,10 @@ export function BulkInventoryPage() {
     const remainingSource = preview.remainingInputs.join("\n");
     setSavedCount(0);
     createMutation.mutate(
-      createBulkInventoryRecords(preview.matches, catalogResult.data),
+      createBulkInventoryRecords(preview.matches.map((match, index) => {
+        const override = megaOverrides[`${source}:${index}`];
+        return override ? { ...match, ...override, extraChargedMoveId: override.extraChargedMoveId ?? null } : match;
+      }), catalogResult.data),
       {
         onSuccess: () => {
           setSavedCount(count);
@@ -321,6 +328,9 @@ export function BulkInventoryPage() {
                       <Check aria-hidden="true" size={16} />
                       <span>{pokemon.speciesName}</span>
                       <small>{pokemon.speciesId}</small>
+                      {defaultMegaLevel(pokemon) ? <div className="bulk-mega-fields form-grid"><MegaBuildFields pokemon={pokemon} label={`Row ${index + 1}`} value={megaOverrides[`${source}:${index}`] ?? {
+                        megaLevel: defaultMegaLevel(pokemon), extraChargedMoveId: bulkInventoryDefaultMoves(pokemon)?.extraChargedMoveId,
+                      }} onChange={settings => setMegaOverrides(current => ({ ...current, [`${source}:${index}`]: settings }))} /></div> : null}
                     </li>
                   ))}
                 </ul>

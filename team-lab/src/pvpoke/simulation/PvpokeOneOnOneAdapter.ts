@@ -22,6 +22,36 @@ export function configurePvpokePokemon(
   shields: number,
 ): PvpokePokemon {
   const pokemon = runtime.createPokemon(build.speciesId, index, battle);
+  if (battle.getCup?.()?.name === "all" && pokemon.tags?.includes("mega")) {
+    throw new RangeError(`Select a Mega league to simulate ${build.speciesId}.`);
+  }
+
+  const selected = [build.fastMoveId, ...build.chargedMoveIds, ...(build.extraChargedMoveId ? [build.extraChargedMoveId] : [])];
+  if (!Number.isFinite(build.level) || build.level < 1 || build.level > 52 || build.level * 2 % 1 !== 0) {
+    throw new RangeError(`Invalid battle level for ${build.speciesId}.`);
+  }
+  if (build.chargedMoveIds.length < 1 || build.chargedMoveIds.length > 2 || new Set(selected).size !== selected.length) {
+    throw new RangeError(`Invalid attack slots for ${build.speciesId}.`);
+  }
+  if (build.megaLevel !== undefined && ![1, 2, 3, 4].includes(build.megaLevel)) {
+    throw new RangeError(`Invalid Mega level for ${build.speciesId}.`);
+  }
+  if (pokemon.tags && !pokemon.tags.includes("mega") && (build.megaLevel !== undefined || build.extraChargedMoveId)) {
+    throw new RangeError(`Mega settings require a Mega or Primal form: ${build.speciesId}.`);
+  }
+  const checkMove = (pool: readonly { readonly moveId: string }[] | undefined, id: string, slot: string) => {
+    if (pool && !pool.some(move => move.moveId === id)) throw new RangeError(`${id} is not a legal ${slot} for ${build.speciesId}.`);
+  };
+  checkMove(pokemon.fastMovePool, build.fastMoveId, "fast attack");
+  for (const id of build.chargedMoveIds) checkMove(pokemon.chargedMovePool, id, "ordinary charged attack");
+  if (build.extraChargedMoveId) checkMove(pokemon.extraChargedMovePool, build.extraChargedMoveId, "extra charged attack");
+  // setMegaLevel may itself change level. Always apply the exact effective
+  // battle level afterwards so the bonus is neither lost nor applied twice.
+  if (build.megaLevel !== undefined) pokemon.setMegaLevel(build.megaLevel);
+  const megaLevel = build.megaLevel ?? pokemon.megaLevel;
+  if (build.level > (megaLevel === 4 && pokemon.tags?.includes("mega") ? 52 : 51)) {
+    throw new RangeError(`Battle level exceeds this build's level limit: ${build.speciesId}.`);
+  }
 
   pokemon.setIV("atk", build.ivs.attack);
   pokemon.setIV("def", build.ivs.defense);
@@ -30,12 +60,25 @@ export function configurePvpokePokemon(
   pokemon.setShadowType(build.isShadow ? "shadow" : "normal");
   pokemon.selectMove("fast", build.fastMoveId);
   pokemon.selectMove("charged", build.chargedMoveIds[0], 0);
+  // Set index 2 before clearing index 1 so upstream keeps a null slot rather
+  // than creating an undefined array hole (its filters only exclude null).
+  if (build.extraChargedMoveId) pokemon.selectMove("extra-charged", build.extraChargedMoveId, 2);
 
   if (build.chargedMoveIds[1]) {
     pokemon.selectMove("charged", build.chargedMoveIds[1], 1);
   } else {
     pokemon.selectMove("charged", "none", 1);
   }
+  if (!build.extraChargedMoveId) pokemon.selectMove("extra-charged", "none", 2);
+
+  if (pokemon.level !== undefined && pokemon.level !== build.level) throw new Error(`Engine changed the requested level for ${build.speciesId}.`);
+  if (pokemon.cp !== undefined && pokemon.cp !== build.cp) throw new Error(`Engine CP ${pokemon.cp} differs from requested CP ${build.cp} for ${build.speciesId}.`);
+  if (pokemon.chargedMoves && (
+    pokemon.fastMove?.moveId !== build.fastMoveId ||
+    pokemon.chargedMoves[0]?.moveId !== build.chargedMoveIds[0] ||
+    pokemon.chargedMoves[1]?.moveId !== build.chargedMoveIds[1] ||
+    pokemon.chargedMoves[2]?.moveId !== build.extraChargedMoveId
+  )) throw new Error(`Engine changed the requested attack slots for ${build.speciesId}.`);
 
   pokemon.setShields(shields);
   battle.setNewPokemon(pokemon, index, false);
@@ -64,6 +107,9 @@ export class PvpokeOneOnOneAdapter implements OneOnOneSimulationAdapter {
   async simulate(
     request: OneOnOneSimulationRequest,
   ): Promise<OneOnOneSimulationResult> {
+    if (request.combatants.some(({ build }) => !Number.isFinite(build.cp) || build.cp > request.format.cpCap || build.cp < 10)) {
+      throw new RangeError("A simulation build exceeds the league CP limit or has invalid CP.");
+    }
     await this.runtime.ready();
     const battle = this.runtime.createBattle();
     battle.setLevelCap(request.format.levelCap);

@@ -17,6 +17,8 @@ import { Link, useParams } from "react-router";
 
 import { PageHeader } from "@/components/PageHeader";
 import { PokemonSprite } from "@/components/PokemonSprite";
+import { InventoryMegaSummary } from "@/components/InventoryMegaSummary";
+import { projectInventoryForCatalog } from "@/domain/inventory/leagueEligibility";
 import {
   META_TARGET_LIMITS,
   prepareSavedTeamRankerRequest,
@@ -124,9 +126,10 @@ export function SavedTeamSimulationPage() {
     ["Safe switch", team.members.switchInventoryId],
     ["Closer", team.members.closerInventoryId],
   ].map(([position, inventoryId]) => {
-    const record = inventory.find(
+    const ownedRecord = inventory.find(
       (candidate) => candidate.inventoryId === inventoryId,
     );
+    const record = ownedRecord ? projectInventoryForCatalog(ownedRecord, catalog) : undefined;
     const speciesId = record
       ? record.buildStatus === "planned"
         ? record.plannedBuild.targetSpeciesId
@@ -240,6 +243,7 @@ export function SavedTeamSimulationPage() {
                   ? `CP ${record.currentBuild.cp} · ${record.buildStatus}`
                   : "Repair this team"}
               </span>
+              {record ? <InventoryMegaSummary record={record} catalog={catalog} /> : null}
             </span>
           </article>
         ))}

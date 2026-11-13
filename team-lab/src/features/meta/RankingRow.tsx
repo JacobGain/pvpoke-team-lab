@@ -17,7 +17,8 @@ import type {
   CatalogRoleScores,
   PokemonCatalogEntry,
 } from "@/domain/pokemon/catalog";
-import { requiresCandyXl } from "@/domain/pokemon/xl";
+import { requiresCandyXlForBattleLevel } from "@/domain/pokemon/xl";
+import { defaultMegaLevel } from "@/domain/pokemon/mega";
 import {
   buildDefensiveProfile,
   formatEffectiveness,
@@ -52,7 +53,7 @@ function recommendedMoveNames(pokemon: PokemonCatalogEntry): string {
     return "No published moveset";
   }
 
-  const moves = [...pokemon.fastMoves, ...pokemon.chargedMoves];
+  const moves = [...pokemon.fastMoves, ...pokemon.chargedMoves, ...(pokemon.extraChargedMoves ?? [])];
 
   return pokemon.ranking.recommendedMoveIds
     .map(
@@ -400,6 +401,10 @@ function RankingDetail({
             <h4>Charged moves</h4>
             <MoveList moves={pokemon.chargedMoves} pokemon={pokemon} />
           </div>
+          {pokemon.extraChargedMoves?.length ? <div>
+            <h4>Extra Mega charged attacks</h4>
+            <MoveList moves={pokemon.extraChargedMoves} pokemon={pokemon} />
+          </div> : null}
         </div>
       </section>
 
@@ -494,7 +499,7 @@ export function RankingRow({
           {optimalIvs ? (
             <small>
               Level {optimalIvs.level}
-              {requiresCandyXl(optimalIvs.level) ? (
+              {requiresCandyXlForBattleLevel(optimalIvs.level, defaultMegaLevel(pokemon)) ? (
                 <span
                   className="xl-badge"
                   title="This optimal build requires Candy XL"

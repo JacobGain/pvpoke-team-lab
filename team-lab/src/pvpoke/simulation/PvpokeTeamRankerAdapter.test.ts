@@ -23,6 +23,7 @@ class RankerPokemon implements PvpokePokemon {
   constructor(readonly speciesId: string) {}
 
   setIV(): void {}
+  setMegaLevel(): void {}
   setLevel(): void {}
   setShadowType(): void {}
   selectMove(): void {}

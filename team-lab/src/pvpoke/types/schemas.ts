@@ -23,6 +23,7 @@ export const pokemonSchema = z
     types: z.array(typeSchema).min(1).max(2),
     fastMoves: z.array(idSchema),
     chargedMoves: z.array(idSchema),
+    extraChargedMoves: z.array(idSchema).optional(),
     defaultIVs: z.record(z.string(), ivCombinationSchema).optional(),
     tags: z.array(idSchema).optional(),
     legacyMoves: z.array(idSchema).optional(),
@@ -52,6 +53,7 @@ export const moveSchema = z
     turns: z.number().positive().optional(),
     archetype: z.string().optional(),
     abbreviation: z.string().optional(),
+    isMegaMove: z.boolean().optional(),
     buffs: z.tuple([z.number(), z.number()]).optional(),
     buffApplyChance: z.coerce.number().min(0).max(1).optional(),
     buffTarget: z.enum(["self", "opponent", "both"]).optional(),
@@ -129,6 +131,7 @@ export const rankingSchema = z
       .object({
         fastMoves: z.array(rankingMoveUsageSchema),
         chargedMoves: z.array(rankingMoveUsageSchema),
+        extraChargedMoves: z.array(rankingMoveUsageSchema).optional(),
       })
       .optional(),
     moveset: z.array(idSchema),

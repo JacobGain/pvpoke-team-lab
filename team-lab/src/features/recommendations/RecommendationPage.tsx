@@ -1,3 +1,4 @@
+import { formatMegaBuild } from "@/utils/formatters";
 import { useLeague } from "@/features/leagues/leagueStore";
 import { LeagueName } from "@/features/leagues/LeagueSelector";
 import {
@@ -194,6 +195,7 @@ function RecommendationResultCard({
             <p>
               {formatMoveName(candidate.exactBuild.fastMoveId)} ·{" "}
               {formatMoveList(candidate.exactBuild.chargedMoveIds)}
+              {candidate.exactBuild.megaLevel || candidate.exactBuild.extraChargedMoveId ? <small className="mega-build-summary">{formatMegaBuild(candidate.exactBuild)}</small> : null}
             </p>
             <small>
               {candidate.source === "ranked-default-build"
@@ -214,6 +216,7 @@ function RecommendationResultCard({
                   moveIds={[
                     candidate.exactBuild.fastMoveId,
                     ...candidate.exactBuild.chargedMoveIds,
+                    ...(candidate.exactBuild.extraChargedMoveId ? [candidate.exactBuild.extraChargedMoveId] : []),
                     ...candidate.staticEvidence.recommendedMoveIds,
                   ]}
                 />
@@ -223,6 +226,7 @@ function RecommendationResultCard({
                   moveIds={[
                     candidate.exactBuild.fastMoveId,
                     ...candidate.exactBuild.chargedMoveIds,
+                    ...(candidate.exactBuild.extraChargedMoveId ? [candidate.exactBuild.extraChargedMoveId] : []),
                     ...candidate.staticEvidence.recommendedMoveIds,
                   ]}
                 />

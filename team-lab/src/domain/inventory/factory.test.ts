@@ -33,7 +33,7 @@ describe("createInventoryPokemon", () => {
     );
 
     expect(record).toMatchObject({
-      schemaVersion: 1,
+      schemaVersion: 2,
       inventoryId: fixedId,
       buildStatus: "current",
       sourceDataVersion: "test-data-v1",

@@ -1,8 +1,8 @@
 import Dexie, { type EntityTable } from "dexie";
 
-import type { InventoryPokemon } from "@/domain/inventory/schemas";
+import { inventoryPokemonSchema, type InventoryPokemon } from "@/domain/inventory/schemas";
 import { TEAM_LAB_DATABASE_VERSION } from "@/domain/schemaVersions";
-import type { SavedTeam } from "@/domain/teams/schemas";
+import { savedTeamSchema, type SavedTeam } from "@/domain/teams/schemas";
 import type { RecommendationHistoryRecord } from "@/domain/recommendations/history";
 
 export const TEAM_LAB_DATABASE_NAME = "team-lab";
@@ -27,10 +27,22 @@ export class TeamLabDatabase extends Dexie {
         "&inventoryId, buildStatus, speciesId, favorite, createdAt, updatedAt",
     });
 
+    this.version(4).stores({
+      inventory: "&inventoryId, updatedAt",
+      savedTeams: "&teamId, updatedAt",
+      recommendationHistory: "&historyId, createdAt, formatId, dataVersion",
+    });
     this.version(TEAM_LAB_DATABASE_VERSION).stores({
       inventory: "&inventoryId, updatedAt",
       savedTeams: "&teamId, updatedAt",
       recommendationHistory: "&historyId, createdAt, formatId, dataVersion",
+    }).upgrade(async transaction => {
+      await transaction.table("inventory").toCollection().modify((record: Record<string, unknown>) => {
+        Object.assign(record, inventoryPokemonSchema.parse(record));
+      });
+      await transaction.table("savedTeams").toCollection().modify((record: Record<string, unknown>) => {
+        Object.assign(record, savedTeamSchema.parse(record));
+      });
     });
   }
 }

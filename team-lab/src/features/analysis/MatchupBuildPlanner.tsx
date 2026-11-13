@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { MegaBuildFields, type MegaBuildSettings } from "@/components/MegaBuildFields";
 
 import type { AnalyzedPokemonBuild, InventoryBuildAnalysis } from "@/domain/analysis/buildAnalysis";
 import {
@@ -45,7 +46,7 @@ function formatLevel(level: number): string {
 }
 
 function formatBuild(build: MatchupPlanBuild["build"]): string {
-  return `CP ${build.cp} · L${formatLevel(build.level)} · IV ${build.ivs.attack}/${build.ivs.defense}/${build.ivs.hp} · ${formatMoveName(build.fastMoveId)} + ${formatMoveList(build.chargedMoveIds)}`;
+  return `CP ${build.cp} · L${formatLevel(build.level)}${build.megaLevel ? ` · Mega level ${build.megaLevel}` : ""} · IV ${build.ivs.attack}/${build.ivs.defense}/${build.ivs.hp} · ${formatMoveName(build.fastMoveId)} + ${formatMoveList([...build.chargedMoveIds, ...(build.extraChargedMoveId ? [build.extraChargedMoveId] : [])])}`;
 }
 
 function outcome(result: NonNullable<MatchupPlanSimulationReport["observations"][number]["result"]>): string {
@@ -198,6 +199,9 @@ export function MatchupBuildPlanner({
   const [customFastMoveId, setCustomFastMoveId] = useState(initialCandidateProfile.moves.enteredFastMoveId);
   const [customChargedMoveId, setCustomChargedMoveId] = useState(initialCandidateProfile.moves.enteredChargedMoveIds[0] ?? "");
   const [customSecondChargedMoveId, setCustomSecondChargedMoveId] = useState(initialCandidateProfile.moves.enteredChargedMoveIds[1] ?? "");
+  const [megaSettings, setMegaSettings] = useState<MegaBuildSettings>({
+    megaLevel: initialCandidateProfile.megaLevel, extraChargedMoveId: initialCandidateProfile.moves.enteredExtraChargedMoveId,
+  });
   const [candidateLabel, setCandidateLabel] = useState("");
   const [candidateError, setCandidateError] = useState<string>();
   const [candidates, setCandidates] = useState<readonly MatchupPlanBuild[]>([]);
@@ -263,6 +267,7 @@ export function MatchupBuildPlanner({
     setCustomFastMoveId(profile.moves.enteredFastMoveId);
     setCustomChargedMoveId(profile.moves.enteredChargedMoveIds[0] ?? "");
     setCustomSecondChargedMoveId(profile.moves.enteredChargedMoveIds[1] ?? "");
+    setMegaSettings({ megaLevel: profile.megaLevel, extraChargedMoveId: profile.moves.enteredExtraChargedMoveId });
     setIvMode("source");
     setMovesMode("source");
     setCandidateLabel("");
@@ -289,6 +294,7 @@ export function MatchupBuildPlanner({
         ? {
             kind: "custom",
             moveset: {
+              extraChargedMoveId: megaSettings.extraChargedMoveId,
               fastMoveId: customFastMoveId,
               chargedMoveIds: [
                 customChargedMoveId,
@@ -308,6 +314,7 @@ export function MatchupBuildPlanner({
         sourceLevel: candidateLevel,
         ivSelection,
         movesSelection,
+        megaLevel: megaSettings.megaLevel,
       });
       const duplicate = candidates.some((existing) => {
         const left = existing.build;
@@ -319,6 +326,8 @@ export function MatchupBuildPlanner({
           left.ivs.defense === right.ivs.defense &&
           left.ivs.hp === right.ivs.hp &&
           left.fastMoveId === right.fastMoveId &&
+          left.megaLevel === right.megaLevel &&
+          left.extraChargedMoveId === right.extraChargedMoveId &&
           left.chargedMoveIds.join("|") === right.chargedMoveIds.join("|") &&
           left.isShadow === right.isShadow;
       });
@@ -443,7 +452,7 @@ export function MatchupBuildPlanner({
       </header>
 
       <p className="analysis-notice">
-        A different IV spread represents another specimen; it cannot change an owned Pokémon’s IVs. Alternate spreads use the highest legal level up to level 50. Experiments stay temporary and do not update inventory.
+        A different IV spread represents another specimen; it cannot change an owned Pokémon’s IVs. Alternate spreads use the highest legal level for the selected Mega setting (up to 52 at Mega level 4). Experiments stay temporary and do not update inventory.
       </p>
 
       <div className="matchup-planner__setup">
@@ -578,6 +587,27 @@ export function MatchupBuildPlanner({
             </label>
           </div>
 
+          {candidatePokemon ? <div className="matchup-planner__fields matchup-planner__fields--two" inert={running}>
+            <MegaBuildFields pokemon={candidatePokemon} label="Candidate" value={{
+              ...megaSettings,
+              extraChargedMoveId: movesMode === "source" ? candidateProfile.moves.enteredExtraChargedMoveId
+                : movesMode === "recommended" ? candidateProfile.moves.recommendedExtraChargedMoveId : megaSettings.extraChargedMoveId,
+            }} onChange={settings => {
+              const shownExtra = movesMode === "source" ? candidateProfile.moves.enteredExtraChargedMoveId
+                : movesMode === "recommended" ? candidateProfile.moves.recommendedExtraChargedMoveId : megaSettings.extraChargedMoveId;
+              if (shownExtra !== settings.extraChargedMoveId) {
+                if (movesMode !== "custom") {
+                  const ids = movesMode === "source" ? candidateProfile.moves.enteredChargedMoveIds : candidateProfile.moves.recommendedChargedMoveIds;
+                  setCustomFastMoveId((movesMode === "source" ? candidateProfile.moves.enteredFastMoveId : candidateProfile.moves.recommendedFastMoveId) ?? customFastMoveId);
+                  setCustomChargedMoveId(ids[0] ?? "");
+                  setCustomSecondChargedMoveId(ids[1] ?? "");
+                }
+                setMovesMode("custom");
+              }
+              setMegaSettings(settings);
+              invalidateResults();
+            }} />
+          </div> : null}
           {ivMode === "custom" ? (
             <div className="matchup-planner__fields matchup-planner__fields--three">
               {(["attack", "defense", "hp"] as const).map((stat) => (
@@ -633,8 +663,9 @@ export function MatchupBuildPlanner({
             </label>
           </div>
           {ivMode !== "source" ? (
-          <p className="matchup-planner__fit-note">This alternate IV spread is fit to the highest legal level in {league.shortTitle}, up to level 50. It represents a different specimen; CP and level may differ from the source build.</p>
+          <p className="matchup-planner__fit-note">This alternate IV spread is fit to the highest legal level in {league.shortTitle}, up to level {megaSettings.megaLevel === 4 ? 52 : 50}. It represents a different specimen; CP and level may differ from the source build.</p>
           ) : null}
+          {megaSettings.megaLevel !== candidateProfile.megaLevel ? <p className="matchup-planner__fit-note">Changing Mega level refits the effective battle level to the selected league. Your stored specimen remains unchanged.</p> : null}
           {movesMode === "recommended" ? (
             <p className="matchup-planner__fit-note">PvPoke recommended moves are a simulation option. Elite/TM availability is not inferred as an exact resource cost.</p>
           ) : null}

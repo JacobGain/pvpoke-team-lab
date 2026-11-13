@@ -6,10 +6,12 @@ The checked-in PNGs under `baselines/` cover:
 - the guided inventory form at tablet width and owned inventory/team cards;
 - simulation evidence and recommendation results at desktop and mobile widths;
 - release notes and footer navigation at desktop and mobile widths;
-- roster update review at desktop and narrow mobile widths.
+- roster update review at desktop and narrow mobile widths;
+- Super Mega inventory controls, bulk entry, and replay at widths down to 320px.
 
-The 1.3.2 refresh records the November 9, 2026 rankings, updated release
-identity, and current Chrome scrollbar rendering. Review data-derived scores,
+The 1.4.0 release retains the November 9, 2026 ranking pin and adds four
+reviewed Super Mega snapshots plus updated release-note snapshots. There are
+21 baselines in total. Review data-derived scores,
 matchups, dates, and release notes when refreshing these snapshots.
 
 Verify them with:
