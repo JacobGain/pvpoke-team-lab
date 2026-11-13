@@ -1,6 +1,6 @@
 # TeamLab Local User Guide
 
-TeamLab 1.3.2 treats **Season 28 — Twilight Trails** as the active season for
+TeamLab 1.4.0 treats **Season 28 — Twilight Trails** as the active season for
 rankings, recommended moves, meta opponents, and simulations. The dashboard
 identifies the active season. Existing inventory and saved teams remain stored;
 re-run analyses to evaluate them against the new season. There is no preview
@@ -19,16 +19,39 @@ leagues; saved teams remain specific to the selected league. The inventory
 defaults to builds best suited to that league. Change **League eligibility** to
 show every eligible build or all owned Pokémon. Older records remain available
 across leagues whenever their CP is legal.
-Master League defaults use 15/15/15 IVs at level 50 (or a lower species level
-cap). Planned builds maximize level with the entered IVs. Existing support for
-exact Best Buddy builds remains available; default rankings use level 50.
+Ordinary Master League defaults use 15/15/15 IVs at level 50 (or a lower species
+cap). Super Mega defaults use effective battle level 52. Planned builds maximize
+level with the entered IVs and selected Mega level. Existing support for exact
+ordinary Best Buddy builds remains available; a Super Mega's supported effective
+cap is 52, without an additional level-53 assumption.
 Backups and reset tools cover all formats together; switching leagues does
 not remove any records.
 
 The November 9 data includes Super Mega rankings for Mega Sableye and Mega
-Chandelure. TeamLab builds currently support two charged moves and do not expose
-a Mega-level selector. Published rankings using an extra charged move therefore
-can differ from TeamLab’s exact-build simulation results.
+Chandelure. Select Mega levels 1–4 and an optional **extra charged attack** in
+inventory, bulk entry, build planning, and the duel editor. Extra attacks use a
+separate legal move pool; they do not replace either ordinary charged slot.
+Current and planned builds keep independent settings. A published recommendation
+without an extra attack stays without one; TeamLab does not invent a third move.
+
+For a base Pokémon with **Mega evolve this Pokémon in Mega leagues** enabled,
+record the CP and IVs you actually own. In a Mega league, level 4 adds two
+effective battle levels, capped at 52, before calculating the evolved CP.
+Directly entered Mega forms instead use their effective battle CP. Do not add
+the two-level bonus again. The bonus levels are not purchased power-ups and do
+not by themselves require Candy XL. Mega forms require a Mega league for team
+simulation; selecting an unusable form does not silently substitute its base.
+
+Changing forms resets the Mega controls. An extra attack can be cleared even if
+it appears in the published defaults; saving, reopening, and simulating preserves
+that choice. CSV templates include optional `mega_level` and
+`extra_charged_move_id` columns. Old CSV files still import without gaining an
+extra attack. Duplicate matching includes the Mega form, level, and all slots.
+
+Simulations reproduce identically configured pinned PvPoke battles. Published
+ranking positions can still differ because their opponents, IVs, shield settings,
+and scoring can differ. The [tracked Minior concern](UPSTREAM-CONCERNS.md) remains
+an upstream calculation limitation rather than a Mega-support limitation.
 
 ## What TeamLab does
 
@@ -297,7 +320,9 @@ current or planned baseline with temporary build candidates.
 
 Retaining the source IVs preserves that build's CP and selected level. An
 alternate IV spread represents a different specimen and is fitted to the
-highest legal level under the active league's CP cap, up to level 50. It never
+highest legal level under the active league's CP cap, up to level 50 for ordinary
+builds or 52 at Mega level 4. Changing Mega level refits the candidate's effective
+level; choosing another extra attack preserves its separate slot. It never
 changes the owned Pokémon. The candidates and results are temporary and are
 not saved.
 
@@ -475,16 +500,24 @@ Open **Inventory → Backups & reset**. The page heading is **Backup and restore
 
 Choose **Download JSON backup**.
 
-The current version-three backup contains:
+The current version-four backup contains:
 
-- every inventory record;
-- every saved team;
+- every inventory record, including current and planned Mega settings;
+- every saved team and its exact-build analysis fingerprint;
 - recommendation history and its archived result snapshots;
 - schema versions;
 - export time and source-data metadata.
 
 TeamLab refuses to export a snapshot that cannot be restored legally. Keep the
 download somewhere outside the browser profile.
+
+Backups from versions 1–3 are normalized before validation. Inventory and team
+records upgrade without changing entered CP, IVs, attacks, timestamps, or team
+references. Legacy builds do not gain a recommended extra attack automatically.
+Existing analyzed teams need a fresh run to record the complete build inputs.
+Older TeamLab apps cannot read new version-four backups or the upgraded database.
+Download a recovery copy before upgrading; do not attempt an app rollback by
+clearing browser data without a verified backup.
 
 Download a backup before:
 

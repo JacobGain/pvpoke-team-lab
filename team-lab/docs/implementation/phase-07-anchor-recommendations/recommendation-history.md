@@ -44,7 +44,7 @@ new snapshot → composition/score comparison against the earlier run.
 ## Public interfaces and schemas
 
 History records use schema version one. The database is version four; full-data
-backups use envelope version three and include inventory, saved teams, and
+backups use envelope version four (version three originally introduced history) and include inventory, saved teams, and
 history. Version-one inventory-only and version-two inventory/team backups
 remain importable with the documented merge/replace semantics.
 
@@ -81,7 +81,7 @@ rules of the recommendation service.
 
 Run `npm test` and the complete Chrome workflow. Browser coverage verifies
 history persistence, rerun comparison, deletion/clearing, and backup/restore.
-The version-three backup path validates and restores all three collections
+The version-four backup path validates and restores all three collections
 atomically.
 
 ## Known limitations
@@ -105,3 +105,10 @@ separate extensions, not existing archive guarantees.
 
 The 1.2.1 recommendation-history release records the user workflow; use the
 owning files above for current persistence and comparison history.
+
+## Super Mega archive compatibility
+
+Exact snapshots retain Mega level and the separate extra attack. Existing history
+records remain historical and receive no invented default attack. See the
+[phase 11 contract](../phase-11-super-mega/build-contracts-and-migration.md) for
+inventory/team upgrades and full-backup compatibility.

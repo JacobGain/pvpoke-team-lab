@@ -4,6 +4,7 @@ import { inventoryTestCatalog } from "@/domain/inventory/inventoryTestFixtures";
 import type { InventoryPokemon } from "@/domain/inventory/schemas";
 import { calculateCombatPower } from "@/domain/pokemon/combatPower";
 import type { SavedTeam } from "@/domain/teams/schemas";
+import { savedTeamBuildFingerprint } from "@/domain/teams/freshness";
 import type { PvpokeUpdateReview } from "@/pvpoke/types/updateReview";
 import { reviewRoster } from "./rosterReview";
 
@@ -33,12 +34,13 @@ function comparison(): PvpokeUpdateReview {
   };
 }
 function teamFor(records: InventoryPokemon[], version?: string): SavedTeam {
-  return {
-    schemaVersion: 1, teamId: crypto.randomUUID(), formatId: "great-league", name: "Test team", notes: "",
+  const team: SavedTeam = {
+    schemaVersion: 2, teamId: crypto.randomUUID(), formatId: "great-league", name: "Test team", notes: "",
     members: { leadInventoryId: records[0]!.inventoryId, switchInventoryId: records[1]!.inventoryId, closerInventoryId: records[2]!.inventoryId },
     createdAt: "2026-07-24T12:00:00Z", updatedAt: "2026-07-25T12:00:00Z", lastAnalyzedDataVersion: version,
     lastAnalyzedUpstreamCommit: "b".repeat(40),
   };
+  return { ...team, lastAnalyzedBuildFingerprint: savedTeamBuildFingerprint(team, records) };
 }
 
 describe("roster update impact", () => {

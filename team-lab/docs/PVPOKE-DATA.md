@@ -1,5 +1,26 @@
 # PvPoke Asset Maintenance
 
+## TeamLab 1.4.0 compatibility update
+
+The active upstream pin and the ten bundled engine scripts remain unchanged from
+1.3.2. TeamLab now normalizes the separate extra-attack pools and carries Mega
+levels and extra attacks through builds, default targets, simulations, and replay.
+The previous two-slot/no-selector limitation applies to historical 1.3.2, not
+current TeamLab. See the [Super Mega implementation record](implementation/phase-11-super-mega/README.md).
+
+Roster comparisons now include Mega/Super Mega capability tags, extra-attack
+availability, extra move-stat changes, and the Mega damage marker. The existing
+comparison envelope remains version 1 because these are additional human-readable
+details in its existing contract. Sync regenerates the report and manifest hashes
+against the same October 26 → November 9 pins. No raw data, ranking, or engine file
+is hand-patched. Comparison and dashboard cache keys use their content hashes.
+
+The lockfile's ten moderate ESLint-chain findings are addressed by the scoped
+compatibility-tested override documented in [dependency maintenance](DEPENDENCY-MAINTENANCE.md).
+The Minior concern has a fixed-input reproducer and a [tracked disposition](UPSTREAM-CONCERNS.md).
+LAIC and other upstream limited-cup definitions remain preserved without adding
+new supported formats. Keep the six-format boundary in subsequent syncs.
+
 TeamLab contains the PvPoke-derived data and classic JavaScript modules it
 uses at runtime. Development, browser tests, production builds, and deployed
 applications therefore run without Apache, PHP, Docker, or a second PvPoke

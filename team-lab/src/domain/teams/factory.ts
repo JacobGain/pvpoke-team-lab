@@ -54,6 +54,7 @@ export function updateSavedTeam(
     notes: input.notes ?? "",
     lastAnalyzedDataVersion: undefined,
     lastAnalyzedUpstreamCommit: undefined,
+    lastAnalyzedBuildFingerprint: undefined,
     updatedAt: (dependencies.now ?? (() => new Date()))().toISOString(),
   });
 

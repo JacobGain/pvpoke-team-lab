@@ -57,6 +57,8 @@ export function serializeAnalyzedBuildForSimulation(
     cp: build.cp,
     ivs: build.ivs,
     fastMoveId: build.moves.enteredFastMoveId,
+    megaLevel: build.megaLevel,
+    extraChargedMoveId: build.moves.enteredExtraChargedMoveId,
     chargedMoveIds,
     isShadow: pokemon.isShadow,
     source:

@@ -10,6 +10,20 @@ const rankings = rankingCollectionSchema.parse(greatJson);
 const snapshot = { gameMaster: gm, rankings: { "great-league": rankings } };
 
 describe("published update comparison", () => {
+  it("reports changed Mega capabilities, extra attack availability, and Mega move damage markers", () => {
+    const before = structuredClone(snapshot);
+    const after = structuredClone(snapshot);
+    const previous = before.gameMaster.pokemon.find(p => p.speciesId === "sableye_mega")!;
+    previous.tags = previous.tags?.filter(tag => tag !== "supermega");
+    previous.extraChargedMoves = [];
+    const sableye = buildUpdateReview(before, after, commit, commit).species.sableye_mega;
+    expect(sableye.details).toContain("Mega capabilities changed; review Mega level, effective level, and extra attack availability.");
+    expect(sableye.details).toContain("Extra charged attack added: Night Shade+.");
+    const withoutMarker = structuredClone(snapshot);
+    withoutMarker.gameMaster.moves.find(move => move.moveId === "NIGHT_SHADE_PLUS")!.isMegaMove = false;
+    expect(buildUpdateReview(withoutMarker, after, commit, commit).species.sableye_mega?.details).toContain("Move stats changed: Night Shade+.");
+    expect(buildUpdateReview(after, before, commit, commit).species.sableye_mega?.details).toContain("Extra charged attack removed: Night Shade+.");
+  });
   it("does not invent changes when syncing the same snapshot", () => {
     expect(buildUpdateReview(snapshot, snapshot, commit, commit).species).toEqual({});
   });

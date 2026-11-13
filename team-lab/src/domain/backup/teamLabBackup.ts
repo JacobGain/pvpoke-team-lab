@@ -49,16 +49,21 @@ const backupEnvelopeV2Schema = backupMetadataSchema.extend({
 });
 
 const backupEnvelopeV3Schema = backupMetadataSchema.extend({
-  schemaVersion: z.literal(TEAM_LAB_BACKUP_SCHEMA_VERSION),
+  schemaVersion: z.literal(3),
   inventory: z.array(z.unknown()).max(MAX_TEAM_LAB_BACKUP_INVENTORY_RECORDS),
   savedTeams: z.array(z.unknown()).max(MAX_TEAM_LAB_BACKUP_SAVED_TEAMS),
   recommendationHistory: z.array(z.unknown()).max(MAX_RECOMMENDATION_HISTORY_RECORDS),
+});
+
+const backupEnvelopeV4Schema = backupEnvelopeV3Schema.extend({
+  schemaVersion: z.literal(TEAM_LAB_BACKUP_SCHEMA_VERSION),
 });
 
 const supportedBackupEnvelopeSchema = z.discriminatedUnion("schemaVersion", [
   backupEnvelopeV1Schema,
   backupEnvelopeV2Schema,
   backupEnvelopeV3Schema,
+  backupEnvelopeV4Schema,
 ]);
 
 export interface TeamLabBackup {
@@ -74,6 +79,7 @@ export interface TeamLabRestoreData {
   readonly sourceSchemaVersion:
     | typeof LEGACY_INVENTORY_BACKUP_SCHEMA_VERSION
     | 2
+    | 3
     | typeof TEAM_LAB_BACKUP_SCHEMA_VERSION;
   readonly exportedAt: string;
   readonly inventory: readonly InventoryPokemon[];
@@ -108,7 +114,7 @@ export type TeamLabBackupInspection =
       readonly success: false;
       readonly envelopeError?: string;
       readonly exportedAt?: string;
-      readonly sourceSchemaVersion?: 1 | 2 | 3;
+      readonly sourceSchemaVersion?: 1 | 2 | 3 | 4;
       readonly inventoryCount?: number;
       readonly savedTeamCount?: number;
       readonly recommendationHistoryCount?: number;
@@ -127,7 +133,7 @@ export interface TeamLabCollectionRestoreResult {
 
 export interface TeamLabRestoreResult {
   readonly mode: TeamLabRestoreMode;
-  readonly sourceSchemaVersion: 1 | 2 | 3;
+  readonly sourceSchemaVersion: 1 | 2 | 3 | 4;
   readonly inventory: TeamLabCollectionRestoreResult;
   readonly savedTeams: TeamLabCollectionRestoreResult;
   readonly recommendationHistory: TeamLabCollectionRestoreResult;
@@ -281,7 +287,7 @@ export function inspectTeamLabBackup(
   const envelope = envelopeResult.data;
   const rawTeams = "savedTeams" in envelope ? envelope.savedTeams : [];
   const rawHistory =
-    envelope.schemaVersion === TEAM_LAB_BACKUP_SCHEMA_VERSION
+    "recommendationHistory" in envelope
       ? envelope.recommendationHistory
       : [];
   const issues: TeamLabBackupIssue[] = [];

@@ -10,6 +10,7 @@ import {
 } from "@/domain/inventory/schemas";
 import { assertInventoryPokemonAgainstCatalog } from "@/domain/inventory/validation";
 import type { PokemonCatalog } from "@/domain/pokemon/catalog";
+import { defaultMegaLevel } from "@/domain/pokemon/mega";
 
 export interface InventoryFactoryDependencies {
   readonly catalog: PokemonCatalog;
@@ -30,6 +31,7 @@ export type InventoryIvInput =
   | { readonly source: "assumed-rank-1"; readonly ivs?: InventoryIvs };
 
 export interface InventoryBuildInput {
+  readonly megaLevel?: import("@/domain/pokemon/mega").MegaLevel;
   readonly cp: number;
   readonly ivProfile: InventoryIvInput;
   readonly moveset: InventoryMoveset;
@@ -52,10 +54,15 @@ function resolveBuild(
   input: InventoryBuildInput,
   speciesId: string,
   catalog: PokemonCatalog,
+  megaSpeciesId?: string,
 ): InventoryBuild {
+  const megaPokemon = catalog.entries.find(entry => entry.speciesId === (megaSpeciesId ?? speciesId));
+  const megaLevel = input.megaLevel ?? (megaPokemon ? defaultMegaLevel(megaPokemon) : undefined);
+  const megaSettings = megaLevel !== undefined ? { megaLevel } : {};
   if (input.ivProfile.source === "user-entered") {
     return {
       cp: input.cp,
+      ...megaSettings,
       ivProfile: input.ivProfile,
       moveset: input.moveset,
     };
@@ -74,6 +81,7 @@ function resolveBuild(
 
   return {
     cp: input.cp,
+    ...megaSettings,
     ivProfile: {
       source: "assumed-rank-1",
       ivs: {
@@ -107,6 +115,7 @@ export function createInventoryPokemon(
     input.currentBuild,
     input.speciesId,
     dependencies.catalog,
+    input.megaSpeciesId,
   );
   const candidate =
     input.buildStatus === "planned"
@@ -149,6 +158,7 @@ export function updateInventoryPokemon(
     input.currentBuild,
     input.speciesId,
     dependencies.catalog,
+    input.megaSpeciesId,
   );
   const metadata = {
     formatId: existingRecord.formatId ?? leagueForCatalog(dependencies.catalog).id,

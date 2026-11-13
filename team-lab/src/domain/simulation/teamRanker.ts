@@ -3,6 +3,7 @@ import {
   type EffectiveStats,
 } from "@/domain/analysis/ivRankings";
 import { leagueForCatalog } from "@/domain/leagues";
+import { defaultMegaLevel } from "@/domain/pokemon/mega";
 import { calculateCombatPower } from "@/domain/pokemon/combatPower";
 import type {
   CatalogRoleScores,
@@ -102,8 +103,12 @@ export function createMetaDefaultBuild(
     .flatMap((moveId) => {
       const move = pokemon.chargedMoves.find((candidate) => candidate.id === moveId);
       return move ? [move] : [];
-    })
-    .slice(0, 2);
+    });
+  const extraMoves = (pokemon.extraChargedMoves ?? []).filter(move => recommendedMoveIds.includes(move.id));
+  const knownIds = new Set([fastMove?.id, ...chargedMoves.map(move => move.id), ...extraMoves.map(move => move.id)]);
+  if (chargedMoves.length > 2 || extraMoves.length > 1 || recommendedMoveIds.some(id => !knownIds.has(id))) {
+    throw new Error(`Cannot represent published attack slots for ${pokemon.speciesName}.`);
+  }
 
   if (!fastMove || chargedMoves.length === 0) {
     return undefined;
@@ -125,6 +130,8 @@ export function createMetaDefaultBuild(
       hp: ivs.hp,
     },
     fastMoveId: fastMove.id,
+    megaLevel: defaultMegaLevel(pokemon),
+    extraChargedMoveId: extraMoves[0]?.id,
     chargedMoveIds,
     isShadow: pokemon.isShadow,
     source: "meta-default",

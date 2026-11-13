@@ -11,20 +11,30 @@ import {
 import type { PokemonCatalog } from "@/domain/pokemon/catalog";
 
 export const TEAM_LAB_BACKUP_FORMAT = "teamlab-backup" as const;
-export const TEAM_LAB_BACKUP_SCHEMA_VERSION = 1 as const;
+import { TEAM_LAB_BACKUP_SCHEMA_VERSION } from "@/domain/schemaVersions";
+export { TEAM_LAB_BACKUP_SCHEMA_VERSION } from "@/domain/schemaVersions";
 
-const backupEnvelopeSchema = z.object({
+const legacyBackupEnvelopeSchema = z.object({
   format: z.literal(TEAM_LAB_BACKUP_FORMAT),
-  schemaVersion: z.literal(TEAM_LAB_BACKUP_SCHEMA_VERSION),
+  schemaVersion: z.literal(1),
   exportedAt: z.iso.datetime(),
   inventory: z.array(z.unknown()),
 });
+const backupEnvelopeSchema = z.discriminatedUnion("schemaVersion", [
+  legacyBackupEnvelopeSchema,
+  legacyBackupEnvelopeSchema.extend({
+    schemaVersion: z.literal(TEAM_LAB_BACKUP_SCHEMA_VERSION),
+    savedTeams: z.tuple([]), recommendationHistory: z.tuple([]),
+  }),
+]);
 
 export interface InventoryBackup {
   readonly format: typeof TEAM_LAB_BACKUP_FORMAT;
   readonly schemaVersion: typeof TEAM_LAB_BACKUP_SCHEMA_VERSION;
   readonly exportedAt: string;
   readonly inventory: readonly InventoryPokemon[];
+  readonly savedTeams: readonly [];
+  readonly recommendationHistory: readonly [];
 }
 
 export interface InventoryBackupRecordIssue {
@@ -57,6 +67,7 @@ export function createInventoryBackup(
     schemaVersion: TEAM_LAB_BACKUP_SCHEMA_VERSION,
     exportedAt: now().toISOString(),
     inventory: records.map((record) => inventoryPokemonSchema.parse(record)),
+    savedTeams: [], recommendationHistory: [],
   };
 }
 
@@ -167,6 +178,7 @@ export function inspectInventoryBackup(
       schemaVersion: TEAM_LAB_BACKUP_SCHEMA_VERSION,
       exportedAt: envelopeResult.data.exportedAt,
       inventory: records,
+      savedTeams: [], recommendationHistory: [],
     },
   };
 }

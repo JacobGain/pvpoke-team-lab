@@ -11,6 +11,7 @@ export interface CatalogMove {
   readonly turns: number;
   readonly isLegacy: boolean;
   readonly isElite: boolean;
+  readonly isMegaMove?: boolean;
 }
 
 export interface CatalogRanking {
@@ -35,6 +36,7 @@ export interface CatalogMoveUsage {
 export interface CatalogRankingMoveUsage {
   readonly fastMoves: readonly CatalogMoveUsage[];
   readonly chargedMoves: readonly CatalogMoveUsage[];
+  readonly extraChargedMoves?: readonly CatalogMoveUsage[];
 }
 
 export interface CatalogRankingStats {
@@ -87,6 +89,7 @@ export interface PokemonCatalogEntry {
   readonly evolutionIds: readonly string[];
   readonly fastMoves: readonly CatalogMove[];
   readonly chargedMoves: readonly CatalogMove[];
+  readonly extraChargedMoves?: readonly CatalogMove[];
   readonly defaultLeagueIvs?: CatalogIvSpread;
   readonly defaultIvsByCp?: Readonly<Record<number, CatalogIvSpread | undefined>>;
   readonly ranking?: CatalogRanking;

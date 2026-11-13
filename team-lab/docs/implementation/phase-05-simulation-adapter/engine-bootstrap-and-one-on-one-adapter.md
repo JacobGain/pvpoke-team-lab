@@ -64,9 +64,16 @@ build:
 - exact level and CP;
 - exact Attack, Defense, and HP IVs;
 - one fast move;
-- one or two charged moves;
+- one or two ordinary charged moves;
+- optional separate extra charged attack and applicable Mega level (1–4);
 - Shadow state;
 - current/planned/meta-default provenance.
+
+Super Mega configuration order, effective level 52, unused-slot clearing,
+TeamRanker compatibility, and current parity tests are owned by the
+[phase 11 record](../phase-11-super-mega/engine-configuration-and-parity.md).
+The fixed-format description below records the original MVP boundary; the
+current request supports all six open/Mega formats.
 
 `OneOnOneSimulationRequest` adds:
 

@@ -1,9 +1,10 @@
 import type { PokemonCatalogEntry } from '@/domain/pokemon/catalog';
 import { calculateCombatPower } from '@/domain/pokemon/combatPower';
 import type { ExactSimulationBuild } from '@/domain/simulation/contracts';
+import { defaultMegaLevel, isMega, megaBattleLevelCap, validateMegaSettings, type MegaLevel } from '@/domain/pokemon/mega';
 
-export function fitDuelLevel(pokemon: PokemonCatalogEntry, ivs: ExactSimulationBuild['ivs'], cpCap: number) {
-  let level = Math.min(50, pokemon.levelCap);
+export function fitDuelLevel(pokemon: PokemonCatalogEntry, ivs: ExactSimulationBuild['ivs'], cpCap: number, megaLevel?: MegaLevel) {
+  let level = megaBattleLevelCap(pokemon, megaLevel);
   while (level > pokemon.levelFloor && calculateCombatPower(pokemon.baseStats, ivs, level) > cpCap) level -= 0.5;
   return level;
 }
@@ -17,15 +18,22 @@ export function defaultDuelBuild(pokemon: PokemonCatalogEntry, cpCap: number): E
   const level = fitDuelLevel(pokemon, ivs, cpCap);
   return { speciesId: pokemon.speciesId, speciesName: pokemon.speciesName, ivs, level,
     cp: calculateCombatPower(pokemon.baseStats, ivs, level), fastMoveId,
+    megaLevel: defaultMegaLevel(pokemon),
+    extraChargedMoveId: pokemon.extraChargedMoves?.find(move => recommended.includes(move.id))?.id,
     chargedMoveIds: charged[1] ? [charged[0]!.id, charged[1].id] : [charged[0]?.id ?? ''],
     isShadow: pokemon.isShadow, source: 'meta-default' };
 }
 
-export function duelBuildError(build: ExactSimulationBuild, pokemon: PokemonCatalogEntry, cpCap: number): string | undefined {
-  if (!Number.isFinite(build.level) || build.level < pokemon.levelFloor || build.level > Math.min(50, pokemon.levelCap) || !Number.isInteger(build.level * 2)) return `Choose a half-level from ${pokemon.levelFloor} to ${Math.min(50, pokemon.levelCap)}.`;
+export function duelBuildError(build: ExactSimulationBuild, pokemon: PokemonCatalogEntry, cpCap: number, cup: "all" | "mega" = "mega"): string | undefined {
+  if (cup !== "mega" && isMega(pokemon)) return 'Select a Mega league to use a Mega or Primal form.';
+  const maximumLevel = megaBattleLevelCap(pokemon, build.megaLevel);
+  if (!Number.isFinite(build.level) || build.level < pokemon.levelFloor || build.level > maximumLevel || !Number.isInteger(build.level * 2)) return `Choose a half-level from ${pokemon.levelFloor} to ${maximumLevel}.`;
   if (Object.values(build.ivs).some(iv => !Number.isInteger(iv) || iv < 0 || iv > 15)) return 'IVs must be whole numbers from 0 to 15.';
   if (calculateCombatPower(pokemon.baseStats, build.ivs, build.level) > cpCap) return `This build exceeds ${cpCap} CP. Use Fit to league or lower its level.`;
   if (!pokemon.fastMoves.some(move => move.id === build.fastMoveId) || build.chargedMoveIds.some(id => !pokemon.chargedMoves.some(move => move.id === id))) return 'Choose a legal fast move and at least one charged move.';
   if (new Set(build.chargedMoveIds).size !== build.chargedMoveIds.length) return 'Choose different charged moves.';
+  const megaIssue = validateMegaSettings(pokemon, build.megaLevel, build.extraChargedMoveId)[0];
+  if (megaIssue) return megaIssue;
+  if (build.extraChargedMoveId && build.chargedMoveIds.includes(build.extraChargedMoveId)) return 'Choose different charged moves.';
   return undefined;
 }

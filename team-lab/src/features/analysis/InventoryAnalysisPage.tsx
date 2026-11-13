@@ -1,3 +1,4 @@
+import { formatMegaBuild } from "@/utils/formatters";
 import { useLeague } from "@/features/leagues/leagueStore";
 import { Pencil, Users } from "lucide-react";
 import { Link, useParams } from "react-router";
@@ -166,6 +167,7 @@ function BuildPanel({ build }: { readonly build: AnalyzedPokemonBuild }) {
               <dd>
                 {formatMoveName(build.moves.enteredFastMoveId)} ·{" "}
                 {formatMoveList(build.moves.enteredChargedMoveIds)}
+                {build.megaLevel || build.moves.enteredExtraChargedMoveId ? <small className="mega-build-summary">{formatMegaBuild({ megaLevel: build.megaLevel, extraChargedMoveId: build.moves.enteredExtraChargedMoveId })}</small> : null}
               </dd>
             </div>
             <div>
@@ -230,10 +232,14 @@ function Requirements({
 }) {
   const moveIds = [
     analysis.current.moves.enteredFastMoveId,
+    analysis.current.moves.enteredExtraChargedMoveId,
+    analysis.current.moves.recommendedExtraChargedMoveId,
     ...analysis.current.moves.enteredChargedMoveIds,
     analysis.current.moves.recommendedFastMoveId,
     ...analysis.current.moves.recommendedChargedMoveIds,
     analysis.planned?.moves.enteredFastMoveId,
+    analysis.planned?.moves.enteredExtraChargedMoveId,
+    analysis.planned?.moves.recommendedExtraChargedMoveId,
     ...(analysis.planned?.moves.enteredChargedMoveIds ?? []),
     analysis.planned?.moves.recommendedFastMoveId,
     ...(analysis.planned?.moves.recommendedChargedMoveIds ?? []),

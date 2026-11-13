@@ -37,8 +37,10 @@ chat transcripts.
 TeamLab supports six open/Mega formats with shared inventory, current/planned
 build analysis, TeamLab CSV import, saved-team matrices and what-if changes,
 configurable battle replay, full-inventory or anchored recommendations,
-recommendation history, and roster update review. Current persistence uses
-IndexedDB version four and full-data backup envelope version three; older
+recommendation history, roster update review, and Mega-level/separate extra-attack
+settings. Current persistence uses
+IndexedDB version five, inventory/team records version two, and full-data backup
+envelope version four; older
 phase validation counts and schema milestones describe their original slices.
 
 For maintenance, follow the [complete upstream refresh runbook](../PVPOKE-DATA.md).
@@ -195,7 +197,8 @@ Implemented:
 - saved-team list and ordered editor
 - create, reopen, reorder, duplicate, repair, and delete workflows
 
-Team backup/restore is delivered through the version-three full-data backup.
+Team backup/restore is delivered through the version-four full-data backup;
+version three originally introduced recommendation history.
 Inventory usage counts remain a separate enhancement.
 
 ### Phase 5 — PvPoke simulation adapter
@@ -336,7 +339,7 @@ Status: **Complete for MVP**
 
 Implemented:
 
-- version-three full-data JSON backup
+- version-four full-data JSON backup
 - inventory, saved teams, and recommendation history in one portable artifact
 - legacy version-one inventory and version-two inventory/team backup import
 - complete inventory, catalog, team-reference, and species-clause inspection
@@ -447,6 +450,13 @@ Roster review, repair actions, and safe team analysis freshness
     ↓ protect portable browser-local state
 Version-three inventory/team/history backups and atomic restore/reset
 ```
+
+## Phase 11 — Super Mega builds (in progress)
+
+See the [phase overview](phase-11-super-mega/README.md),
+[build contracts and migration](phase-11-super-mega/build-contracts-and-migration.md),
+and [engine configuration and parity](phase-11-super-mega/engine-configuration-and-parity.md).
+The [1.4.0 plan](../PLAN-1.4.0.md) tracks the complete release boundary.
 
 The original MVP phases and UI overhaul are delivered, with the post-MVP
 extensions documented above. Limited cups, accounts/cloud synchronization,

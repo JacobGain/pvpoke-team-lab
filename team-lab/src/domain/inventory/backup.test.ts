@@ -46,9 +46,10 @@ describe("inventory backup", () => {
       success: true,
       backup: {
         format: "teamlab-backup",
-        schemaVersion: 1,
+        schemaVersion: 4,
         exportedAt: "2026-07-25T13:00:00.000Z",
         inventory: [record],
+        savedTeams: [], recommendationHistory: [],
       },
     });
   });

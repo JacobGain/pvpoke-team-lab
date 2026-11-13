@@ -2,6 +2,7 @@ import { LEAGUE_IDS } from "@/domain/leagues";
 import { z } from "zod";
 
 import { INVENTORY_RECORD_SCHEMA_VERSION } from "@/domain/schemaVersions";
+import { LEGACY_MEGA_LEVELS } from "./legacyMegaLevels";
 
 export { INVENTORY_RECORD_SCHEMA_VERSION } from "@/domain/schemaVersions";
 
@@ -10,6 +11,7 @@ const speciesIdSchema = z.string().trim().min(1).max(120);
 const moveIdSchema = z.string().trim().min(1).max(120);
 const ivValueSchema = z.number().int().min(0).max(15);
 const cpSchema = z.number().int().min(10).max(10000);
+export const megaLevelSchema = z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]);
 
 export const inventoryIvsSchema = z.object({
   attack: ivValueSchema,
@@ -32,9 +34,11 @@ export const inventoryMovesetSchema = z
   .object({
     fastMoveId: moveIdSchema,
     chargedMoveIds: z.array(moveIdSchema).min(1).max(2),
+    extraChargedMoveId: moveIdSchema.optional(),
   })
   .superRefine((moveset, context) => {
-    if (new Set(moveset.chargedMoveIds).size !== moveset.chargedMoveIds.length) {
+    const allChargedMoves = [...moveset.chargedMoveIds, ...(moveset.extraChargedMoveId ? [moveset.extraChargedMoveId] : [])];
+    if (new Set(allChargedMoves).size !== allChargedMoves.length) {
       context.addIssue({
         code: "custom",
         message: "Charged moves must be unique.",
@@ -44,12 +48,14 @@ export const inventoryMovesetSchema = z
   });
 
 export const inventoryBuildSchema = z.object({
+  megaLevel: megaLevelSchema.optional(),
   cp: cpSchema,
   ivProfile: inventoryIvProfileSchema,
   moveset: inventoryMovesetSchema,
 });
 
 export const plannedInventoryBuildSchema = z.object({
+  megaLevel: megaLevelSchema.optional(),
   targetSpeciesId: speciesIdSchema,
   targetCp: cpSchema.optional(),
   desiredMoveset: inventoryMovesetSchema,
@@ -82,7 +88,7 @@ const plannedInventoryPokemonSchema = z.object({
   plannedBuild: plannedInventoryBuildSchema,
 });
 
-export const inventoryPokemonSchema = z
+const currentInventoryPokemonRecordSchema = z
   .discriminatedUnion("buildStatus", [
     currentInventoryPokemonSchema,
     plannedInventoryPokemonSchema,
@@ -112,6 +118,34 @@ export const inventoryPokemonSchema = z
     }
   });
 
+const legacyInventoryMigrationSchema = z.object({
+    schemaVersion: z.literal(1), speciesId: speciesIdSchema,
+    megaSpeciesId: speciesIdSchema.optional(),
+    currentBuild: z.object({
+      cp: cpSchema, ivProfile: inventoryIvProfileSchema,
+      moveset: z.object({ fastMoveId: moveIdSchema, chargedMoveIds: z.array(moveIdSchema).min(1).max(2) }).strict(),
+    }).strict(),
+    plannedBuild: z.object({
+      targetSpeciesId: speciesIdSchema, targetCp: cpSchema.optional(),
+      desiredMoveset: z.object({ fastMoveId: moveIdSchema, chargedMoveIds: z.array(moveIdSchema).min(1).max(2) }).strict(),
+    }).strict().optional(),
+  }).passthrough();
+
+/** Version-specific reader. Older builds never gain a new attack or changed
+ * CP during migration. Reject new settings mislabeled as the legacy schema. */
+function migrateLegacyInventoryRecord(value: unknown): unknown {
+  if (typeof value !== "object" || value === null || !("schemaVersion" in value) || value.schemaVersion !== 1) return value;
+  const legacy = legacyInventoryMigrationSchema.safeParse(value);
+  if (!legacy.success) return value; // Current parser reports the invalid version/shape.
+  const record = legacy.data;
+  return {
+    ...record, schemaVersion: INVENTORY_RECORD_SCHEMA_VERSION,
+    currentBuild: { ...record.currentBuild, megaLevel: LEGACY_MEGA_LEVELS[record.megaSpeciesId ?? record.speciesId] },
+    ...(record.plannedBuild ? { plannedBuild: { ...record.plannedBuild, megaLevel: LEGACY_MEGA_LEVELS[record.plannedBuild.targetSpeciesId] } } : {}),
+  };
+}
+
+export const inventoryPokemonSchema = z.preprocess(migrateLegacyInventoryRecord, currentInventoryPokemonRecordSchema);
 export const inventoryPokemonArraySchema = z.array(inventoryPokemonSchema);
 
 export type InventoryIvs = z.infer<typeof inventoryIvsSchema>;

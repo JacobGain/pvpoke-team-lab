@@ -30,7 +30,7 @@ export const savedTeamMembersSchema = z
     }
   });
 
-export const savedTeamSchema = z
+const currentSavedTeamSchema = z
   .object({
     schemaVersion: z.literal(SAVED_TEAM_SCHEMA_VERSION),
     teamId: teamIdSchema,
@@ -40,6 +40,7 @@ export const savedTeamSchema = z
     notes: z.string().trim().max(2000),
     lastAnalyzedDataVersion: z.string().trim().min(1).max(200).optional(),
     lastAnalyzedUpstreamCommit: z.string().regex(/^[a-f0-9]{40}$/).optional(),
+    lastAnalyzedBuildFingerprint: z.string().min(1).max(16000).optional(),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
   })
@@ -52,6 +53,13 @@ export const savedTeamSchema = z
       });
     }
   });
+
+export const savedTeamSchema = z.preprocess(value => {
+  if (typeof value === "object" && value !== null && "schemaVersion" in value && value.schemaVersion === 1 && !("lastAnalyzedBuildFingerprint" in value)) {
+    return { ...value, schemaVersion: SAVED_TEAM_SCHEMA_VERSION };
+  }
+  return value;
+}, currentSavedTeamSchema);
 
 export const savedTeamArraySchema = z.array(savedTeamSchema);
 

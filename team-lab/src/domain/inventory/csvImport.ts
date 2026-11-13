@@ -1,5 +1,6 @@
 import { createInventoryPokemon } from "@/domain/inventory/factory";
-import type { InventoryPokemon } from "@/domain/inventory/schemas";
+import { megaLevelSchema, type InventoryPokemon } from "@/domain/inventory/schemas";
+import { defaultMegaLevel } from "@/domain/pokemon/mega";
 import type {
   CatalogMove,
   PokemonCatalog,
@@ -19,6 +20,8 @@ export const INVENTORY_CSV_FIELDS = [
   "chargedMove1",
   "chargedMove2",
   "megaSpecies",
+  "megaLevel",
+  "extraChargedMove",
   "favorite",
   "notes",
 ] as const;
@@ -77,6 +80,8 @@ const EMPTY_COLUMN_MAP: InventoryCsvColumnMap = {
   chargedMove1: null,
   chargedMove2: null,
   megaSpecies: null,
+  megaLevel: null,
+  extraChargedMove: null,
   favorite: null,
   notes: null,
 };
@@ -91,6 +96,8 @@ const FIELD_LABELS: Readonly<Record<InventoryCsvField, string>> = {
   chargedMove1: "Charged move 1",
   chargedMove2: "Charged move 2 (optional)",
   megaSpecies: "Mega species ID (optional)",
+  megaLevel: "Mega level (optional)",
+  extraChargedMove: "Extra charged attack (optional)",
   favorite: "Favorite (optional)",
   notes: "Notes (optional)",
 };
@@ -105,6 +112,8 @@ const HEADER_ALIASES: Readonly<Record<InventoryCsvField, readonly string[]>> = {
   chargedMove1: ["charged_move_1_id"],
   chargedMove2: ["charged_move_2_id"],
   megaSpecies: ["mega_species_id"],
+  megaLevel: ["mega_level"],
+  extraChargedMove: ["extra_charged_move_id", "charged_move_3_id"],
   favorite: ["favorite"],
   notes: ["notes"],
 };
@@ -387,7 +396,7 @@ function findMove(value: string, moves: readonly CatalogMove[], label: string): 
   return matches[0]!.id;
 }
 
-function duplicateKey(record: InventoryPokemon): string {
+function duplicateKey(record: InventoryPokemon, catalog: PokemonCatalog): string {
   const ivs = record.currentBuild.ivProfile.ivs;
   const moves = record.currentBuild.moveset;
   return JSON.stringify([
@@ -397,7 +406,13 @@ function duplicateKey(record: InventoryPokemon): string {
     ivs.defense,
     ivs.hp,
     moves.fastMoveId,
-    [...moves.chargedMoveIds].sort(),
+    moves.chargedMoveIds,
+    record.megaSpeciesId,
+    record.currentBuild.megaLevel ?? (() => {
+      const pokemon = catalog.entries.find(entry => entry.speciesId === (record.megaSpeciesId ?? record.speciesId));
+      return pokemon ? defaultMegaLevel(pokemon) : undefined;
+    })(),
+    moves.extraChargedMoveId,
   ]);
 }
 
@@ -408,7 +423,7 @@ export function previewInventoryCsv(input: {
   readonly existingRecords: readonly InventoryPokemon[];
 }): InventoryCsvPreview {
   const configurationIssues = inventoryCsvConfigurationIssues(input.mapping);
-  const existingKeys = new Set(input.existingRecords.map(duplicateKey));
+  const existingKeys = new Set(input.existingRecords.map(record => duplicateKey(record, input.catalog)));
   const importedKeys = new Set<string>();
 
   const rows = input.document.rows.map((row): InventoryCsvRowPreview => {
@@ -447,6 +462,11 @@ export function previewInventoryCsv(input: {
       const notes = cell(row, input.mapping, "notes");
       if (notes.length > 2000) throw new Error("Notes must be 2000 characters or fewer.");
       const megaSpeciesId = cell(row, input.mapping, "megaSpecies");
+      const megaPokemon = input.catalog.entries.find(entry => entry.speciesId === megaSpeciesId) ?? pokemon;
+      const megaLevelCell = cell(row, input.mapping, "megaLevel");
+      const megaLevel = megaLevelCell ? megaLevelSchema.parse(Number(megaLevelCell)) : defaultMegaLevel(megaPokemon);
+      const extraChargedMoveCell = cell(row, input.mapping, "extraChargedMove");
+      const extraChargedMoveId = extraChargedMoveCell ? findMove(extraChargedMoveCell, megaPokemon.extraChargedMoves ?? [], "extra charged attack") : undefined;
       const favorite = parseFavorite(cell(row, input.mapping, "favorite"));
 
       const record = createInventoryPokemon(
@@ -455,16 +475,17 @@ export function previewInventoryCsv(input: {
           ...(megaSpeciesId ? { megaSpeciesId } : {}),
           buildStatus: "current",
           currentBuild: {
+            megaLevel,
             cp,
             ivProfile: { source: "user-entered", ivs },
-            moveset: { fastMoveId, chargedMoveIds },
+            moveset: { fastMoveId, chargedMoveIds, extraChargedMoveId },
           },
           favorite,
           notes,
         },
         { catalog: input.catalog },
       );
-      const key = duplicateKey(record);
+      const key = duplicateKey(record, input.catalog);
       if (existingKeys.has(key)) {
         return {
           rowNumber: row.rowNumber,
@@ -474,7 +495,7 @@ export function previewInventoryCsv(input: {
           speciesId: pokemon.speciesId,
           cp,
           ivs,
-          moves: [fastMoveId, ...chargedMoveIds],
+          moves: [fastMoveId, ...chargedMoveIds, ...(extraChargedMoveId ? [extraChargedMoveId] : [])],
           record,
         };
       }
@@ -487,7 +508,7 @@ export function previewInventoryCsv(input: {
           speciesId: pokemon.speciesId,
           cp,
           ivs,
-          moves: [fastMoveId, ...chargedMoveIds],
+          moves: [fastMoveId, ...chargedMoveIds, ...(extraChargedMoveId ? [extraChargedMoveId] : [])],
           record,
         };
       }
@@ -500,7 +521,7 @@ export function previewInventoryCsv(input: {
         speciesId: pokemon.speciesId,
         cp,
         ivs,
-        moves: [fastMoveId, ...chargedMoveIds],
+        moves: [fastMoveId, ...chargedMoveIds, ...(extraChargedMoveId ? [extraChargedMoveId] : [])],
         record,
       };
     } catch (error) {
@@ -524,7 +545,7 @@ export function previewInventoryCsv(input: {
 
 export function inventoryCsvTemplate(): string {
   return [
-    "species_id,cp,attack_iv,defense_iv,hp_iv,fast_move_id,charged_move_1_id,charged_move_2_id,mega_species_id,favorite,notes",
+    "species_id,cp,attack_iv,defense_iv,hp_iv,fast_move_id,charged_move_1_id,charged_move_2_id,mega_species_id,mega_level,extra_charged_move_id,favorite,notes",
     "",
   ].join("\r\n");
 }

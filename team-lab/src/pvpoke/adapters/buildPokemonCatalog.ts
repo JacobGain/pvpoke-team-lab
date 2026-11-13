@@ -64,6 +64,7 @@ function createMove(
     turns: move.turns ?? Math.max(move.cooldown / 500, 1),
     isLegacy: pokemon.legacyMoves?.includes(move.moveId) ?? false,
     isElite: pokemon.eliteMoves?.includes(move.moveId) ?? false,
+    isMegaMove: move.isMegaMove ?? false,
   });
 }
 
@@ -74,7 +75,7 @@ function createDefaultIvs(
   // Match Pokemon.js gamemaster defaults for the uncapped league.
   if (cpCap === 10000) {
     return Object.freeze({
-      level: Math.min(pokemon.levelCap ?? 50, 50),
+      level: pokemon.tags?.includes("supermega") ? 52 : Math.min(pokemon.levelCap ?? 50, 50),
       attack: 15,
       defense: 15,
       hp: 15,
@@ -119,6 +120,9 @@ function createRanking(
               }),
             ),
           ),
+          extraChargedMoves: Object.freeze((ranking.moves.extraChargedMoves ?? []).map(move => Object.freeze({
+            moveId: move.moveId, uses: move.uses ?? undefined,
+          }))),
           chargedMoves: Object.freeze(
             ranking.moves.chargedMoves.map((move) =>
               Object.freeze({
@@ -256,6 +260,14 @@ export function buildPokemonCatalog(
     });
 
     const rankingData = rankingMap.get(pokemon.speciesId);
+    const extraChargedMoves = (pokemon.extraChargedMoves ?? []).flatMap(moveId => {
+      const move = moveMap.get(moveId);
+      if (!move) {
+        danglingPokemonMoveIds.add(moveId);
+        return [];
+      }
+      return [createMove(move, "charged", pokemon)];
+    });
     const tags = Object.freeze([...(pokemon.tags ?? [])]);
     const specialChargedMoveIds = [
       ...(tags.includes("shadoweligible") ? ["RETURN"] : []),
@@ -296,6 +308,7 @@ export function buildPokemonCatalog(
       evolutionIds: Object.freeze([...(pokemon.family?.evolutions ?? [])]),
       fastMoves: Object.freeze(fastMoves),
       chargedMoves: Object.freeze(chargedMoves),
+      extraChargedMoves: Object.freeze(extraChargedMoves),
       defaultLeagueIvs: createDefaultIvs(pokemon, cpCap),
       defaultIvsByCp: Object.freeze({
         1500: createDefaultIvs(pokemon, 1500),

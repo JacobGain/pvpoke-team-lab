@@ -3,6 +3,7 @@ import {
   leagueForCatalog,
   type BaseLeagueId,
 } from "@/domain/leagues";
+import { defaultMegaLevel } from "@/domain/pokemon/mega";
 import type { InventoryPokemon } from "@/domain/inventory/schemas";
 import {
   calculateCombatPower,
@@ -43,10 +44,20 @@ export function projectInventoryForCatalog(
     (entry) => entry.speciesId === record.speciesId,
   );
   if (!base) return undefined;
+  const selectedSpecies = record.buildStatus === "planned" ? record.plannedBuild.targetSpeciesId : record.speciesId;
+  if (league.cup !== "mega" && catalog.entries.find(entry => entry.speciesId === selectedSpecies)?.tags.includes("mega")) return undefined;
   let projected = record;
+  // The stored extra attack belongs to the selected Mega form, not its base.
+  // Project a normal-league build without changing the owned record.
+  if (league.cup !== "mega" && record.megaSpeciesId && !base.tags.includes("mega")) {
+    projected = { ...record, currentBuild: { ...record.currentBuild, moveset: { ...record.currentBuild.moveset } } };
+    delete projected.currentBuild.megaLevel;
+    delete projected.currentBuild.moveset.extraChargedMoveId;
+  }
   if (
     league.cup === "mega" &&
     record.megaSpeciesId &&
+    !base.tags.includes("mega") &&
     record.buildStatus === "current"
   ) {
     const mega = megaFormsForSpecies(record.speciesId, catalog).find(
@@ -58,13 +69,16 @@ export function projectInventoryForCatalog(
       record.currentBuild.ivProfile.ivs,
       record.currentBuild.cp,
     ).matches;
+    const megaLevel = record.currentBuild.megaLevel ?? defaultMegaLevel(mega);
+    const bonusLevels = megaLevel === 4 ? 2 : 0;
+    const maximumBattleLevel = megaLevel === 4 ? 52 : Math.min(mega.levelCap + 1, 51);
     const megaCpOptions = [
       ...new Set(
         levels.map((match) =>
           calculateCombatPower(
             mega.baseStats,
             record.currentBuild.ivProfile.ivs,
-            match.level,
+            Math.min(match.level + bonusLevels, maximumBattleLevel),
           ),
         ),
       ),
@@ -81,9 +95,9 @@ export function projectInventoryForCatalog(
       projected = {
         ...record,
         speciesId: mega.speciesId,
-        currentBuild: { ...record.currentBuild, cp: megaCp },
+        currentBuild: { ...record.currentBuild, cp: megaCp, megaLevel },
       };
-    }
+    } else return undefined;
   }
   const selectedCp =
     projected.buildStatus === "planned"

@@ -18,6 +18,8 @@ import {
 import { PageHeader } from "@/components/PageHeader";
 import { PokemonCombobox } from "@/components/PokemonCombobox";
 import { PokemonSprite } from "@/components/PokemonSprite";
+import { MegaBuildFields, type MegaBuildSettings } from "@/components/MegaBuildFields";
+import { defaultMegaLevel } from "@/domain/pokemon/mega";
 import {
   createInventoryPokemon,
   updateInventoryPokemon as buildUpdatedInventoryPokemon,
@@ -64,8 +66,6 @@ function getAvailablePokemon(
     .filter(
       (pokemon) =>
         pokemon.isReleased &&
-        !pokemon.speciesId.includes("_mega") &&
-        !pokemon.speciesId.endsWith("_primal") &&
         pokemon.fastMoves.length > 0 &&
         pokemon.chargedMoves.length > 0,
     )
@@ -126,6 +126,10 @@ function InventoryFormFields({
   const initialDefaultMoves = getDefaultMoves(initialPokemon);
   const [speciesId, setSpeciesId] = useState(initialPokemon.speciesId);
   const [megaSpeciesId, setMegaSpeciesId] = useState(sourceRecord?.megaSpeciesId ?? "");
+  const [megaSettings, setMegaSettings] = useState<MegaBuildSettings>({
+    megaLevel: initialBuild?.megaLevel,
+    extraChargedMoveId: initialBuild?.moveset.extraChargedMoveId,
+  });
   const [buildStatus, setBuildStatus] = useState<"current" | "planned">(
     sourceRecord?.buildStatus ?? "current",
   );
@@ -157,6 +161,10 @@ function InventoryFormFields({
     sourceRecord?.buildStatus === "planned"
       ? sourceRecord.plannedBuild
       : undefined;
+  const [desiredMegaSettings, setDesiredMegaSettings] = useState<MegaBuildSettings>({
+    megaLevel: existingPlan?.megaLevel,
+    extraChargedMoveId: existingPlan?.desiredMoveset.extraChargedMoveId,
+  });
   const [targetSpeciesId, setTargetSpeciesId] = useState(
     existingPlan?.targetSpeciesId ?? initialPokemon.speciesId,
   );
@@ -194,8 +202,10 @@ function InventoryFormFields({
     catalog.entries.find((pokemon) => pokemon.speciesId === speciesId) ??
     initialPokemon;
   const megaForms = megaFormsForSpecies(selectedPokemon.speciesId, catalog);
+  const selectedMega = megaForms.find(form => form.speciesId === megaSpeciesId) ?? selectedPokemon;
   const targetOptions = [
     selectedPokemon,
+    ...megaForms,
     ...selectedPokemon.evolutionIds.flatMap((evolutionId) => {
       const evolution = catalog.entries.find(
         (pokemon) => pokemon.speciesId === evolutionId,
@@ -217,7 +227,7 @@ function InventoryFormFields({
     Number.isInteger(Number(cp)) &&
     Number(cp) >= 10 &&
     Number(cp) <= 10000
-      ? inferCombatPowerLevel(selectedPokemon, effectiveIvs, Number(cp))
+      ? inferCombatPowerLevel(selectedPokemon, effectiveIvs, Number(cp), megaSettings.megaLevel)
       : undefined;
 
   function resetMoves(pokemon: PokemonCatalogEntry) {
@@ -225,6 +235,7 @@ function InventoryFormFields({
     setFastMoveId(defaults.fastMoveId);
     setChargedMoveOne(defaults.chargedMoveOne);
     setChargedMoveTwo(defaults.chargedMoveTwo);
+    setMegaSettings({ megaLevel: defaultMegaLevel(pokemon) });
   }
 
   function resetTarget(pokemon: PokemonCatalogEntry) {
@@ -234,6 +245,7 @@ function InventoryFormFields({
     setDesiredChargedMoveOne(defaults.chargedMoveOne);
     setDesiredChargedMoveTwo(defaults.chargedMoveTwo);
     setTargetCp("");
+    setDesiredMegaSettings({ megaLevel: defaultMegaLevel(pokemon) });
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -251,6 +263,7 @@ function InventoryFormFields({
         (moveId) => moveId !== "",
       );
       const currentBuild = {
+        megaLevel: megaSettings.megaLevel ?? defaultMegaLevel(selectedMega),
         cp: Number(cp),
         ivProfile:
           ivSource === "assumed-rank-1"
@@ -266,6 +279,7 @@ function InventoryFormFields({
         moveset: {
           fastMoveId,
           chargedMoveIds,
+          extraChargedMoveId: megaSettings.extraChargedMoveId,
         },
       };
       const commonInput = {
@@ -281,9 +295,11 @@ function InventoryFormFields({
               ...commonInput,
               buildStatus,
               plannedBuild: {
+                megaLevel: desiredMegaSettings.megaLevel ?? defaultMegaLevel(selectedTarget),
                 targetSpeciesId,
                 targetCp: targetCp === "" ? undefined : Number(targetCp),
                 desiredMoveset: {
+                  extraChargedMoveId: desiredMegaSettings.extraChargedMoveId,
                   fastMoveId: desiredFastMoveId,
                   chargedMoveIds: [
                     desiredChargedMoveOne,
@@ -458,19 +474,26 @@ function InventoryFormFields({
                 <input
                   type="checkbox"
                   checked={megaSpeciesId !== ""}
-                  onChange={(event) => setMegaSpeciesId(event.target.checked ? megaForms[0]!.speciesId : "")}
+                  onChange={(event) => {
+                    const mega = event.target.checked ? megaForms[0] : undefined;
+                    setMegaSpeciesId(mega?.speciesId ?? "");
+                    setMegaSettings({ megaLevel: mega ? defaultMegaLevel(mega) : undefined });
+                  }}
                 />
                 Mega evolve this Pokémon in Mega leagues
               </label>
               {megaSpeciesId && megaForms.length > 1 ? (
                 <label className="form-field">
                   <span>Mega form</span>
-                  <select value={megaSpeciesId} onChange={(event) => setMegaSpeciesId(event.target.value)}>
+                  <select value={megaSpeciesId} onChange={(event) => {
+                    setMegaSpeciesId(event.target.value);
+                    setMegaSettings({ megaLevel: defaultMegaLevel(megaForms.find(form => form.speciesId === event.target.value)!) });
+                  }}>
                     {megaForms.map((form) => <option key={form.speciesId} value={form.speciesId}>{form.speciesName}</option>)}
                   </select>
                 </label>
               ) : null}
-              {megaSpeciesId ? <small>The Mega form uses this Pokémon’s IVs and level. Its CP determines which Mega leagues it can enter.</small> : null}
+              {megaSpeciesId ? <small>The Mega form uses this Pokémon’s IVs. Mega level 4 adds two effective battle levels, capped at 52. Current CP below remains the owned base Pokémon’s CP.</small> : null}
             </div>
           ) : null}
 
@@ -618,6 +641,7 @@ function InventoryFormFields({
                 ))}
             </select>
           </label>
+          <MegaBuildFields pokemon={selectedMega} value={megaSettings} onChange={setMegaSettings} label="Current" />
             </>
           ) : (
             <p className="form-helper form-field--wide">
@@ -746,6 +770,7 @@ function InventoryFormFields({
                   ))}
               </select>
             </label>
+            <MegaBuildFields pokemon={selectedTarget} value={desiredMegaSettings} onChange={setDesiredMegaSettings} label="Desired" />
           </div>
         ) : null}
       </section>
@@ -787,7 +812,7 @@ function InventoryFormFields({
               <dd>
                 {formatMoveName(fastMoveId)} ·{" "}
                 {formatMoveList(
-                  [chargedMoveOne, chargedMoveTwo].filter(Boolean),
+                  [chargedMoveOne, chargedMoveTwo, megaSettings.extraChargedMoveId ?? ""].filter(Boolean),
                 )}
               </dd>
             </div>
@@ -796,6 +821,8 @@ function InventoryFormFields({
               <dd>{buildStatus === "current" ? "Ready now" : "Planned build"}</dd>
             </div>
             {megaSpeciesId ? <div><dt>Mega form</dt><dd>{megaForms.find((form) => form.speciesId === megaSpeciesId)?.speciesName}</dd></div> : null}
+            {defaultMegaLevel(selectedMega) ? <div><dt>Mega level</dt><dd>{megaSettings.megaLevel ?? defaultMegaLevel(selectedMega)}</dd></div> : null}
+            {buildStatus === "planned" && defaultMegaLevel(selectedTarget) ? <div><dt>Planned Mega build</dt><dd>Mega level {desiredMegaSettings.megaLevel ?? defaultMegaLevel(selectedTarget)} · {desiredMegaSettings.extraChargedMoveId ? formatMoveName(desiredMegaSettings.extraChargedMoveId) : "No extra attack"}</dd></div> : null}
           </dl>
         </div>
       </section>

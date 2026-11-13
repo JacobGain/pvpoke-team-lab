@@ -6,10 +6,13 @@
 
 ## Summary
 
-TeamLab inventory records represent unique owned specimens. Version-one
+TeamLab inventory records represent unique owned specimens. Version-two
 records are runtime-validated discriminated unions for current and planned
 builds. They reference the catalog by stable IDs and contain only user-owned
 state and persistence metadata.
+
+Version-one records are normalized without changing entered CP, IVs, attacks,
+IDs, timestamps, or references. See [phase 11 migration decisions](../phase-11-super-mega/build-contracts-and-migration.md).
 
 ## Problem being solved
 
@@ -24,21 +27,24 @@ catalog lookup, and future simulation adapters.
 ## Record shape
 
 ```text
-InventoryPokemon (schemaVersion: 1)
+InventoryPokemon (schemaVersion: 2)
 ├── inventoryId
 ├── buildStatus: current | planned
 ├── speciesId
 ├── currentBuild
 │   ├── cp
+│   ├── megaLevel? (1–4, for the selected Mega form)
 │   ├── ivProfile
 │   │   ├── source: user-entered | assumed-rank-1
 │   │   └── ivs: attack, defense, hp
 │   └── moveset
 │       ├── fastMoveId
-│       └── chargedMoveIds (one or two, unique)
+│       ├── chargedMoveIds (one or two ordinary attacks, unique)
+│       └── extraChargedMoveId? (separate Mega attack pool)
 ├── plannedBuild? (required only when planned)
 │   ├── targetSpeciesId
 │   ├── targetCp?
+│   ├── megaLevel? (independent planned setting)
 │   └── desiredMoveset
 ├── favorite
 ├── notes

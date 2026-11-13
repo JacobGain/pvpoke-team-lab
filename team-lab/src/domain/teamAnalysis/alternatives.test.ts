@@ -83,7 +83,7 @@ function inventoryRecord(
   buildStatus: "current" | "planned",
 ): InventoryPokemon {
   const base = {
-    schemaVersion: 1 as const,
+    schemaVersion: 2 as const,
     inventoryId,
     favorite: buildStatus === "planned",
     notes: "",
