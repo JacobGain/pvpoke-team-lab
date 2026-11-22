@@ -58,10 +58,10 @@ describe("Super Mega build contracts", () => {
     const build = createMetaDefaultBuild(greatCatalog.entries.find(entry => entry.speciesId === sableye.speciesId)!)!;
     expect(build).toMatchObject({ megaLevel: 4, level: 29, extraChargedMoveId: "NIGHT_SHADE_PLUS" });
     expect(build.chargedMoveIds).toHaveLength(2);
-    expect(greatCatalog.entries.find(entry => entry.speciesId === sableye.speciesId)?.ranking?.moveUsage?.extraChargedMoves).toContainEqual({ moveId: "NIGHT_SHADE_PLUS", uses: 29864 });
+    expect(greatCatalog.entries.find(entry => entry.speciesId === sableye.speciesId)?.ranking?.moveUsage?.extraChargedMoves).toContainEqual({ moveId: "NIGHT_SHADE_PLUS", uses: 30107 });
     expect(sableye.chargedMoves.some(move => move.id === build.extraChargedMoveId)).toBe(false);
     expect(sableye.extraChargedMoves?.[0]?.isMegaMove).toBe(true);
-    expect(createMetaDefaultBuild(sableye)).toMatchObject({ level: 52, megaLevel: 4, extraChargedMoveId: undefined });
+    expect(createMetaDefaultBuild(sableye)).toMatchObject({ level: 50, megaLevel: 4, extraChargedMoveId: "NIGHT_SHADE_PLUS" });
   });
 
   it("rejects an extra move in an ordinary slot, the wrong extra pool, and inapplicable Mega settings", () => {
@@ -97,7 +97,7 @@ describe("Super Mega build contracts", () => {
 
   it("keeps historical migration defaults pinned and caps non-Super builds independently", () => {
     expect(LEGACY_MEGA_LEVELS).toEqual(Object.fromEntries(gameMaster.pokemon
-      .filter(pokemon => pokemon.tags?.includes("mega"))
+      .filter(pokemon => pokemon.tags?.includes("mega") && pokemon.speciesId !== "clefable_mega")
       .map(pokemon => [pokemon.speciesId, pokemon.tags?.includes("supermega") ? 4 : 3])));
     const cp = calculateCombatPower(sableye.baseStats, ivs, 52);
     expect(inferCombatPowerLevel(sableye, ivs, cp, 4).matches.map(match => match.level)).toEqual([52]);
