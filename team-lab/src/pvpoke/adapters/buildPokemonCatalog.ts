@@ -75,7 +75,7 @@ function createDefaultIvs(
   // Match Pokemon.js gamemaster defaults for the uncapped league.
   if (cpCap === 10000) {
     return Object.freeze({
-      level: pokemon.tags?.includes("supermega") ? 52 : Math.min(pokemon.levelCap ?? 50, 50),
+      level: Math.min(pokemon.levelCap ?? 50, 50),
       attack: 15,
       defense: 15,
       hp: 15,

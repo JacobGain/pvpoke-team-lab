@@ -45,8 +45,7 @@ export function configurePvpokePokemon(
   checkMove(pokemon.fastMovePool, build.fastMoveId, "fast attack");
   for (const id of build.chargedMoveIds) checkMove(pokemon.chargedMovePool, id, "ordinary charged attack");
   if (build.extraChargedMoveId) checkMove(pokemon.extraChargedMovePool, build.extraChargedMoveId, "extra charged attack");
-  // setMegaLevel may itself change level. Always apply the exact effective
-  // battle level afterwards so the bonus is neither lost nor applied twice.
+  // Apply the exact effective battle level after setting the Mega level.
   if (build.megaLevel !== undefined) pokemon.setMegaLevel(build.megaLevel);
   const megaLevel = build.megaLevel ?? pokemon.megaLevel;
   if (build.level > (megaLevel === 4 && pokemon.tags?.includes("mega") ? 52 : 51)) {

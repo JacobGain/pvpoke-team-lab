@@ -1,8 +1,16 @@
 # PvPoke Asset Maintenance
 
+## TeamLab 1.4.1 refresh
+
+The November 20 pin changes all six overall rankings, the Great League meta
+group, and the Battle and Pokémon engine modules. The engine updates the
+priority of zero-turn swaps after charged attacks and uses level 50 defaults
+in Mega Master League. TeamLab still preserves explicitly configured level 52
+builds. The roster comparison covers November 9 through November 20.
+
 ## TeamLab 1.4.0 compatibility update
 
-The active upstream pin and the ten bundled engine scripts remain unchanged from
+The 1.4.0 upstream pin and the ten bundled engine scripts were unchanged from
 1.3.2. TeamLab now normalizes the separate extra-attack pools and carries Mega
 levels and extra attacks through builds, default targets, simulations, and replay.
 The previous two-slot/no-selector limitation applies to historical 1.3.2, not
@@ -48,9 +56,9 @@ three supported open leagues and their Mega variants.
 
 The active season is **Season 28 — Twilight Trails**. `src/pvpoke/season.ts`
 sets the active branch to `master` and the reviewed source revision to
-`a9dfd500421cacf2842d54d8adcb15830c1eef2b` (Game Master dated November 9, 2026).
+`a8c817915e2978b433a38317b93dce267b64bde7` (Game Master dated November 20, 2026).
 `UPSTREAM_COMPARISON_COMMIT` is the outgoing revision,
-`d98f52174e01f8f67414bc6973599788d098c10e` (October 26, 2026).
+`a9dfd500421cacf2842d54d8adcb15830c1eef2b` (November 9, 2026).
 
 These pins have different jobs: the active revision supplies runtime assets;
 the outgoing revision supplies the baseline for roster update comparisons.
@@ -73,7 +81,7 @@ root, replacing the sample version and branch name with the next release:
 ```bash
 git switch staging
 git pull --ff-only origin staging
-git switch -c 1.4.0/upstream-data-refresh
+git switch -c 1.4.1/upstream-data-refresh
 git fetch upstream master
 git rev-parse upstream/master
 git show HEAD:team-lab/src/pvpoke/season.ts

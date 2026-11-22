@@ -1902,6 +1902,11 @@ export const pokemonSpriteManifest: Readonly<
     "pokeApiId": 706,
     "match": "exact"
   },
+  "goodra_hisuian": {
+    "path": "/assets/pokemon/10242.webp",
+    "pokeApiId": 10242,
+    "match": "exact"
+  },
   "goomy": {
     "path": "/assets/pokemon/704.webp",
     "pokeApiId": 704,
@@ -4490,6 +4495,11 @@ export const pokemonSpriteManifest: Readonly<
   "sliggoo": {
     "path": "/assets/pokemon/705.webp",
     "pokeApiId": 705,
+    "match": "exact"
+  },
+  "sliggoo_hisuian": {
+    "path": "/assets/pokemon/10241.webp",
+    "pokeApiId": 10241,
     "match": "exact"
   },
   "slowbro": {

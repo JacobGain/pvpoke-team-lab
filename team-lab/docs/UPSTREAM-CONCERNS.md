@@ -2,11 +2,10 @@
 
 ## Minior Core → Meteor form-level decrement
 
-Status: reproducible in the current pin; retained as a documented upstream
-follow-up for 1.4.0. No vendor patch or upstream report has been published by
-this change. This issue is independent of Mega-level and extra-attack support.
+The fixed-input reproducer still observes the whole-level decrement in
+TeamLab 1.4.1, with PvPoke pinned at
+`a8c817915e2978b433a38317b93dce267b64bde7`.
 
-Pin: `a9dfd500421cacf2842d54d8adcb15830c1eef2b`.
 Source: `public/vendor/pvpoke/js/pokemon/Pokemon.js`, `getFormStats`, at the
 form-level reduction loop. The condition checks
 `this.activeFormId == "minior_core" || this.decrementer == "minior_meteor"`.
