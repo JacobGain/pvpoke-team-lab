@@ -1,7 +1,7 @@
 {
   "fixtureVersion": 1,
   "provenance": {
-    "upstreamCommit": "a9dfd500421cacf2842d54d8adcb15830c1eef2b",
+    "upstreamCommit": "a8c817915e2978b433a38317b93dce267b64bde7",
     "scripts": [
       {
         "path": "js/battle/DamageCalculator.js",
@@ -25,7 +25,7 @@
       },
       {
         "path": "js/battle/Battle.js",
-        "sha256": "65765dc0214710f6587b4e5d5a07a7bf8d2639090be6a5a59270650d6d5225b4"
+        "sha256": "93d7315b6f85294db87f23f6486ff14e1e65a39f3cd11f3875075b4c29db9a89"
       },
       {
         "path": "js/GameMaster.js",
@@ -33,14 +33,14 @@
       },
       {
         "path": "js/pokemon/Pokemon.js",
-        "sha256": "10893308f8e8b408d396d19e541d7482c9657dd9c07fd6c8c9bf8f783669c47d"
+        "sha256": "a3646035edfe30e8136e8121ed3981aec2bcf094dca582354234b79eca34321e"
       },
       {
         "path": "js/battle/rankers/TeamRanker.js",
         "sha256": "e5e7b41014a1db8e46bebd0ab52f406670904f6d0c5495a11229dfed99eac42e"
       }
     ],
-    "gameMasterSha256": "15c0b4698744654a5ca86ad2a997ad087d0aeb5215e97a9a07b52aade5b53f5e"
+    "gameMasterSha256": "3457459b4431a712050bb4f7b93955075cbdc2578270d30f1c84f299ac4a1d93"
   },
   "fixtures": [
     {
@@ -98,7 +98,7 @@
             "shields": 1
           }
         ],
-        "dataVersion": "2026-11-09 18:40:51"
+        "dataVersion": "2026-11-20 17:36:49"
       },
       "expected": {
         "winner": 1,
@@ -183,7 +183,7 @@
             "shields": 1
           }
         ],
-        "dataVersion": "2026-11-09 18:40:51"
+        "dataVersion": "2026-11-20 17:36:49"
       },
       "expected": {
         "winner": 1,
@@ -268,7 +268,7 @@
             "shields": 1
           }
         ],
-        "dataVersion": "2026-11-09 18:40:51"
+        "dataVersion": "2026-11-20 17:36:49"
       },
       "expected": {
         "winner": 1,
@@ -353,7 +353,7 @@
             "shields": 1
           }
         ],
-        "dataVersion": "2026-11-09 18:40:51"
+        "dataVersion": "2026-11-20 17:36:49"
       },
       "expected": {
         "winner": 1,
@@ -438,7 +438,7 @@
             "shields": 1
           }
         ],
-        "dataVersion": "2026-11-09 18:40:51"
+        "dataVersion": "2026-11-20 17:36:49"
       },
       "expected": {
         "winner": 1,
@@ -523,7 +523,7 @@
             "shields": 1
           }
         ],
-        "dataVersion": "2026-11-09 18:40:51"
+        "dataVersion": "2026-11-20 17:36:49"
       },
       "expected": {
         "winner": 1,
@@ -608,7 +608,7 @@
             "shields": 1
           }
         ],
-        "dataVersion": "2026-11-09 18:40:51"
+        "dataVersion": "2026-11-20 17:36:49"
       },
       "expected": {
         "winner": 1,
@@ -693,7 +693,7 @@
             "shields": 1
           }
         ],
-        "dataVersion": "2026-11-09 18:40:51"
+        "dataVersion": "2026-11-20 17:36:49"
       },
       "expected": {
         "winner": 1,
@@ -748,8 +748,9 @@
               "fastMoveId": "SHADOW_CLAW",
               "chargedMoveIds": [
                 "FOUL_PLAY",
-                "SHADOW_SNEAK"
+                "POWER_GEM"
               ],
+              "extraChargedMoveId": "NIGHT_SHADE_PLUS",
               "isShadow": false,
               "source": "meta-default"
             },
@@ -777,7 +778,7 @@
             "shields": 1
           }
         ],
-        "dataVersion": "2026-11-09 18:40:51"
+        "dataVersion": "2026-11-20 17:36:49"
       },
       "expected": {
         "winner": 0,
@@ -832,8 +833,9 @@
               "fastMoveId": "SHADOW_CLAW",
               "chargedMoveIds": [
                 "FOUL_PLAY",
-                "SHADOW_SNEAK"
+                "POWER_GEM"
               ],
+              "extraChargedMoveId": "NIGHT_SHADE_PLUS",
               "isShadow": false,
               "source": "meta-default"
             },
@@ -861,7 +863,7 @@
             "shields": 1
           }
         ],
-        "dataVersion": "2026-11-09 18:40:51"
+        "dataVersion": "2026-11-20 17:36:49"
       },
       "expected": {
         "winner": 0,
@@ -916,8 +918,9 @@
               "fastMoveId": "SHADOW_CLAW",
               "chargedMoveIds": [
                 "FOUL_PLAY",
-                "SHADOW_SNEAK"
+                "POWER_GEM"
               ],
+              "extraChargedMoveId": "NIGHT_SHADE_PLUS",
               "isShadow": false,
               "source": "meta-default"
             },
@@ -945,31 +948,31 @@
             "shields": 1
           }
         ],
-        "dataVersion": "2026-11-09 18:40:51"
+        "dataVersion": "2026-11-20 17:36:49"
       },
       "expected": {
         "winner": 0,
         "turnsToWin": [
           0,
-          43
+          46
         ],
         "combatants": [
           {
             "index": 0,
             "speciesId": "sableye_mega",
-            "battleRating": 578,
-            "remainingHp": 20,
+            "battleRating": 562,
+            "remainingHp": 16,
             "maximumHp": 127,
-            "remainingEnergy": 4,
+            "remainingEnergy": 12,
             "remainingShields": 0
           },
           {
             "index": 1,
             "speciesId": "azumarill",
-            "battleRating": 421,
+            "battleRating": 437,
             "remainingHp": 0,
             "maximumHp": 201,
-            "remainingEnergy": 1,
+            "remainingEnergy": 12,
             "remainingShields": 0
           }
         ]
@@ -1000,8 +1003,9 @@
               "fastMoveId": "SHADOW_CLAW",
               "chargedMoveIds": [
                 "FOUL_PLAY",
-                "SHADOW_SNEAK"
+                "POWER_GEM"
               ],
+              "extraChargedMoveId": "NIGHT_SHADE_PLUS",
               "isShadow": false,
               "source": "meta-default"
             },
@@ -1029,7 +1033,7 @@
             "shields": 1
           }
         ],
-        "dataVersion": "2026-11-09 18:40:51"
+        "dataVersion": "2026-11-20 17:36:49"
       },
       "expected": {
         "winner": 0,
@@ -1044,7 +1048,7 @@
             "battleRating": 578,
             "remainingHp": 20,
             "maximumHp": 127,
-            "remainingEnergy": 4,
+            "remainingEnergy": 9,
             "remainingShields": 0
           },
           {
@@ -1114,7 +1118,7 @@
             "shields": 1
           }
         ],
-        "dataVersion": "2026-11-09 18:40:51"
+        "dataVersion": "2026-11-20 17:36:49"
       },
       "expected": {
         "winner": 0,
@@ -1199,7 +1203,7 @@
             "shields": 1
           }
         ],
-        "dataVersion": "2026-11-09 18:40:51"
+        "dataVersion": "2026-11-20 17:36:49"
       },
       "expected": {
         "winner": 0,
@@ -1284,7 +1288,7 @@
             "shields": 1
           }
         ],
-        "dataVersion": "2026-11-09 18:40:51"
+        "dataVersion": "2026-11-20 17:36:49"
       },
       "expected": {
         "winner": 0,
@@ -1369,7 +1373,7 @@
             "shields": 1
           }
         ],
-        "dataVersion": "2026-11-09 18:40:51"
+        "dataVersion": "2026-11-20 17:36:49"
       },
       "expected": {
         "winner": 0,
@@ -1424,8 +1428,9 @@
               "fastMoveId": "SHADOW_CLAW",
               "chargedMoveIds": [
                 "FOUL_PLAY",
-                "SHADOW_SNEAK"
+                "DRAIN_PUNCH"
               ],
+              "extraChargedMoveId": "NIGHT_SHADE_PLUS",
               "isShadow": false,
               "source": "meta-default"
             },
@@ -1453,31 +1458,31 @@
             "shields": 1
           }
         ],
-        "dataVersion": "2026-11-09 18:40:51"
+        "dataVersion": "2026-11-20 17:36:49"
       },
       "expected": {
         "winner": 0,
         "turnsToWin": [
           0,
-          43
+          52
         ],
         "combatants": [
           {
             "index": 0,
             "speciesId": "sableye_mega",
-            "battleRating": 578,
-            "remainingHp": 20,
+            "battleRating": 531,
+            "remainingHp": 8,
             "maximumHp": 127,
-            "remainingEnergy": 4,
+            "remainingEnergy": 3,
             "remainingShields": 0
           },
           {
             "index": 1,
             "speciesId": "azumarill",
-            "battleRating": 421,
+            "battleRating": 468,
             "remainingHp": 0,
             "maximumHp": 201,
-            "remainingEnergy": 1,
+            "remainingEnergy": 34,
             "remainingShields": 0
           }
         ]
@@ -1508,8 +1513,9 @@
               "fastMoveId": "SHADOW_CLAW",
               "chargedMoveIds": [
                 "FOUL_PLAY",
-                "SHADOW_SNEAK"
+                "DRAIN_PUNCH"
               ],
+              "extraChargedMoveId": "NIGHT_SHADE_PLUS",
               "isShadow": false,
               "source": "meta-default"
             },
@@ -1537,31 +1543,31 @@
             "shields": 1
           }
         ],
-        "dataVersion": "2026-11-09 18:40:51"
+        "dataVersion": "2026-11-20 17:36:49"
       },
       "expected": {
         "winner": 0,
         "turnsToWin": [
           0,
-          43
+          52
         ],
         "combatants": [
           {
             "index": 0,
             "speciesId": "sableye_mega",
-            "battleRating": 578,
-            "remainingHp": 20,
+            "battleRating": 531,
+            "remainingHp": 8,
             "maximumHp": 127,
-            "remainingEnergy": 4,
+            "remainingEnergy": 3,
             "remainingShields": 0
           },
           {
             "index": 1,
             "speciesId": "azumarill",
-            "battleRating": 421,
+            "battleRating": 468,
             "remainingHp": 0,
             "maximumHp": 201,
-            "remainingEnergy": 1,
+            "remainingEnergy": 34,
             "remainingShields": 0
           }
         ]
@@ -1592,8 +1598,9 @@
               "fastMoveId": "SHADOW_CLAW",
               "chargedMoveIds": [
                 "FOUL_PLAY",
-                "SHADOW_SNEAK"
+                "DRAIN_PUNCH"
               ],
+              "extraChargedMoveId": "NIGHT_SHADE_PLUS",
               "isShadow": false,
               "source": "meta-default"
             },
@@ -1621,31 +1628,31 @@
             "shields": 1
           }
         ],
-        "dataVersion": "2026-11-09 18:40:51"
+        "dataVersion": "2026-11-20 17:36:49"
       },
       "expected": {
         "winner": 0,
         "turnsToWin": [
           0,
-          43
+          49
         ],
         "combatants": [
           {
             "index": 0,
             "speciesId": "sableye_mega",
-            "battleRating": 578,
-            "remainingHp": 20,
+            "battleRating": 547,
+            "remainingHp": 12,
             "maximumHp": 127,
-            "remainingEnergy": 4,
+            "remainingEnergy": 25,
             "remainingShields": 0
           },
           {
             "index": 1,
             "speciesId": "azumarill",
-            "battleRating": 421,
+            "battleRating": 452,
             "remainingHp": 0,
             "maximumHp": 201,
-            "remainingEnergy": 1,
+            "remainingEnergy": 23,
             "remainingShields": 0
           }
         ]
@@ -1665,8 +1672,8 @@
             "build": {
               "speciesId": "sableye_mega",
               "speciesName": "Sableye (Mega)",
-              "level": 52,
-              "cp": 2248,
+              "level": 50,
+              "cp": 2196,
               "ivs": {
                 "attack": 15,
                 "defense": 15,
@@ -1676,8 +1683,9 @@
               "fastMoveId": "SHADOW_CLAW",
               "chargedMoveIds": [
                 "FOUL_PLAY",
-                "SHADOW_SNEAK"
+                "DRAIN_PUNCH"
               ],
+              "extraChargedMoveId": "NIGHT_SHADE_PLUS",
               "isShadow": false,
               "source": "meta-default"
             },
@@ -1705,7 +1713,7 @@
             "shields": 1
           }
         ],
-        "dataVersion": "2026-11-09 18:40:51"
+        "dataVersion": "2026-11-20 17:36:49"
       },
       "expected": {
         "winner": 0,
@@ -1717,16 +1725,16 @@
           {
             "index": 0,
             "speciesId": "sableye_mega",
-            "battleRating": 585,
-            "remainingHp": 22,
-            "maximumHp": 129,
-            "remainingEnergy": 4,
+            "battleRating": 578,
+            "remainingHp": 20,
+            "maximumHp": 127,
+            "remainingEnergy": 9,
             "remainingShields": 0
           },
           {
             "index": 1,
             "speciesId": "azumarill",
-            "battleRating": 414,
+            "battleRating": 421,
             "remainingHp": 0,
             "maximumHp": 201,
             "remainingEnergy": 1,
@@ -1790,7 +1798,7 @@
             "shields": 1
           }
         ],
-        "dataVersion": "2026-11-09 18:40:51"
+        "dataVersion": "2026-11-20 17:36:49"
       },
       "expected": {
         "winner": 0,
@@ -1875,7 +1883,7 @@
             "shields": 1
           }
         ],
-        "dataVersion": "2026-11-09 18:40:51"
+        "dataVersion": "2026-11-20 17:36:49"
       },
       "expected": {
         "winner": 0,
@@ -1960,7 +1968,7 @@
             "shields": 1
           }
         ],
-        "dataVersion": "2026-11-09 18:40:51"
+        "dataVersion": "2026-11-20 17:36:49"
       },
       "expected": {
         "winner": 0,
@@ -2004,8 +2012,8 @@
             "build": {
               "speciesId": "chandelure_mega",
               "speciesName": "Chandelure (Mega)",
-              "level": 52,
-              "cp": 5132,
+              "level": 50,
+              "cp": 5012,
               "ivs": {
                 "attack": 15,
                 "defense": 15,
@@ -2045,7 +2053,7 @@
             "shields": 1
           }
         ],
-        "dataVersion": "2026-11-09 18:40:51"
+        "dataVersion": "2026-11-20 17:36:49"
       },
       "expected": {
         "winner": 0,
@@ -2057,16 +2065,16 @@
           {
             "index": 0,
             "speciesId": "chandelure_mega",
-            "battleRating": 829,
-            "remainingHp": 95,
-            "maximumHp": 144,
+            "battleRating": 827,
+            "remainingHp": 93,
+            "maximumHp": 142,
             "remainingEnergy": 20,
             "remainingShields": 0
           },
           {
             "index": 1,
             "speciesId": "azumarill",
-            "battleRating": 170,
+            "battleRating": 172,
             "remainingHp": 0,
             "maximumHp": 201,
             "remainingEnergy": 33,

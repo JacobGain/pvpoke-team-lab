@@ -30,7 +30,7 @@ function exact(id: string, level: number, megaLevel?: 1 | 2 | 3 | 4): ExactSimul
 describe("pinned upstream Mega behavior (independent of TeamLab adapters)", () => {
   it("retains the source identity and per-script hashes", () => {
     const { provenance } = createPinnedEngineHarness();
-    expect(provenance.upstreamCommit).toBe("a9dfd500421cacf2842d54d8adcb15830c1eef2b");
+    expect(provenance.upstreamCommit).toBe("a8c817915e2978b433a38317b93dce267b64bde7");
     expect(provenance.scripts).toHaveLength(9);
     expect(provenance.scripts.every(script => /^[a-f0-9]{64}$/.test(script.sha256))).toBe(true);
     const pinned = manifest.files as Record<string, { sha256: string }>;
@@ -58,10 +58,15 @@ describe("pinned upstream Mega behavior (independent of TeamLab adapters)", () =
         pokemon.setMegaLevel(3);
         pokemon.setMegaLevel(4);
         expect(pokemon.megaLevel).toBe(4);
-        if (cp === 10000) expect(pokemon.level).toBe(52);
+        if (cp === 10000) expect(pokemon.level).toBe(50);
         expect(pokemon.getCPMByLevel(52)).toBe(0.850300014019012);
         pokemon.setMegaLevel(2);
-        if (cp === 10000) expect(pokemon.level).toBe(50);
+        if (cp === 10000) {
+          expect(pokemon.level).toBe(50);
+          pokemon.setMegaLevel(4);
+          pokemon.setLevel(52, true);
+          expect(pokemon.level).toBe(52);
+        }
       }
     }
   });

@@ -1,6 +1,6 @@
 # TeamLab Local User Guide
 
-TeamLab 1.4.0 treats **Season 28 — Twilight Trails** as the active season for
+TeamLab 1.4.1 treats **Season 28 — Twilight Trails** as the active season for
 rankings, recommended moves, meta opponents, and simulations. The dashboard
 identifies the active season. Existing inventory and saved teams remain stored;
 re-run analyses to evaluate them against the new season. There is no preview
@@ -19,15 +19,15 @@ leagues; saved teams remain specific to the selected league. The inventory
 defaults to builds best suited to that league. Change **League eligibility** to
 show every eligible build or all owned Pokémon. Older records remain available
 across leagues whenever their CP is legal.
-Ordinary Master League defaults use 15/15/15 IVs at level 50 (or a lower species
-cap). Super Mega defaults use effective battle level 52. Planned builds maximize
+Master League defaults use 15/15/15 IVs at level 50 (or a lower species cap),
+including Super Mega builds. Planned builds maximize
 level with the entered IVs and selected Mega level. Existing support for exact
 ordinary Best Buddy builds remains available; a Super Mega's supported effective
 cap is 52, without an additional level-53 assumption.
 Backups and reset tools cover all formats together; switching leagues does
 not remove any records.
 
-The November 9 data includes Super Mega rankings for Mega Sableye and Mega
+The November 20 data includes Super Mega rankings for Mega Sableye and Mega
 Chandelure. Select Mega levels 1–4 and an optional **extra charged attack** in
 inventory, bulk entry, build planning, and the duel editor. Extra attacks use a
 separate legal move pool; they do not replace either ordinary charged slot.
