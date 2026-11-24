@@ -30,7 +30,7 @@ function exact(id: string, level: number, megaLevel?: 1 | 2 | 3 | 4): ExactSimul
 describe("pinned upstream Mega behavior (independent of TeamLab adapters)", () => {
   it("retains the source identity and per-script hashes", () => {
     const { provenance } = createPinnedEngineHarness();
-    expect(provenance.upstreamCommit).toBe("a8c817915e2978b433a38317b93dce267b64bde7");
+    expect(provenance.upstreamCommit).toBe("797820327642f49deb8e9706492090ccac680bc7");
     expect(provenance.scripts).toHaveLength(9);
     expect(provenance.scripts.every(script => /^[a-f0-9]{64}$/.test(script.sha256))).toBe(true);
     const pinned = manifest.files as Record<string, { sha256: string }>;

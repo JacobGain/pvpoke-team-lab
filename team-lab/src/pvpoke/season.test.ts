@@ -20,7 +20,7 @@ describe("active Season 28 bundle", () => {
   });
   it("identifies the pinned Twilight Trails revision", () => {
     expect(manifest.season).toEqual(ACTIVE_SEASON);
-    expect(gameMaster.timestamp).toBe("2026-11-20 17:36:49");
+    expect(gameMaster.timestamp).toBe("2026-11-24 16:56:51");
     expect(manifest.dataVersion).toBe(gameMaster.timestamp);
   });
 
@@ -74,6 +74,19 @@ describe("active Season 28 bundle", () => {
     expect(gameMaster.moves.find((move) => move.moveId === "NIGHT_SHADE_PLUS")).toBeDefined();
     expect(megaGreat.find((entry) => entry.speciesId === "sableye_mega")?.moveset).toContain("NIGHT_SHADE_PLUS");
     expect(megaGreat.find((entry) => entry.speciesId === "chandelure_mega")?.moveset).toContain("OMINOUS_WIND_PLUS");
+  });
+
+  it("preserves both Mega Clefable corrections in the bundle and roster comparison", () => {
+    expect(gameMaster.pokemon.find((entry) => entry.speciesId === "clefable_mega")).toMatchObject({
+      released: false,
+      types: ["fairy", "flying"],
+      extraChargedMoves: ["MOONBLAST_PLUS"],
+    });
+    expect(gameMaster.moves.find((move) => move.moveId === "MOONBLAST_PLUS")).toMatchObject({ isMegaMove: true });
+    expect(updateReview.species.clefable_mega.details).toEqual([
+      "Typing changed.",
+      "Move stats changed: Moonblast+.",
+    ]);
   });
 
   it("ships the matching rankings for every supported league", () => {
