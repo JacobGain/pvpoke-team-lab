@@ -3,8 +3,8 @@
 ## Minior Core → Meteor form-level decrement
 
 The fixed-input reproducer still observes the whole-level decrement in
-TeamLab 1.4.1, with PvPoke pinned at
-`a8c817915e2978b433a38317b93dce267b64bde7`.
+TeamLab 1.4.2, with PvPoke pinned at
+`797820327642f49deb8e9706492090ccac680bc7`.
 
 Source: `public/vendor/pvpoke/js/pokemon/Pokemon.js`, `getFormStats`, at the
 form-level reduction loop. The condition checks

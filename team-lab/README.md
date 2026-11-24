@@ -121,7 +121,7 @@ for its mapping and review contract.
 
 ## Updating PvPoke data and engine files
 
-TeamLab 1.4.1 uses Season 28, Twilight Trails. Runtime assets come from the
+TeamLab 1.4.2 uses Season 28, Twilight Trails. Runtime assets come from the
 explicit active pin in `src/pvpoke/season.ts`, not automatically from the latest
 fetch or the root `src/` tree. `UPSTREAM_COMPARISON_COMMIT` retains the outgoing
 pin for the roster update review.
@@ -172,6 +172,7 @@ the performance budget.
 ## Documentation
 
 - [Release notes archive and release workflow](docs/RELEASES.md)
+- [1.4.2 release notes](docs/RELEASE-1.4.2.md)
 - [1.4.1 release notes](docs/RELEASE-1.4.1.md)
 - [Super Mega contracts and validation](docs/implementation/phase-11-super-mega/README.md)
 - [Tracked upstream calculation concerns](docs/UPSTREAM-CONCERNS.md)

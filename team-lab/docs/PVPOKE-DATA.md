@@ -1,5 +1,12 @@
 # PvPoke Asset Maintenance
 
+## TeamLab 1.4.2 refresh
+
+The November 24 pin corrects unreleased Mega Clefable's Fairy/Flying typing and
+the Mega move flag on Moonblast+. All six supported rankings, meta groups,
+and ten bundled engine scripts are identical to the November 20 pin.
+The roster comparison covers November 20 through November 24.
+
 ## TeamLab 1.4.1 refresh
 
 The November 20 pin changes all six overall rankings, the Great League meta
@@ -56,9 +63,9 @@ three supported open leagues and their Mega variants.
 
 The active season is **Season 28 — Twilight Trails**. `src/pvpoke/season.ts`
 sets the active branch to `master` and the reviewed source revision to
-`a8c817915e2978b433a38317b93dce267b64bde7` (Game Master dated November 20, 2026).
+`797820327642f49deb8e9706492090ccac680bc7` (Game Master dated November 24, 2026).
 `UPSTREAM_COMPARISON_COMMIT` is the outgoing revision,
-`a9dfd500421cacf2842d54d8adcb15830c1eef2b` (November 9, 2026).
+`a8c817915e2978b433a38317b93dce267b64bde7` (November 20, 2026).
 
 These pins have different jobs: the active revision supplies runtime assets;
 the outgoing revision supplies the baseline for roster update comparisons.
@@ -81,7 +88,7 @@ root, replacing the sample version and branch name with the next release:
 ```bash
 git switch staging
 git pull --ff-only origin staging
-git switch -c 1.4.1/upstream-data-refresh
+git switch -c 1.4.2/upstream-data-refresh
 git fetch upstream master
 git rev-parse upstream/master
 git show HEAD:team-lab/src/pvpoke/season.ts
@@ -176,7 +183,7 @@ compatibility. Check missing catalog references, move legality, league/Mega
 projection, rank entries/exits, dashboard leaders, and comparison dates.
 `src/pvpoke/season.test.ts` contains seasonal expectations. The browser workflow
 also contains deliberate dataset expectations, including the Mega Great target
-count and the Minior roster-review example. Update those fixtures when their
+count and the roster-review comparison window. Update those fixtures when their
 reviewed upstream facts change; keep their behavioral assertions intact.
 
 For a versioned release, run `npm version <next-version> --no-git-tag-version`

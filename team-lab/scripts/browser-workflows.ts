@@ -1239,7 +1239,7 @@ async function assertBuildTarget(
   invariant(
     productionState.dataHealthIndicators === 0 &&
       productionState.diagnosticsLinks === 0 &&
-      productionState.favicon.endsWith("/favicon-48x48.png?v=1.4.1") &&
+      productionState.favicon.endsWith("/favicon-48x48.png?v=1.4.2") &&
       productionState.visibleVersions.includes(`v${release.appVersion ?? ""}`),
     `Production exposed diagnostics navigation: ${JSON.stringify(productionState)}.`,
   );
@@ -3127,14 +3127,14 @@ async function runRosterUpdateWorkflow(browser: BrowserWorkflow, visual: VisualR
       const inventoryRequest = transaction.objectStore('inventory').getAll();
       inventoryRequest.onsuccess = () => {
         const record = inventoryRequest.result.find(item => item.speciesId === 'whiscash');
-        record.sourceDataVersion = '2026-11-09 18:40:51';
+        record.sourceDataVersion = '2026-11-20 17:36:49';
         transaction.objectStore('inventory').put(record);
         result = { recordId: record.inventoryId, moves: JSON.stringify(record.currentBuild.moveset) };
       };
       const teamRequest = transaction.objectStore('savedTeams').getAll();
       teamRequest.onsuccess = () => {
         const team = teamRequest.result.find(item => item.name === 'Update Review Team');
-        team.lastAnalyzedDataVersion = '2026-11-09 18:40:51';
+        team.lastAnalyzedDataVersion = '2026-11-20 17:36:49';
         transaction.objectStore('savedTeams').put(team);
         result = { ...result, teamId: team.teamId };
       };
@@ -3145,8 +3145,8 @@ async function runRosterUpdateWorkflow(browser: BrowserWorkflow, visual: VisualR
   await browser.navigate("/", "Pokémon GO PvP Team Builder for Your Own Roster");
   await browser.waitFor(`document.querySelector('.roster-update-notice a')?.textContent === 'Review roster updates'`, "roster update reminder");
   await browser.navigate("/updates", "What changed for my roster?");
-  await browser.waitFor(`document.querySelector('.roster-review-list')?.textContent?.includes('#398 → #388') && document.body.textContent.includes('Update Review Team')`, "owned ranking changes and stale team");
-  invariant(await browser.evaluate(`document.querySelector('.roster-review-summary')?.textContent?.includes('2026-11-20') && document.querySelector('.roster-review-summary')?.textContent?.includes('2026-11-09')`), "The comparison scope dates are missing.");
+  await browser.waitFor(`[...document.querySelectorAll('.roster-review-card h3')].some(h => h.textContent === 'Update Review Team')`, "stale team in roster review");
+  invariant(await browser.evaluate(`document.querySelector('.roster-review-summary')?.textContent?.includes('2026-11-24') && document.querySelector('.roster-review-summary')?.textContent?.includes('2026-11-20')`), "The comparison scope dates are missing.");
   await visual.capture(browser, "roster-updates-desktop", 1440, 1000);
   await browser.setViewport(320, 900);
   await browser.assertNoHorizontalOverflow("roster update review");
@@ -3171,7 +3171,7 @@ async function runRosterUpdateWorkflow(browser: BrowserWorkflow, visual: VisualR
       transaction.onerror = () => { database.close(); reject(transaction.error); };
     };
   })`);
-  invariant(Boolean(analysisStamp.dataVersion && analysisStamp.dataVersion !== '2026-11-09 18:40:51' && analysisStamp.upstreamCommit), `Analysis freshness was not persisted: ${JSON.stringify(analysisStamp)}; page: ${await browser.evaluate<string>(`document.querySelector('.analysis-notice')?.textContent ?? ''`)}`);
+  invariant(Boolean(analysisStamp.dataVersion && analysisStamp.dataVersion !== '2026-11-20 17:36:49' && analysisStamp.upstreamCommit), `Analysis freshness was not persisted: ${JSON.stringify(analysisStamp)}; page: ${await browser.evaluate<string>(`document.querySelector('.analysis-notice')?.textContent ?? ''`)}`);
   await browser.navigate("/updates", "What changed for my roster?");
   await browser.waitFor(`document.querySelector('.roster-review-summary') && ![...document.querySelectorAll('.roster-review-card h3')].some(h => h.textContent === 'Update Review Team')`, "persisted team analysis freshness");
   await browser.clickButton("Dismiss this update reminder");
@@ -3197,7 +3197,7 @@ async function runRosterUpdateWorkflow(browser: BrowserWorkflow, visual: VisualR
   invariant(moves === seed.moves, "Reviewing updates modified the owned moveset.");
   await browser.navigate("/updates", "What changed for my roster?");
   await browser.waitFor(`document.querySelector('.roster-review-list')?.textContent?.includes('retired_species') && [...document.querySelectorAll('.roster-review-card a')].some(a => a.textContent === 'Repair build')`, "removed species repair action after dismissal");
-  console.log("[browser-workflows] Roster update reminder, owned ranking changes, comparison scope, team freshness, repair actions, dismissal persistence, and mobile layout passed");
+  console.log("[browser-workflows] Roster update reminder, comparison scope, team freshness, repair actions, dismissal persistence, and mobile layout passed");
 }
 
 async function runDuelWorkflow(browser: BrowserWorkflow, buildTarget: BrowserTestTarget): Promise<void> {
@@ -3376,7 +3376,7 @@ async function runReleaseNotesWorkflow(browser: BrowserWorkflow, visual: VisualR
     ...document.querySelectorAll(".release-note__heading h2")
   ].map((heading) => heading.textContent?.trim() ?? "")`);
   invariant(
-    releaseHeadings[0] === "Release v1.4.1" &&
+    releaseHeadings[0] === "Release v1.4.2" &&
       releaseHeadings.at(-1) === "Release v0.0.1" &&
       releaseHeadings.indexOf("Release v0.0.10") <
         releaseHeadings.indexOf("Release v0.0.9"),

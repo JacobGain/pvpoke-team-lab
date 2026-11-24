@@ -26,6 +26,6 @@ describe("tracked upstream Minior form-level concern", () => {
     expect(observed.atk).toBe(core.getCPMByLevel(37.5) * (meteor.attack + 15));
     // This records upstream behavior. It does not endorse the calculation or
     // patch the pinned engine to claim independently verified game mechanics.
-    expect(engine.provenance.upstreamCommit).toBe("a8c817915e2978b433a38317b93dce267b64bde7");
+    expect(engine.provenance.upstreamCommit).toBe("797820327642f49deb8e9706492090ccac680bc7");
   });
 });
